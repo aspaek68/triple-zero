@@ -73,7 +73,7 @@ def search(query: str, limit: int) -> list[str]:
 
 
 def run_learn(url: str, topic: str) -> bool:
-    cmd = [PYTHON, os.path.join(ROOT, "tools", "learn.py"), "--topic", topic, url]
+    cmd = [PYTHON, os.path.join(ROOT, "tools", "learn.py"), "--summarize", "--topic", topic, url]
     try:
         subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=60)
         return True

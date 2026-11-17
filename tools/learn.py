@@ -63,12 +63,33 @@ def summarise(text: str, max_chars: int = 2000) -> str:
     return "\n".join(head) + "\n\n---\n\n" + body + "\n\n[... truncated ...]"
 
 
+def summarize(text: str, topic: str, model: str = "llama3.2") -> str:
+    """Uses local Ollama to condense the text into a concise note. Returns
+    the original text (truncated) if Ollama is unavailable."""
+    try:
+        import requests
+        prompt = ("Summarise the following text about '%s' into a concise, "
+                  "well-structured markdown note (max ~400 words). Keep key "
+                  "facts, APIs, and examples. Text:\n\n%s" % (topic, text[:6000]))
+        r = requests.post("http://localhost:11434/api/generate",
+                          json={"model": model, "prompt": prompt, "stream": False},
+                          timeout=120)
+        r.raise_for_status()
+        out = r.json().get("response", "").strip()
+        if out:
+            return out
+    except Exception as e:
+        print("Summarise skipped (%s)" % e, file=sys.stderr)
+    return summarise(text, 2000)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("source", nargs="?")
     ap.add_argument("--topic", default="")
     ap.add_argument("--file", default="")
     ap.add_argument("--max", type=int, default=2000)
+    ap.add_argument("--summarize", action="store_true", help="Condense with local Ollama")
     args = ap.parse_args()
 
     if args.file:
@@ -90,7 +111,7 @@ def main() -> int:
         h = hashlib.sha1(origin.encode()).hexdigest()[:6]
         out_path = os.path.join(KNOW, "%s-%s.md" % (slug, h))
 
-    body = summarise(text, args.max)
+    body = summarize(text, topic) if args.summarize else summarise(text, args.max)
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.write("# %s\n\n" % topic)
         fh.write("- **Source**: %s\n" % origin)
