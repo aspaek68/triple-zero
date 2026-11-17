@@ -6,3 +6,7 @@ https://docs.godotengine.org/en/stable/tutorials/navigation/index.html
 https://docs.godotengine.org/en/stable/tutorials/physics/physics_introduction.html
 https://docs.godotengine.org/en/stable/tutorials/audio/index.html
 https://docs.godotengine.org/en/stable/tutorials/animation/index.html
+https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html
+https://docs.godotengine.org/en/stable/tutorials/3d/fog.html
+https://docs.godotengine.org/en/stable/tutorials/optimization/index.html
+https://docs.godotengine.org/en/stable/tutorials/rendering/index.html
