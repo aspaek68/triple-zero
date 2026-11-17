@@ -1,0 +1,8 @@
+https://docs.godotengine.org/en/stable/tutorials/3d/particles/index.html
+https://docs.godotengine.org/en/stable/tutorials/shaders/index.html
+https://docs.godotengine.org/en/stable/tutorials/3d/environment_and_post_processing.html
+https://docs.godotengine.org/en/stable/tutorials/performance/index.html
+https://docs.godotengine.org/en/stable/tutorials/navigation/index.html
+https://docs.godotengine.org/en/stable/tutorials/physics/physics_introduction.html
+https://docs.godotengine.org/en/stable/tutorials/audio/index.html
+https://docs.godotengine.org/en/stable/tutorials/animation/index.html
