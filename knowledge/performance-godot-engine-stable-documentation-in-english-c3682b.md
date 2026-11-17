@@ -1,77 +1,59 @@
 # Performance — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/optimization/index.html
-- **Fetched**: 2026-11-17T18:06:25
+- **Fetched**: 2026-11-17T20:44:16
 
-Performance — Godot Engine (stable) documentation in English
-Godot Engine 4.7 documentation in English
-Performance
-Edit on GitHub
-Learn how to contribute!
-Performance
-Introduction
-Godot follows a balanced performance philosophy. In the performance world,
-Rendering large amounts of objects efficiently is easy, but when a
-Configuring the properties of every material for every object that
-In 3D physics, a similar situation happens. The best algorithms to
-And there are many more examples of this! Game engines strive to be
-Godot is not an exception to this. While it is designed to have backends
-With this clear, the aim of this tutorial section is to explain how to get the
-General optimization tips
-Common
-General optimization tips
-Optimization using Servers
-CPU
-CPU optimization
+Performance Optimization in Godot Engine
+=====================================
 
----
+**Introduction**
+---------------
 
-Performance — Godot Engine (stable) documentation in English
-Godot Engine 4.7 documentation in English
-Performance
-Edit on GitHub
-Learn how to contribute!
-Performance
-
-Introduction
-
-Godot follows a balanced performance philosophy. In the performance world,
-there are always tradeoffs, which consist of trading speed for usability
-and flexibility. Some practical examples of this are:
-Rendering large amounts of objects efficiently is easy, but when a
-large scene must be rendered, it can become inefficient. To solve this,
-visibility computation must be added to the rendering. This makes rendering
-less efficient, but at the same time, fewer objects are rendered. Therefore,
-the overall rendering efficiency is improved.
-Configuring the properties of every material for every object that
-needs to be rendered is also slow. To solve this, objects are sorted by
-material to reduce the costs. At the same time, sorting has a cost.
-In 3D physics, a similar situation happens. The best algorithms to
-handle large amounts of physics objects (such as SAP) are slow at
-insertion/removal of objects and raycasting. Algorithms that allow faster
-insertion and removal, as well as raycasting, will not be able to handle as
-many active objects.
-And there are many more examples of this! Game engines strive to be
-general-purpose in nature. Balanced algorithms are always favored over
-algorithms that might be fast in some situations and slow in others, or
-algorithms that are fast but are more difficult to use.
-Godot is not an exception to this. While it is designed to have backends
-swappable for different algorithms, the default backends prioritize balance and
-flexibility over performance.
-With this clear, the aim of this tutorial section is to explain how to get the
-maximum performance out of Godot. While the tutorials can be read in any order,
-it is a good idea to start from
-General optimization tips
-.
-Common
-
-General optimization tips
-Optimization using Servers
-CPU
-
-CPU optimization
-GPU
-
-GPU o
+Godot Engine follows a balanced performance philosophy, prioritizing tradeoffs between speed, usability, and flexibility. This section aims to guide you on how to maximize performance in Godot.
 
-[... truncated ...]
+**General Optimization Tips**
+-----------------------------
+
+*   Start with the [General optimization tips](#general-optimization-tips) section for a comprehensive overview.
+*   Familiarize yourself with optimization using [Servers](#optimization-using-servers) and [MultiMeshes](#optimization-using-multimeshes).
+
+**CPU Optimization**
+------------------
+
+*   [CPU optimization](#cpu-optimization) is crucial for improving performance in Godot.
+*   Use multi-threading to utilize multiple CPU cores, as demonstrated in the [Threads](#threads) section.
+
+**GPU Optimization**
+------------------
+
+*   [GPU optimization](#gpu-optimization) is essential for enhancing graphics performance in Godot.
+*   Reduce stutter from shader (pipeline) compilations to improve overall rendering efficiency.
+
+**Optimizing 3D Performance**
+---------------------------
+
+*   [Optimizing 3D performance](#optimizing-3d-performance) involves several techniques to improve rendering efficiency.
+*   Animating thousands of objects requires careful planning and optimization.
+*   Use thread-safe APIs to ensure safe and efficient multi-threading.
+
+**Optimization using MultiMeshes**
+---------------------------------
+
+*   [Optimization using MultiMeshes](#optimization-using-multimeshes) can significantly improve performance.
+*   Reduce the number of materials and objects in your scene to minimize rendering overhead.
+
+**APIs and Examples**
+---------------------
+
+*   Use the following APIs for multi-threading and thread-safe programming:
+    *   `Thread` API
+    *   `Queue` API
+*   Example use cases:
+    *   Animating thousands of objects using multi-threading
+    *   Optimizing 3D performance using MultiMeshes and GPU optimization
+
+**Additional Resources**
+----------------------
+
+*   Consult the [Godot Engine documentation](https://docs.godotengine.org/en/stable/) for more information on performance optimization.
+*   Explore the [GitHub repository](https://github.com/godotengine/godot) for contributed optimization scripts and examples.
