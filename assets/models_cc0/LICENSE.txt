@@ -1,0 +1,16 @@
+﻿CC0 1.0 Universal (public domain) 3D props.
+
+Source: Poly Haven - https://polyhaven.com
+  barrel     : Barrel_01            https://polyhaven.com/a/Barrel_01
+  crate      : old_military_crate   https://polyhaven.com/a/old_military_crate
+  streetlamp : street_lamp_01       https://polyhaven.com/a/street_lamp_01
+  barrier    : concrete_road_barrier https://polyhaven.com/a/concrete_road_barrier
+  dumpster   : metal_trash_can      https://polyhaven.com/a/metal_trash_can
+  planter    : planter_box_01       https://polyhaven.com/a/planter_box_01
+
+Downloaded as 1k glTF (binary + JPG textures) without altering the geometry.
+Poly Haven releases these under CC0 1.0, so attribution is not required; this
+notice is kept for provenance.
+
+The game scales each prop to its in-game height, drops it on the floor and falls
+back to the procedural .glb props in assets/models/ when this folder is absent.

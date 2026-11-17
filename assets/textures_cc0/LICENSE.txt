@@ -1,0 +1,15 @@
+﻿CC0 1.0 Universal (public domain) texture sets.
+
+Source: ambientCG - https://ambientcg.com
+  concrete : Concrete034  https://ambientcg.com/view?id=Concrete034
+  asphalt  : Asphalt012   https://ambientcg.com/view?id=Asphalt012
+  metal    : Metal032     https://ambientcg.com/view?id=Metal032
+  brick    : Bricks075A   https://ambientcg.com/view?id=Bricks075A
+  ground   : Ground037    https://ambientcg.com/view?id=Ground037
+
+These files were downloaded at 1K JPG and converted to PNG without altering
+their pixels. ambientCG releases them under CC0 1.0, so attribution is not
+required; this notice is kept for provenance.
+
+The game prefers this folder over assets/textures/ when both exist, and falls
+back to the procedural placeholders when it is absent.
