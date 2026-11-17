@@ -1,7 +1,7 @@
 # Physics introduction — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/physics/physics_introduction.html
-- **Fetched**: 2026-11-17T17:41:14
+- **Fetched**: 2026-11-17T18:06:20
 
 Physics introduction — Godot Engine (stable) documentation in English
 Godot Engine 4.7 documentation in English

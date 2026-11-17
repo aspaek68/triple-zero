@@ -1,7 +1,7 @@
 # Particle systems (3D) — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/3d/particles/index.html
-- **Fetched**: 2026-11-17T17:41:09
+- **Fetched**: 2026-11-17T18:06:15
 
 Particle systems (3D) — Godot Engine (stable) documentation in English
 Godot Engine 4.7 documentation in English

@@ -1,7 +1,7 @@
 # Environment and post-processing — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/3d/environment_and_post_processing.html
-- **Fetched**: 2026-11-17T17:41:11
+- **Fetched**: 2026-11-17T18:06:17
 
 Godot Engine 4.7 documentation in English
 Environment and post-processing

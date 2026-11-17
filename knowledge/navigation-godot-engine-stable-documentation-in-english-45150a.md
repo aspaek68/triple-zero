@@ -1,7 +1,7 @@
 # Navigation — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/navigation/index.html
-- **Fetched**: 2026-11-17T17:41:13
+- **Fetched**: 2026-11-17T18:06:19
 
 Navigation — Godot Engine (stable) documentation in English
 Godot Engine 4.7 documentation in English
