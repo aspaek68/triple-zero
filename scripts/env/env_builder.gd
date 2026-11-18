@@ -183,6 +183,15 @@ static func _apply_advanced_lighting(env: Environment) -> void:
 	env.ssil_enabled = true
 	env.ssil_intensity = 0.8
 
+	# Real-time global illumination (SDFGI) for bounced light.
+	env.sdfgi_enabled = true
+	env.sdfgi_use_occlusion = true
+	env.sdfgi_read_sky_light = true
+	env.sdfgi_bounce_feedback = 0.7
+	env.sdfgi_cascades = 4
+	env.sdfgi_min_cell_size = 0.4
+	env.sdfgi_energy = 1.0
+
 	# Screen-space reflections for wet asphalt, glass and metal.
 	env.ssr_enabled = true
 	env.ssr_max_steps = 64
@@ -259,6 +268,11 @@ static func material(color: Color, roughness: float = 0.85, metallic: float = 0.
 	if metal:
 		mat.metallic_texture = metal
 		mat.metallic_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
+	# Clear coat on metal surfaces (car paint / wet metal look).
+	if tex_name == "metal":
+		mat.clearcoat_enabled = true
+		mat.clearcoat = 0.5
+		mat.clearcoat_roughness = 0.08
 	return mat
 
 
