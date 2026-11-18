@@ -437,7 +437,7 @@ func _physics_process(delta: float) -> void:
 	if _boost_cd > 0.0:
 		_boost_cd -= delta
 	if Input.is_action_just_pressed("boost") and _boost_cd <= 0.0 and _boost_left <= 0.0:
-		var duration := BOOST_DURATION * (1.4 if Progress.has_equipment(1, 1) else 1.0)
+		var duration := BOOST_DURATION * (1.4 if Progress.has_equipment(GameState.Mode.DRIVE, 1) else 1.0)
 		_boost_left = duration
 		_boost_cd = BOOST_COOLDOWN
 		Audio.boost_whoosh()
@@ -748,7 +748,7 @@ func _apply_grip() -> void:
 	var wet: float = _weather.wetness() if _weather else 0.0
 	var friction := lerpf(1.6, 0.95, clampf(wet, 0.0, 1.0))
 	# Drive equipment: sport tyres hold the road a little better.
-	if Progress.has_equipment(1, 0):
+	if Progress.has_equipment(GameState.Mode.DRIVE, 0):
 		friction *= 1.15
 	for w in _wheels:
 		(w as VehicleWheel3D).wheel_friction_slip = friction

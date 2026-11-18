@@ -17,7 +17,8 @@ const CHALLENGES: Array = [
 ]
 
 const TIME_LIMIT := 240.0
-## Two equipment slots per act (0 = TPS, 1 = drive, 2 = rail).
+## Two equipment slots per act (0 = TPS, 1 = rail, 2 = drive, matching
+## `GameState.Mode`).
 const EQUIP_SLOTS := 2
 
 var ng_plus_unlocked := false
@@ -155,17 +156,17 @@ func has_equipment(mode: int, slot: int) -> bool:
 
 
 func equipment_description(mode: int, slot: int) -> String:
-	if mode == 0:
+	if mode == GameState.Mode.TPS:
 		if slot == 0:
 			return "Déplacement 20 % plus rapide"
 		return "Détection ennemie réduite de 30 %"
-	if mode == 1:
+	if mode == GameState.Mode.RAIL:
 		if slot == 0:
-			return "Adhérence routière +15 %"
-		return "Boost prolongé de 40 %"
+			return "Deux projectiles en jeu"
+		return "Assistance de visée 40 %"
 	if slot == 0:
-		return "Deux projectiles en jeu"
-	return "Assistance de visée 40 %"
+		return "Adhérence routière +15 %"
+	return "Boost prolongé de 40 %"
 
 
 ## Arms the selected challenge for a fresh run.

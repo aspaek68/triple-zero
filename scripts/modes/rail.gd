@@ -400,7 +400,7 @@ func _update_reticle_hot() -> void:
 	if _hud == null or _camera == null:
 		return
 	var tolerance: float = 40.0 + Options.aim_tolerance()
-	if Progress.has_equipment(2, 1):
+	if Progress.has_equipment(GameState.Mode.RAIL, 1):
 		tolerance *= 1.4
 	var hot := false
 	for t in _targets:
@@ -442,7 +442,7 @@ func _shoot() -> void:
 	var screen := _aim
 	var tolerance: float = 40.0 + Options.aim_tolerance()
 	# Rail equipment: assisted targeting widens the reticle tolerance.
-	if Progress.has_equipment(2, 1):
+	if Progress.has_equipment(GameState.Mode.RAIL, 1):
 		tolerance *= 1.4
 
 	var best: Dictionary = {}
@@ -546,7 +546,7 @@ func _shoot() -> void:
 
 ## Multiball equipment: a second hostile close to the reticle is hit too.
 func _multiball_extra(screen: Vector2, tolerance: float, first: Dictionary) -> void:
-	if not Progress.has_equipment(2, 0):
+	if not Progress.has_equipment(GameState.Mode.RAIL, 0):
 		return
 	var second: Dictionary = {}
 	var best_dist := 1e9

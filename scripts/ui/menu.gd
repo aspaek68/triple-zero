@@ -149,7 +149,11 @@ func _modifier_row() -> VBoxContainer:
 	## Equipment unlock row: one slot per act, each changes the approach.
 	var equip_row := VBoxContainer.new()
 	equip_row.add_theme_constant_override("separation", 4)
-	var names := ["TPS", Loc.t("Conduite"), "Rail"]
+	var names := [
+		Loc.t(GameState.info(GameState.Mode.TPS)["short"]),
+		Loc.t(GameState.info(GameState.Mode.RAIL)["short"]),
+		Loc.t(GameState.info(GameState.Mode.DRIVE)["short"]),
+	]
 	for mode in 3:
 		var b := Button.new()
 		var state := Loc.t("débloqué") if Progress.has_equipment(mode, 0) else Loc.t("verrouillé")

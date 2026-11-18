@@ -12,16 +12,19 @@ signal device_changed(device: String)
 const MODE_INFO: Dictionary = {
 	Mode.TPS: {
 		"name": "ACTE 1 — TOUR",
+		"short": "TPS",
 		"blurb": "Infiltration et action à la troisième personne",
 		"scene": "res://scenes/modes/tps.tscn",
 	},
 	Mode.RAIL: {
 		"name": "ACTE 2 — AÉROPORT",
+		"short": "Rail",
 		"blurb": "Rail shooter : viser vite, épargner les civils",
 		"scene": "res://scenes/modes/rail.tscn",
 	},
 	Mode.DRIVE: {
 		"name": "ACTE 3 — VILLE",
+		"short": "Conduite",
 		"blurb": "Conduite arcade : poursuivre et foncer",
 		"scene": "res://scenes/modes/drive.tscn",
 	},

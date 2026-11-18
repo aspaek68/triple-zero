@@ -259,6 +259,9 @@ func _check_editor() -> void:
 ## run) and the retry button after a failure, never the next act.
 func _check_results_screen() -> void:
 	var script: GDScript = load("res://scripts/ui/menu.gd")
+	_expect(script != null, "menu script does not load")
+	if script == null:
+		return
 	var menu: Control = script.new()
 	GameState.show_results_on_load = true
 	GameState.last_act_success = true
@@ -394,8 +397,17 @@ func _check_equipment() -> void:
 	Progress.equipment_unlocked = 1 << (1 * Progress.EQUIP_SLOTS + 1)
 	_expect(Progress.has_equipment(1, 1), "equipment bit should be set")
 	_expect(not Progress.has_equipment(1, 0), "neighbouring equipment bit leaked")
-	_expect(Progress.equipment_description(0, 0) != "", "TPS equipment description empty")
-	_expect(Progress.equipment_description(1, 1) != "", "drive equipment description empty")
-	_expect(Progress.equipment_description(2, 1) != "", "rail equipment description empty")
+	# The equipment index must match GameState.Mode (RAIL = 1, DRIVE = 2):
+	# the perks used to be swapped between acts 2 and 3.
+	_expect(Progress.equipment_description(GameState.Mode.TPS, 0) != "",
+		"TPS equipment description empty")
+	_expect(Progress.equipment_description(GameState.Mode.RAIL, 0) == "Deux projectiles en jeu",
+		"rail equipment description is not the rail perk")
+	_expect(Progress.equipment_description(GameState.Mode.DRIVE, 0) == "Adhérence routière +15 %",
+		"drive equipment description is not the drive perk")
+	_expect(GameState.info(GameState.Mode.RAIL)["short"] == "Rail",
+		"rail act short name is wrong")
+	_expect(GameState.info(GameState.Mode.DRIVE)["short"] == "Conduite",
+		"drive act short name is wrong")
 
 	Progress.equipment_unlocked = saved_equip

@@ -135,6 +135,12 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   et recopié dans `GameState.ng_plus` par `Progress._ready()` (autoload chargé
   après `GameState`). Le bouton du menu passe par `Progress.set_ng_plus()`, qui
   refuse l'activation tant que les trois actes ne sont pas terminés.
+- **Équipement** : l'index de mode est celui de `GameState.Mode`
+  (`TPS = 0`, `RAIL = 1`, `DRIVE = 2`), partout — `equipment_description()`,
+  `has_equipment()` dans `rail.gd`/`drive.gd` et la ligne du menu. Les perks
+  avaient été inversés entre les actes 2 et 3 ; `_verify` compare désormais la
+  description du rail (`Deux projectiles en jeu`) et de la conduite
+  (`Adhérence routière +15 %`) à ces index.
 - **Viseur** : `Hud` possède un `Reticle` interne (Control dessiné, en espace
   écran) partagé par les deux modes de tir. `set_reticle_visible()` l'affiche à
   la fin de l'intro ; par défaut il **suit le centre du viewport** (Acte 1), et
