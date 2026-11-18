@@ -127,7 +127,8 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   4). L'écran de résultats du menu principal annonce acte réussi/échoué
   (`GameState.last_act_success`, positionné par chaque `_finish()`), le détail
   du défi avec sa raison d'échec (`Progress.last_reason`) et propose
-  **REJOUER L'ACTE** (`GameState.mode`) ou **FERMER LES RÉSULTATS**. Menu et
+  **ACTE SUIVANT** (si l'acte est réussi et qu'il en reste un), **REJOUER
+  L'ACTE** (`GameState.mode`) ou **FERMER LES RÉSULTATS**. Menu et
   options défilent (`ScrollContainer` + `follow_focus`) pour rester utilisables
   sur une fenêtre de 900 px.
 - **NG+** : `Progress.ng_plus_enabled` est persisté dans `user://progress.cfg`

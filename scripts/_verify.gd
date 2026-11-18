@@ -17,6 +17,7 @@ func _ready() -> void:
 	_check_hud()
 	_check_pause()
 	_check_editor()
+	_check_results_screen()
 	await _check_vfx()
 	_check_director()
 	_check_score()
@@ -67,6 +68,7 @@ func _check_localisation() -> void:
 	_expect(Loc.t("QUITTER LE JEU") == "QUIT GAME", "EN label missing: QUITTER LE JEU")
 	_expect(Loc.t("FERMER LES RÉSULTATS") == "CLOSE RESULTS",
 		"EN label missing: FERMER LES RÉSULTATS")
+	_expect(Loc.t("ACTE SUIVANT") == "NEXT ACT", "EN label missing: ACTE SUIVANT")
 	_expect(Loc.t("ACTE ÉCHOUÉ") == "ACT FAILED", "EN label missing: ACTE ÉCHOUÉ")
 	_expect(Loc.t("Défi « %s » : %s%s") % ["Sans dégâts", Loc.t("échoué"), " — " + Loc.t("touché")] ==
 		"Challenge \"Sans dégâts\": failed — hit", "EN challenge template not translated")
@@ -244,6 +246,34 @@ func _check_editor() -> void:
 	_expect(editor._status != null and editor._status.text != "",
 		"level editor status line is empty")
 	editor.queue_free()
+
+
+## The results screen offers the next act after a clear (the three acts form a
+## run) and the retry button after a failure, never the next act.
+func _check_results_screen() -> void:
+	var script: GDScript = load("res://scripts/ui/menu.gd")
+	var menu: Control = script.new()
+	GameState.show_results_on_load = true
+	GameState.last_act_success = true
+	GameState.mode = GameState.Mode.TPS
+	add_child(menu)
+	var next := menu.find_child("NextActButton", true, false) as Button
+	_expect(next != null, "results screen has no next-act button after a clear")
+	if next:
+		_expect(next.text == Loc.t("ACTE SUIVANT"),
+			"next-act button is not translated")
+	menu.queue_free()
+
+	var failed: Control = script.new()
+	GameState.show_results_on_load = true
+	GameState.last_act_success = false
+	add_child(failed)
+	_expect(failed.find_child("NextActButton", true, false) == null,
+		"failed results screen offers the next act")
+	_expect(failed.find_child("RetryButton", true, false) != null,
+		"results screen has no retry button")
+	failed.queue_free()
+	GameState.last_act_success = true
 
 
 ## Shot feedback: tracers and impact sparks appear, self-free, and ignore

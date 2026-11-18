@@ -58,6 +58,7 @@ const EN := {
 	"échoué": "failed",
 	"  •  Nouvelle partie+ débloquée": "  •  New Game+ unlocked",
 	"REJOUER L'ACTE": "REPLAY ACT",
+	"ACTE SUIVANT": "NEXT ACT",
 	"FERMER LES RÉSULTATS": "CLOSE RESULTS",
 
 	# ----------------------------------------------------------------- pause

@@ -97,7 +97,9 @@ func _build() -> void:
 	# after a run, the retry button is the most likely next action.
 	var focus_target: Button = null
 	if _showing_results:
-		focus_target = column.find_child("RetryButton", true, false) as Button
+		focus_target = column.find_child("NextActButton", true, false) as Button
+		if focus_target == null:
+			focus_target = column.find_child("RetryButton", true, false) as Button
 	if focus_target == null:
 		for child in column.get_children():
 			if child is Button:
@@ -248,6 +250,16 @@ func _results_panel() -> VBoxContainer:
 	acts.add_theme_color_override("font_color", Color(0.55, 0.62, 0.75))
 	acts.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	panel.add_child(acts)
+
+	# A cleared act offers the next one directly: the three acts form a run, so
+	# the player should not have to close the results and pick it by hand.
+	if GameState.last_act_success and GameState.mode < GameState.Mode.DRIVE:
+		var next := Button.new()
+		next.name = "NextActButton"
+		next.text = Loc.t("ACTE SUIVANT")
+		next.custom_minimum_size = Vector2(0, 44)
+		next.pressed.connect(func(): _launch(int(GameState.mode) + 1))
+		panel.add_child(next)
 
 	var retry := Button.new()
 	retry.name = "RetryButton"
