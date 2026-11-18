@@ -76,6 +76,7 @@ func _check_localisation() -> void:
 	_expect(Loc.t("RALENTI") == "SLOW MOTION", "EN label missing: RALENTI")
 	_expect(Loc.t("● RALENTI — R pour passer") == "● SLOW MOTION — R to skip",
 		"EN replay caption not translated")
+	_expect(Loc.t("temps écoulé") == "time ran out", "EN reason missing: temps écoulé")
 	_expect(Loc.t("%d nœuds • %d props\nOutil : %s\nClic : ajouter/déplacer • Clic droit : supprimer") % [3, 2, "x"] ==
 		"3 nodes • 2 props\nTool: x\nClick: add/move • Right click: delete",
 		"EN editor status template not translated")
@@ -330,6 +331,14 @@ func _check_challenges() -> void:
 	Progress.begin()
 	explorer = Progress.evaluate()
 	_expect(explorer["success"], "explorer challenge should pass with a route")
+
+	# An act that fails outright (act 3 out of time) must not report a passed
+	# challenge, even when the condition looks satisfied.
+	Progress.begin()
+	Progress.fail("temps écoulé")
+	var aborted := Progress.evaluate()
+	_expect(not aborted["success"], "a failed run should fail its challenge")
+	_expect(aborted["reason"] == "temps écoulé", "failed run reason was not kept")
 	Score.reset()
 
 	Progress.cleared_acts = [0, 1, 2]

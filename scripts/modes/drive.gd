@@ -780,6 +780,10 @@ func _finish(success: bool) -> void:
 	_ended = true
 	GameState.last_act_success = success
 	_car.engine_force = 0.0
+	# A failed run (out of time) cannot satisfy the armed challenge: report the
+	# real reason instead of a verdict that contradicts "ACTE ÉCHOUÉ".
+	if not success:
+		Progress.fail("temps écoulé")
 	var challenge := Progress.evaluate()
 	if success and challenge["success"]:
 		Progress.mark_act_cleared(GameState.Mode.DRIVE)

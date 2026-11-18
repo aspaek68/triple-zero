@@ -230,9 +230,13 @@ func evaluate() -> Dictionary:
 				if not success:
 					reason = "précision insuffisante"
 		"explorer":
-			success = Score.alternate_paths > 0
-			if not success:
-				reason = "aucun itinéraire alternatif"
+			if _failed:
+				success = false
+				reason = _fail_reason
+			else:
+				success = Score.alternate_paths > 0
+				if not success:
+					reason = "aucun itinéraire alternatif"
 	last_success = success
 	last_reason = reason
 	return {"success": success, "name": last_name, "reason": reason}

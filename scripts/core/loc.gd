@@ -52,6 +52,7 @@ const EN := {
 	"aucun tir": "no shots fired",
 	"précision insuffisante": "accuracy too low",
 	"aucun itinéraire alternatif": "no alternate route",
+	"temps écoulé": "time ran out",
 	"  •  NOUVEAU RECORD !": "  •  NEW RECORD!",
 	"réussi": "passed",
 	"échoué": "failed",

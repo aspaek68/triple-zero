@@ -245,7 +245,7 @@ cinématique.
 L'écran de résultats annonce **ACTE RÉUSSI / ACTE ÉCHOUÉ**, le score, la
 précision, le rang, le meilleur score et le détail du défi (avec la **raison** de
 l'échec : touché, trop lent, aucun tir, précision insuffisante, aucun itinéraire
-alternatif). Il propose directement **REJOUER L'ACTE** ou **FERMER LES
+alternatif, temps écoulé). Il propose directement **REJOUER L'ACTE** ou **FERMER LES
 RÉSULTATS**. Menu principal et options **défilent** pour rester utilisables sur
 toutes les tailles de fenêtre.
 
