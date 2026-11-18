@@ -153,6 +153,13 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
 - **Défis** : `Progress.fail(raison)` n'accepte que le **premier** échec et
   émet `challenge_failed`. Le HUD s'y connecte (`notify_challenge_failed`) et
   affiche `DÉFI ÉCHOUÉ — raison`, conservé à travers un changement de langue.
+  La ligne de statut est **réservée 4 s** (`Hud.FAIL_NOTICE_TIME`,
+  `_fail_hold`) : l'événement qui fait échouer le défi écrit un statut juste
+  après (intégrité en Acte 1, vitesse/portes en Acte 3), ce qui effaçait l'avis
+  dans la même image. `set_status()` mémorise le dernier statut et le réaffiche
+  à l'expiration. En conduite, `_update_hud()` réécrit la ligne à chaque frame :
+  `_flash_status()` (raccourci, matériel, comms) la garde 1,6 s avant que la
+  vitesse ne reprenne la main.
   Chaque acte doit pouvoir échouer « Sans dégâts » : Acte 1 sur un tir reçu,
   Acte 2 sur un civil touché (`rail.gd`, seul « dégât » possible), Acte 3 sur
   une voiture rivale qui percute (`drive.gd`). Sans ces appels le défi était

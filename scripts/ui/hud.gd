@@ -7,6 +7,10 @@ extends CanvasLayer
 ## viewport centre (TPS) or the mouse/pad cursor (rail shooter), kicks out on
 ## every shot, turns warm over a valid target and flashes a hit marker.
 
+## How long a failed-challenge notice keeps the status line before the mode's
+## own status (integrity, speed/checkpoint) may replace it.
+const FAIL_NOTICE_TIME := 4.0
+
 ## Drawn crosshair. Lives in screen space so both 3D modes can share it.
 class Reticle extends Control:
 	var aim := Vector2.ZERO
@@ -85,6 +89,9 @@ var _boss_fr := ""
 var _boss_frac := 0.0
 ## Reason a replayable challenge just failed, so a language change keeps it.
 var _challenge_fail_reason := ""
+## Seconds left before a mode event may take the status line back. Without it
+## the notice was erased in the same frame by the integrity/speed refresh.
+var _fail_hold := 0.0
 
 
 func build(title: String, objective: String, keyboard_hint: String, gamepad_hint := "") -> void:
@@ -255,6 +262,12 @@ func set_objective(text: String) -> void:
 
 func set_status(text: String) -> void:
 	_status_fr = text
+	# Keep the failure notice readable: the event that failed the challenge
+	# (damage, civilian hit, ram) sets a status line right afterwards — the
+	# integrity, the speed/checkpoint line — which used to erase the notice in
+	# the same frame. The latest status is remembered and shown once it expires.
+	if _fail_hold > 0.0:
+		return
 	_challenge_fail_reason = ""
 	if _status:
 		_status.text = Loc.t(text)
@@ -265,6 +278,7 @@ func set_status(text: String) -> void:
 ## next mode event can take the line back.
 func notify_challenge_failed(reason: String) -> void:
 	_challenge_fail_reason = reason
+	_fail_hold = FAIL_NOTICE_TIME
 	_show_challenge_failed()
 
 
@@ -391,6 +405,14 @@ func _process(delta: float) -> void:
 		(_post_fx.material as ShaderMaterial).set_shader_parameter("intensity", Options.post_fx)
 	if _motion_blur and _motion_blur.material:
 		(_motion_blur.material as ShaderMaterial).set_shader_parameter("intensity", Options.motion_blur)
+	if _fail_hold > 0.0:
+		_fail_hold = maxf(_fail_hold - delta, 0.0)
+		if _fail_hold == 0.0:
+			# The notice had its time on screen: hand the line back to the latest
+			# status (integrity, speed/checkpoint), which kept updating meanwhile.
+			_challenge_fail_reason = ""
+			if _status:
+				_status.text = Loc.t(_status_fr)
 	if not Progress.is_active():
 		return
 	_refresh_accum += delta

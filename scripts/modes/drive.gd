@@ -58,6 +58,10 @@ var _replay: Replay
 var _wheels: Array = []
 var _shortcuts_taken := 0
 var _secondaries: Array = []
+## Seconds a pickup/shortcut message keeps the status line. `_update_hud()`
+## rewrites the speed/checkpoint line every physics frame, so without this hold
+## the confirmation was replaced before it could be drawn.
+var _flash_left := 0.0
 
 
 func _ready() -> void:
@@ -453,6 +457,8 @@ func _physics_process(delta: float) -> void:
 		_boost_left -= delta
 	if _boost_cd > 0.0:
 		_boost_cd -= delta
+	if _flash_left > 0.0:
+		_flash_left = maxf(_flash_left - delta, 0.0)
 	if Input.is_action_just_pressed("boost") and _boost_cd <= 0.0 and _boost_left <= 0.0:
 		var duration := BOOST_DURATION * (1.4 if Progress.has_equipment(GameState.Mode.DRIVE, 1) else 1.0)
 		_boost_left = duration
@@ -700,8 +706,7 @@ func _check_shortcuts() -> void:
 			_shortcuts_taken = i + 1
 			Score.register_alternate_path()
 			Audio.hit_confirm()
-			if _hud:
-				_hud.set_status("RACCOURCI — itinéraire alternatif")
+			_flash_status("RACCOURCI — itinéraire alternatif")
 
 
 ## Glowing pickups on the road: gear crates and a radio relay. Drive through one
@@ -755,13 +760,11 @@ func _check_secondaries() -> void:
 			if s["kind"] == "equipment":
 				Score.register_equipment_recovered()
 				Score.time_bonus += 300
-				if _hud:
-					_hud.set_status("MATÉRIEL RÉCUPÉRÉ")
+				_flash_status("MATÉRIEL RÉCUPÉRÉ")
 			else:
 				Score.register_comm_restored()
 				Score.time_bonus += 400
-				if _hud:
-					_hud.set_status("COMMUNICATIONS RÉTABLIES")
+				_flash_status("COMMUNICATIONS RÉTABLIES")
 			if _hud:
 				_hud.set_secondary_objectives(Score.civilians_saved, Score.equipment_recovered, Score.comm_restored)
 			Audio.hit_confirm()
@@ -791,11 +794,21 @@ func _update_chase(delta: float) -> void:
 
 
 func _update_hud() -> void:
+	if _flash_left > 0.0:
+		return
 	if _hud:
 		var boost := Loc.t("PRÊT") if _boost_cd <= 0.0 else "%.1fs" % maxf(_boost_cd, 0.0)
 		_hud.set_status("Vitesse %3d km/h • Porte %d/%d • Temps %4.1fs • Boost %s • Poursuivants %d" % [
 			int(_speed * 3.6), _checkpoint, _checkpoints.size(), maxf(_time, 0.0), boost, _alive_chasers()
 		])
+
+
+## Shows a one-off confirmation (pickup, shortcut) for a moment before the
+## speed/checkpoint line takes the status back.
+func _flash_status(text: String) -> void:
+	_flash_left = 1.6
+	if _hud:
+		_hud.set_status(text)
 
 
 func _finish(success: bool) -> void:

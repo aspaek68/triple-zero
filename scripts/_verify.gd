@@ -387,6 +387,17 @@ func _check_hud() -> void:
 	_expect(hud._status.text == "DÉFI ÉCHOUÉ — touché",
 		"challenge failure notice did not retranslate")
 	Loc.set_language(saved_lang)
+	# The event that fails the challenge writes a status right after (integrity
+	# in act 1, speed/checkpoint in act 3): that used to erase the notice in the
+	# same frame. It must survive, then hand the line back when it expires.
+	hud.set_status("INTÉGRITÉ 75%")
+	_expect(hud._status.text.contains("DÉFI ÉCHOUÉ") or
+		hud._status.text.contains("CHALLENGE FAILED"),
+		"a status update erased the challenge failure notice")
+	hud._fail_hold = 0.01
+	hud._process(0.02)
+	_expect(hud._status.text == Loc.t("INTÉGRITÉ 75%"),
+		"the status line does not come back after the failure notice expires")
 	# No shots fired (driving act): the score line must not claim an accuracy,
 	# and a shooting act must still show it.
 	Score.reset()
@@ -809,6 +820,25 @@ func _check_drive_chasers() -> void:
 	_expect(absf(rival.steering) > 0.0, "rival car does not steer toward the player")
 	probe.free()
 	host.free()
+
+	# `_update_hud()` rewrites the speed/checkpoint line every physics frame, so
+	# a pickup/shortcut confirmation must hold the status line for a moment.
+	var hud := Hud.new()
+	add_child(hud)
+	hud.build("VERIFY", "check", "clavier", "manette")
+	var drive_probe := Node3D.new()
+	drive_probe.set_script(script)
+	drive_probe._hud = hud
+	drive_probe._flash_status("MATÉRIEL RÉCUPÉRÉ")
+	drive_probe._update_hud()
+	_expect(hud._status.text == Loc.t("MATÉRIEL RÉCUPÉRÉ"),
+		"a pickup confirmation is overwritten by the speed line")
+	drive_probe._flash_left = 0.0
+	drive_probe._update_hud()
+	_expect(hud._status.text.contains("Vitesse") or hud._status.text.contains("Speed"),
+		"the speed line does not come back after a pickup confirmation")
+	drive_probe.free()
+	hud.queue_free()
 
 
 func _check_equipment() -> void:
