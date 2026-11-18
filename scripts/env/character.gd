@@ -67,7 +67,11 @@ func _build(clothes: Color, accent: Color, heavy: bool, variant: String) -> void
 		"bones": PackedInt32Array(), "weights": PackedFloat32Array(),
 		"index": PackedInt32Array(),
 	}
-	_build_body(a, clothes, accent, skin, _variant)
+	if FileAccess.file_exists("res://assets/models/humanoid.glb"):
+		_build_body_from_glb(a, clothes, accent, skin)
+		_add_gear(a, _variant, accent)
+	else:
+		_build_body(a, clothes, accent, skin, _variant)
 
 	_material = StandardMaterial3D.new()
 	_material.vertex_color_use_as_albedo = true
@@ -237,7 +241,100 @@ func _add_visor(color: Color) -> void:
 	mount.add_child(mi)
 
 
-## Smooth lofted volume: an elliptical tube along Y whose radius follows
+## Builds the body from the Blender-authored mesh (`assets/models/humanoid.glb`),
+## skinning every vertex to its nearest bone (rigid 1-bone skinning, same as the
+## procedural body). Falls back to the lofted body if the file is missing.
+func _build_body_from_glb(a: Dictionary, clothes: Color, accent: Color, skin: Color) -> void:
+	var doc := GLTFDocument.new()
+	var state := GLTFState.new()
+	if doc.append_from_file("res://assets/models/humanoid.glb", state) != OK:
+		_build_body(a, clothes, accent, skin, _variant)
+		return
+	var scene := doc.generate_scene(state) as Node3D
+	if scene == null:
+		_build_body(a, clothes, accent, skin, _variant)
+		return
+	var mi := _find_mesh_instance(scene)
+	if mi == null or mi.mesh == null:
+		scene.queue_free()
+		_build_body(a, clothes, accent, skin, _variant)
+		return
+	var src := mi.mesh as ArrayMesh
+	var arrays := src.surface_get_arrays(0)
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var norms: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL] if arrays[Mesh.ARRAY_NORMAL] != null else PackedVector3Array()
+	var cols: PackedColorArray = arrays[Mesh.ARRAY_COLOR] if arrays[Mesh.ARRAY_COLOR] != null else PackedColorArray()
+	var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV] if arrays[Mesh.ARRAY_TEX_UV] != null else PackedVector2Array()
+	var idxs: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+
+	# Bone world positions for nearest-bone skinning.
+	var bone_pos := []
+	for bn in _bones.keys():
+		var bi: int = _bones[bn]
+		var gtr := _skeleton.get_bone_global_rest(bi)
+		bone_pos.append({"idx": bi, "pos": gtr.origin})
+
+	# Deindex into a flat triangle soup.
+	var dv := PackedVector3Array()
+	var dn := PackedVector3Array()
+	var dc := PackedColorArray()
+	var du := PackedVector2Array()
+	if idxs.size() > 0:
+		for i in idxs:
+			dv.append(verts[i])
+			if norms.size() == verts.size():
+				dn.append(norms[i])
+			if cols.size() == verts.size():
+				dc.append(cols[i])
+			if uvs.size() == verts.size():
+				du.append(uvs[i])
+	else:
+		dv = verts
+		dn = norms
+		dc = cols
+		du = uvs
+
+	for i in dv.size():
+		a.vertex.append(dv[i])
+		if dn.size() == dv.size():
+			a.normal.append(dn[i])
+		else:
+			a.normal.append(Vector3.UP)
+		if du.size() == dv.size():
+			a.uv.append(du[i])
+		else:
+			a.uv.append(Vector2.ZERO)
+		var c := clothes
+		if dc.size() == dv.size():
+			c = dc[i]
+		a.color.append(c)
+		var v := dv[i]
+		var best_idx := 0
+		var best_d := 1e18
+		for bp in bone_pos:
+			var d := v.distance_squared_to(bp["pos"])
+			if d < best_d:
+				best_d = d
+				best_idx = bp["idx"]
+		a.bones.append_array([best_idx, 0, 0, 0])
+		a.weights.append_array([1.0, 0.0, 0.0, 0.0])
+	for i in dv.size():
+		a.index.append(i)
+	_part_count += 1
+	scene.queue_free()
+
+
+func _find_mesh_instance(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node as MeshInstance3D
+	for child in node.get_children():
+		var found := _find_mesh_instance(child)
+		if found:
+			return found
+	return null
+
+
+## Smooth lofted volume (fallback when the GLB is missing).
 ## `profile` (multipliers, bottom to top) with hemispherical caps. `squareness`
 ## 2.0 gives a circle, higher values approach a rounded rectangle (torsos).
 func _loft(a: Dictionary, center: Vector3, size: Vector3, bone: String, color: Color,
