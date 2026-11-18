@@ -19,7 +19,20 @@ import time
 
 import requests
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SEEN = os.path.join(KNOW, ".seen_urls")
+
+
+def load_seen() -> set:
+    if os.path.exists(SEEN):
+        with open(SEEN, "r", encoding="utf-8") as fh:
+            return set(ln.strip() for ln in fh if ln.strip())
+    return set()
+
+
+def save_seen(seen: set) -> None:
+    with open(SEEN, "w", encoding="utf-8") as fh:
+        for u in sorted(seen):
+            fh.write(u + "\n")
 PYTHON = sys.executable
 OLLAMA = "http://localhost:11434"
 MODEL = "llama3.2"
@@ -177,6 +190,7 @@ def main() -> int:
     except Exception:
         pass
 
+    seen = load_seen()
     before = count_chunks()
     all_learned = []
 
@@ -194,12 +208,17 @@ def main() -> int:
             urls = search(q, args.per_iter)
             print("   urls:", len(urls))
             for u in urls:
+                if u in seen:
+                    print("   skip (seen):", u)
+                    continue
                 print("   fetch:", u)
                 if run_learn(u, q):
                     learned_this.append(u)
                     all_learned.append(u)
+                    seen.add(u)
                     time.sleep(1)
 
+        save_seen(seen)
         existing = [f.replace(".md", "") for f in os.listdir(os.path.join(ROOT, "knowledge")) if f.endswith(".md")]
 
         done, nq = reflect(args.goal, learned_this)
