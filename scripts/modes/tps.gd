@@ -10,11 +10,13 @@ const GRAVITY := 24.0
 const JUMP := 6.5
 const PAD_LOOK_SPEED := 2.4
 const FIRE_COOLDOWN := 0.16
+const MAG_SIZE := 30
+const RELOAD_TIME := 1.5
 
 const _TUTORIAL_HINTS := [
 	"ZQSD / WASD : se deplacer",
 	"Souris : viser    Clic gauche : tirer",
-	"R : recharger    Espace : sprinter",
+	"Maj : sprinter    F : recharger",
 	"C : meteo    R : replay    Echap : menu",
 ]
 
@@ -41,6 +43,10 @@ var _boss: Enemy
 var _boss_defeated := false
 var _boss_charge := 0.0
 var _boss_charge_cd := 5.0
+var _ammo := MAG_SIZE
+var _reload_timer := 0.0
+var _reload_pending := false
+var _step_accum := 0.0
 var _extraction := Vector3.ZERO
 var _extraction_open := false
 var _in_cover := false
@@ -82,9 +88,10 @@ func _ready() -> void:
 		_enemy_detection_reduction = 0.3
 	_hud = Hud.new()
 	_hud.build("ACTE 1 — TOUR", "Objectif : sécuriser les trois zones",
-		"ZQSD bouger • Souris viser • Clic/Space tirer • Ctrl couvert • C météo • R replay",
-		"Stick G bouger • Stick D viser • X/LT tirer • B couvert • Y météo • Back replay")
+		"ZQSD bouger • Souris viser • Clic/Space tirer • Ctrl couvert • F recharger • C météo • R replay",
+		"Stick G bouger • Stick D viser • X/LT tirer • B couvert • LB recharger • Y météo • Back replay")
 	add_child(_hud)
+	_hud.set_ammo(_ammo, MAG_SIZE)
 	_weather = Director.spawn_weather(self, _player, _hud)
 	_replay = Director.spawn_replay(self)
 	_replay.track(_player, Color(0.4, 0.9, 0.5), Vector3(0.9, 1.8, 0.9))
@@ -446,6 +453,19 @@ func _physics_process(delta: float) -> void:
 	_invuln = maxf(_invuln - delta, 0.0)
 	_damage_flash = maxf(_damage_flash - delta, 0.0)
 
+	# Magazine + reload (F / LB). Reloading is a real window where you cannot
+	# fire, so it is a decision, not a free top-up.
+	if _reload_timer > 0.0:
+		_reload_timer = maxf(_reload_timer - delta, 0.0)
+		if _reload_timer <= 0.0 and _reload_pending:
+			_reload_pending = false
+			_ammo = MAG_SIZE
+			Audio.reload_end()
+			if _hud:
+				_hud.set_ammo(_ammo, MAG_SIZE)
+	elif Input.is_action_just_pressed("reload") and _ammo < MAG_SIZE:
+		_start_reload()
+
 	# Boss: telegraph, charge window, and the top-screen health bar.
 	if _boss and is_instance_valid(_boss) and not _boss._dying:
 		_boss_charge_cd = maxf(_boss_charge_cd - delta, 0.0)
@@ -484,6 +504,14 @@ func _physics_process(delta: float) -> void:
 	_player.velocity.z = dir.z * speed
 	_player.rotation.y = _yaw
 	_player.move_and_slide()
+	# Footsteps: one per ~2.2 m travelled on the ground.
+	if _player.is_on_floor():
+		var horiz_speed := Vector2(_player.velocity.x, _player.velocity.z).length()
+		if horiz_speed > 0.6:
+			_step_accum += horiz_speed * delta
+			if _step_accum >= 2.2:
+				_step_accum = 0.0
+				Audio.footstep()
 
 	if _arm:
 		_arm.rotation_degrees = Vector3(_pitch * 57.3, 0, 0)
@@ -703,7 +731,7 @@ func _update_pickups() -> void:
 	for p in _pickups.duplicate():
 		if p.body.global_position.distance_to(_player.global_position) < 1.8:
 			_health = mini(_health + 35, 100)
-			Audio.hit_confirm()
+			Audio.pickup()
 			p.body.queue_free()
 			_pickups.erase(p)
 			if _hud:
@@ -743,10 +771,30 @@ func _intro_locked() -> bool:
 	return _intro != null and is_instance_valid(_intro) and not _intro.is_done()
 
 
+## Starts a reload; the weapon is unavailable until the timer elapses.
+func _start_reload() -> void:
+	if _reload_timer > 0.0 or _ammo >= MAG_SIZE:
+		return
+	_reload_timer = RELOAD_TIME
+	_reload_pending = true
+	Audio.reload_start()
+	if _hud:
+		_hud.set_status("RECHARGEMENT...")
+
+
 func _fire() -> void:
 	if _ended or _intro_locked() or not _camera or _fire_cooldown > 0.0:
 		return
+	if _reload_timer > 0.0:
+		return
+	if _ammo <= 0:
+		Audio.dry_fire()
+		_start_reload()
+		return
+	_ammo -= 1
 	_fire_cooldown = FIRE_COOLDOWN
+	if _hud:
+		_hud.set_ammo(_ammo, MAG_SIZE)
 	Audio.gunshot()
 	Options.rumble(0.4, 0.15, 0.1)
 	if _weapon:
@@ -919,7 +967,7 @@ func _advance_wave() -> void:
 ## Boss encounter: a single elite unit with a telegraphed charge, its own
 ## health bar, and a bigger silhouette.
 func _spawn_boss() -> void:
-	Audio.explosion()
+	Audio.boss_roar()
 	_boss = Enemy.make(Vector3(0, 5.2, -74), true, true)
 	_boss.died.connect(_on_enemy_died)
 	add_child(_boss)

@@ -350,8 +350,9 @@ def gen_audio():
     rumble = _noise(n, 21, 0.12)
     crunch = _noise(n, 23, 0.5)
     ad = env_ad(n, 0.004, 1.6)
+    crunch_ad = env_ad(n, 0.002, 3.0)
     samples = [rumble[i] * ad[i] * 0.9
-               + crunch[i] * env_ad(n, 0.002, 3.0)[i] * 0.5
+               + crunch[i] * crunch_ad[i] * 0.5
                + math.sin(2 * math.pi * 48 * (i / RATE)) * ad[i] * 0.5
                for i in range(n)]
     write_wav(os.path.join(AUD_DIR, "explosion.wav"), samples)
@@ -360,9 +361,10 @@ def gen_audio():
     n = int(RATE * 0.5)
     debris = _noise(n, 33, 0.55)
     ad = env_ad(n, 0.002, 2.4)
+    debris_ad = env_ad(n, 0.001, 3.2)
     samples = [sum(math.sin(2 * math.pi * f * (i / RATE)) * a for f, a in
                    ((287, 0.5), (431, 0.34), (673, 0.22), (1049, 0.12))) * ad[i]
-               + debris[i] * env_ad(n, 0.001, 3.2)[i] * 0.35
+               + debris[i] * debris_ad[i] * 0.35
                for i in range(n)]
     write_wav(os.path.join(AUD_DIR, "crash.wav"), samples)
 
@@ -370,7 +372,8 @@ def gen_audio():
     n = int(RATE * 0.55)
     noise = _noise(n, 44, 0.92)
     rise = [min(1.0, (i / n) ** 0.6) for i in range(n)]
-    samples = [noise[i] * rise[i] * env_ad(n, 0.05, 1.1)[i] * 0.8
+    rise_ad = env_ad(n, 0.05, 1.1)
+    samples = [noise[i] * rise[i] * rise_ad[i] * 0.8
                for i in range(n)]
     write_wav(os.path.join(AUD_DIR, "boost.wav"), samples)
 
@@ -381,6 +384,73 @@ def gen_audio():
                + math.sin(_sweep(780, 360, n, 1.0)[i]) * ad[i] * 0.3
                for i in range(n)]
     write_wav(os.path.join(AUD_DIR, "alarm.wav"), samples)
+
+    # Footstep: soft low thump plus a short scuff of gravel.
+    n = int(RATE * 0.16)
+    scuff = _noise(n, 51, 0.55)
+    thump = _sweep(130, 58, n, 0.5)
+    ad = env_ad(n, 0.004, 2.8)
+    samples = [scuff[i] * ad[i] * 0.32
+               + math.sin(thump[i]) * ad[i] * 0.62
+               for i in range(n)]
+    write_wav(os.path.join(AUD_DIR, "footstep.wav"), samples)
+
+    # Reload: two mechanical clicks (magazine out, magazine in).
+    n = int(RATE * 0.55)
+    out = []
+    for i in range(n):
+        t = i / RATE
+        s = 0.0
+        for start, gain in ((0.02, 1.0), (0.30, 0.8)):
+            dt = t - start
+            if dt < 0.0:
+                continue
+            e = math.exp(-dt * 26.0)
+            s += (math.sin(2 * math.pi * 1250 * dt) * 0.4
+                  + math.sin(2 * math.pi * 2400 * dt) * 0.25
+                  + math.sin(2 * math.pi * 640 * dt) * 0.3) * e * gain
+        out.append(s * 0.45)
+    write_wav(os.path.join(AUD_DIR, "reload.wav"), out)
+
+    # Body fall: heavy low thud with a cloth/gear rustle.
+    n = int(RATE * 0.4)
+    rustle = _noise(n, 63, 0.7)
+    drop = _sweep(95, 38, n, 0.4)
+    ad = env_ad(n, 0.003, 2.2)
+    rustle_ad = env_ad(n, 0.05, 1.6)
+    samples = [math.sin(drop[i]) * ad[i] * 0.75
+               + rustle[i] * rustle_ad[i] * 0.25
+               for i in range(n)]
+    write_wav(os.path.join(AUD_DIR, "body_fall.wav"), samples)
+
+    # Pickup: bright rising two-note chime.
+    n = int(RATE * 0.22)
+    ad = env_ad(n, 0.01, 1.8)
+    samples = [math.sin(2 * math.pi * (660 + 520 * (i / n)) * (i / RATE)) * ad[i] * 0.42
+               + math.sin(2 * math.pi * (990 + 780 * (i / n)) * (i / RATE)) * ad[i] * 0.22
+               for i in range(n)]
+    write_wav(os.path.join(AUD_DIR, "pickup.wav"), samples)
+
+    # Boss roar: low growl with vibrato, distortion and a noise breath.
+    n = int(RATE * 1.2)
+    breath = _noise(n, 77, 0.2)
+    ad = env_ad(n, 0.12, 1.5)
+    out = []
+    for i in range(n):
+        t = i / RATE
+        vib = math.sin(2 * math.pi * 7.0 * t) * 14.0
+        f = 72 + vib - 22 * (i / n)
+        raw = math.sin(2 * math.pi * f * t)
+        out.append(math.tanh(raw * 2.4) * ad[i] * 0.55 + breath[i] * ad[i] * 0.28)
+    write_wav(os.path.join(AUD_DIR, "boss_roar.wav"), out)
+
+    # Dry fire: a single hard click when the magazine is empty.
+    n = int(RATE * 0.07)
+    ad = env_ad(n, 0.002, 3.5)
+    samples = [math.sin(2 * math.pi * 1800 * (i / RATE)) * ad[i] * 0.4
+               + math.sin(2 * math.pi * 900 * (i / RATE)) * ad[i] * 0.3
+               for i in range(n)]
+    write_wav(os.path.join(AUD_DIR, "dry_fire.wav"), samples)
     print("audio ->", AUD_DIR)
 
 

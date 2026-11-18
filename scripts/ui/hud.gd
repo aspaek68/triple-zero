@@ -68,6 +68,7 @@ var _status: Label
 var _score: Label
 var _extra: Label
 var _secondary: Label
+var _ammo_label: Label
 var _boss_root: Control
 var _boss_label: Label
 var _boss_bar: ProgressBar
@@ -241,6 +242,22 @@ func set_status(text: String) -> void:
 func set_extra(text: String) -> void:
 	if _extra:
 		_extra.text = text
+
+
+## Bottom-right magazine counter, built on first use.
+func set_ammo(current: int, maximum: int) -> void:
+	if _ammo_label == null:
+		_ammo_label = _label(20, Color(0.95, 0.95, 0.9))
+		_ammo_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+		_ammo_label.offset_left = -300.0
+		_ammo_label.offset_top = -52.0
+		_ammo_label.offset_right = -24.0
+		_ammo_label.offset_bottom = -20.0
+		_ammo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		add_child(_ammo_label)
+	_ammo_label.text = "MUNITIONS %d / %d" % [current, maximum]
+	_ammo_label.add_theme_color_override("font_color",
+		Color(0.95, 0.42, 0.36) if current == 0 else Color(0.95, 0.95, 0.9))
 
 
 func set_secondary_objectives(civilians: int, equipment: int, comms: int) -> void:

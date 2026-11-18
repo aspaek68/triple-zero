@@ -705,6 +705,7 @@ func die() -> void:
 	if timer:
 		timer.timeout.connect(func() -> void:
 			if is_instance_valid(self) and _dead:
+				Audio.body_fall()
 				_start_ragdoll(push))
 
 

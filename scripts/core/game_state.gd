@@ -130,6 +130,9 @@ func _ensure_input_actions() -> void:
 	_add_buttons("boost", [JOY_BUTTON_RIGHT_SHOULDER])
 	_axis_action("boost", JOY_AXIS_TRIGGER_LEFT, 1.0)
 
+	_add_keys("reload", [KEY_F])
+	_add_buttons("reload", [JOY_BUTTON_LEFT_SHOULDER])
+
 	_add_keys("pause", [KEY_ESCAPE])
 	_add_buttons("pause", [JOY_BUTTON_START])
 

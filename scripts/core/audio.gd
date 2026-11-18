@@ -245,8 +245,54 @@ func boost_whoosh() -> void:
 	play_tone(300.0, 0.3, -13.0, -0.4)
 
 
-# ------------------------------------------------------------------- music
+## Footstep: quiet, high-passed scuff (called every couple of metres).
+func footstep() -> void:
+	if _play_clip("footstep", -15.0):
+		return
+	play_noise(0.06, -18.0, 0.4)
 
+
+## Magazine out: first mechanical click.
+func reload_start() -> void:
+	if _play_clip("reload", -9.0):
+		return
+	play_noise(0.05, -11.0, 0.8)
+
+
+## Magazine in: short metallic click at the end of the reload.
+func reload_end() -> void:
+	play_tone(1400.0, 0.05, -14.0, 0.0)
+
+
+func dry_fire() -> void:
+	if _play_clip("dry_fire", -10.0):
+		return
+	play_tone(1800.0, 0.05, -13.0, 0.0)
+
+
+## A body hitting the floor (ragdoll settle).
+func body_fall() -> void:
+	if _play_clip("body_fall", -8.0):
+		return
+	play_noise(0.25, -9.0, 0.2)
+	play_tone(70.0, 0.2, -12.0, 0.4)
+
+
+func pickup() -> void:
+	if _play_clip("pickup", -9.0):
+		return
+	play_tone(880.0, 0.12, -11.0, -0.6)
+
+
+func boss_roar() -> void:
+	duck(0.4)
+	if _play_clip("boss_roar", -4.0):
+		return
+	play_noise(0.9, -6.0, 0.1)
+	play_tone(60.0, 0.9, -8.0, 0.3)
+
+
+# ------------------------------------------------------------------- music
 ## Adaptive music: four layers (drums, bass, arpeggio, lead) played together
 ## by an AudioStreamSynchronized so they stay in phase. `set_intensity()` fades
 ## the upper layers in as the action heats up, which the modes drive each frame.
