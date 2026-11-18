@@ -30,6 +30,9 @@ var language := "fr"
 ## Per-action keyboard overrides (action name -> keycode int). Empty means
 ## "use the default binding declared by GameState".
 var keybinds: Dictionary = {}
+## Default keyboard events per action, captured before the first override is
+## applied so `reset_keybinds()` can really restore them.
+var _default_keys: Dictionary = {}
 
 
 func load_from_disk() -> void:
@@ -115,15 +118,35 @@ func stop_rumble() -> void:
 
 ## Applies saved keyboard overrides onto the InputMap.
 func apply_keybinds() -> void:
+	if _default_keys.is_empty():
+		_snapshot_default_keys()
 	for action in keybinds:
 		if not InputMap.has_action(action):
 			continue
+		_clear_key_events(action)
+		var ev := InputEventKey.new()
+		ev.physical_keycode = int(keybinds[action])
+		InputMap.action_add_event(action, ev)
+
+
+## Remembers the stock keyboard events (GameState declared them before this
+## autoload loads). Stored as physical keycodes, like the game's defaults.
+func _snapshot_default_keys() -> void:
+	for action in InputMap.get_actions():
+		var keys: Array = []
 		for ev in InputMap.action_get_events(action):
 			if ev is InputEventKey:
-				InputMap.action_erase_event(action, ev)
-		var ev := InputEventKey.new()
-		ev.keycode = int(keybinds[action])
-		InputMap.action_add_event(action, ev)
+				var code: int = ev.physical_keycode if ev.physical_keycode != 0 else ev.keycode
+				if code != 0:
+					keys.append(code)
+		if not keys.is_empty():
+			_default_keys[action] = keys
+
+
+func _clear_key_events(action: StringName) -> void:
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventKey:
+			InputMap.action_erase_event(action, ev)
 
 
 ## Rebinds an action to a new key and persists.
@@ -133,10 +156,20 @@ func rebind_key(action: String, keycode: int) -> void:
 	save_to_disk()
 
 
-## Clears a saved override, restoring the default binding.
+## Clears the saved overrides and puts the stock bindings back.
 func reset_keybinds() -> void:
 	keybinds.clear()
+	for action in _default_keys:
+		if not InputMap.has_action(action):
+			continue
+		_clear_key_events(action)
+		for code in _default_keys[action]:
+			var ev := InputEventKey.new()
+			ev.physical_keycode = int(code)
+			InputMap.action_add_event(action, ev)
 	save_to_disk()
+
+
 func incoming_damage_scale() -> float:
 	return [0.6, 1.0, 1.5][clampi(difficulty, 0, 2)]
 

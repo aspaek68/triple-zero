@@ -23,6 +23,7 @@ func _ready() -> void:
 	_check_score()
 	_check_challenges()
 	_check_equipment()
+	_check_keybinds()
 
 	if _failures.is_empty():
 		print("VERIFY RESULT: OK")
@@ -433,3 +434,52 @@ func _check_equipment() -> void:
 	Progress.cleared_acts = saved_acts
 	Progress.ng_plus_unlocked = saved_unlocked
 	Progress.save_to_disk()
+
+
+## Keyboard rebinding: the stock bindings use physical keycodes, so reading only
+## `keycode` displayed "-" for every default and "reset" cleared the overrides
+## without putting the stock keys back.
+func _check_keybinds() -> void:
+	var saved: Dictionary = Options.keybinds.duplicate()
+	var script: GDScript = load("res://scripts/ui/options_menu.gd")
+	_expect(script != null, "options menu script does not load")
+	var menu: PanelContainer = null
+	if script != null:
+		menu = script.new()
+		add_child(menu)
+
+	Options.rebind_key("shoot", KEY_X)
+	_expect(_first_key("shoot") == KEY_X,
+		"rebind did not put the new key in the InputMap")
+	if menu:
+		_expect(menu._key_name("shoot") == OS.get_keycode_string(KEY_X),
+			"options screen does not show the rebound key")
+
+	# Reset must actually put the stock physical key back, not just forget the
+	# override (the InputMap used to keep the test binding forever).
+	Options.reset_keybinds()
+	_expect(_first_key("shoot") == KEY_SPACE,
+		"reset did not restore the default shoot binding")
+	_expect(_first_key("reload") == KEY_F,
+		"reset did not restore the default reload binding")
+	if menu:
+		# A stock binding must render its key, not the "-" placeholder.
+		_expect(menu._key_name("reload") == OS.get_keycode_string(KEY_F),
+			"options screen shows no key for a default binding")
+		menu.queue_free()
+
+	# Put the stock bindings back first, then replay the player's overrides, so a
+	# test rebind cannot leak into the InputMap when no override was saved.
+	Options.reset_keybinds()
+	Options.keybinds = saved
+	Options.apply_keybinds()
+	Options.save_to_disk()
+
+
+## First keyboard code bound to an action (physical first, like the defaults).
+func _first_key(action: String) -> int:
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventKey:
+			return ev.physical_keycode if ev.physical_keycode != 0 else ev.keycode
+	return 0
+

@@ -53,6 +53,12 @@ affiche les invites du périphérique que vous venez d'utiliser.
 Réglages manette dans les options : sensibilité des sticks, zone morte,
 vibration. La manette vibre au tir, aux impacts et au boost.
 
+Les **touches clavier sont remappables** dans les options (section « TOUCHES ») :
+cliquez sur une action puis appuyez sur la nouvelle touche ; « Réinitialiser les
+touches » remet les liaisons d'origine. Le remappage utilise le **code physique**
+de la touche, donc les raccourcis restent à la même place sur un clavier AZERTY
+ou QWERTY.
+
 L'interface est **bilingue FR/EN** : le bouton « Langue », en tête des options,
 bascule menus, HUD et messages des trois actes. Le choix est conservé dans
 `user://options.cfg`.

@@ -217,7 +217,9 @@ func _key_name(action: String) -> String:
 	else:
 		for ev in InputMap.action_get_events(action):
 			if ev is InputEventKey:
-				keycode = ev.keycode
+				# The stock bindings use physical keycodes (layout independent);
+				# reading only `keycode` made every default show "-".
+				keycode = ev.physical_keycode if ev.physical_keycode != 0 else ev.keycode
 				break
 	if keycode == 0:
 		return "-"
@@ -243,8 +245,9 @@ func _input(event: InputEvent) -> void:
 		if event.keycode == KEY_ESCAPE:
 			_capture_button.text = _key_name(_capturing_action)
 		else:
-			Options.rebind_key(_capturing_action, event.keycode)
-			_capture_button.text = OS.get_keycode_string(event.keycode)
+			var code: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode
+			Options.rebind_key(_capturing_action, code)
+			_capture_button.text = OS.get_keycode_string(code)
 		_capturing_action = ""
 		_capture_button = null
 		get_viewport().set_input_as_handled()

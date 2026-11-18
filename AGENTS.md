@@ -1,4 +1,4 @@
-# AGENTS.md — notes pour les agents
+﻿# AGENTS.md — notes pour les agents
 
 Projet Godot 4.7.2 (GDScript) : remake hommage « trois jeux en un » (TPS, rail
 shooter, conduite arcade). IP originale, pas de contenu sous licence.
@@ -297,3 +297,19 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   menu est reconstruit à la fermeture (`closed` → `_build`) et le menu pause
   aussi (`_on_options_closed` → `_build()`), pour que ses boutons suivent la
   nouvelle langue.
+
+## Touches (remappage)
+
+- Les actions sont déclarées par `GameState._ensure_input_actions()` en
+  **codes physiques** (`ev.physical_keycode`), donc indépendantes de la
+  disposition AZERTY/QWERTY. Toute lecture d'une liaison doit faire
+  `ev.physical_keycode if ev.physical_keycode != 0 else ev.keycode` : lire
+  seulement `keycode` affichait `-` pour toutes les touches par défaut.
+- `Options` mémorise les liaisons d'origine dans `_default_keys` au premier
+  `apply_keybinds()` (avant d'appliquer une surcharge). `reset_keybinds()`
+  vide `keybinds` **et** réinstalle ces codes physiques dans l'`InputMap` :
+  vider le dictionnaire seul laissait la dernière touche remappée active.
+- `Options.rebind_key()` écrit `keybinds` puis `apply_keybinds()` et
+  sauvegarde ; `options_menu.gd` capture `physical_keycode` et relit les
+  liaisons par `_key_name()`. `_verify._check_keybinds()` couvre les trois
+  cas (défaut affiché, remappage, réinitialisation).
