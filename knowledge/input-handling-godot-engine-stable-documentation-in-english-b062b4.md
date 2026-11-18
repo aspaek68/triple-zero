@@ -1,72 +1,89 @@
 # Input handling — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/inputs/index.html
-- **Fetched**: 2026-11-17T20:46:50
+- **Fetched**: 2026-11-18T03:07:17
 
 # Input Handling in Godot Engine
+=====================================
 
-## Introduction
-
-Input handling is a crucial aspect of game development in Godot Engine. It allows you to capture user input, such as keyboard, mouse, and controller events, and react to them accordingly.
+Godot Engine provides a robust input handling system to handle user input from various devices such as mice, gamepads, and joysticks.
 
 ## Using InputEvent
 
-The `InputEvent` class is the foundation for input handling in Godot Engine. It provides a way to access input events, such as keyboard presses, mouse movements, and controller button presses.
+To handle user input, you need to use the `InputEvent` class. This class represents a single input event and provides information about the event, such as the input device, the type of input (e.g., mouse move, key press), and the timestamp of the event.
 
 ### Example:
 ```gdscript
-var input_event = InputEvent.new()
-if input_event.is_action_pressed("ui_right"):
-    print("Right arrow key pressed")
+extends Node
+
+func _process(delta):
+    var mouse_position = Input.get_mouse_position()
+    var mouse_velocity = Input.get_mouse_velocity()
+    print("Mouse Position:", mouse_position)
+    print("Mouse Velocity:", mouse_velocity)
 ```
 ## Mouse and Input Coordinates
 
-Godot Engine provides a way to get the mouse coordinates at any point in time. This can be useful for tasks such as drawing, scrolling, or targeting.
+You can get the current mouse position and velocity using the `Input.get_mouse_position()` and `Input.get_mouse_velocity()` functions, respectively.
 
 ### Example:
 ```gdscript
-var mouse_x = Input.get_mouse_position().x
-var mouse_y = Input.get_mouse_position().y
-print("Mouse position: ", mouse_x, ", ", mouse_y)
+extends Node
+
+func _process(delta):
+    var mouse_position = Input.get_mouse_position()
+    var mouse_velocity = Input.get_mouse_velocity()
+    print("Mouse Position:", mouse_position)
+    print("Mouse Velocity:", mouse_velocity)
 ```
 ## Customizing the Mouse Cursor
 
-You can customize the mouse cursor to suit your game's needs. This can be done using the `Input.set_mouse_cursor_visible()` function.
+You can customize the mouse cursor by setting its shape, size, and color using the `Input.set_mouse_cursor()` function.
 
 ### Example:
 ```gdscript
-Input.set_mouse_cursor_visible(false)
+extends Node
+
+func _process(delta):
+    Input.set_mouse_cursor(0, 0, 0, 0, Vector2(10, 10), Color(1, 1, 1, 1))
 ```
 ## Controllers, Gamepads, and Joysticks
 
-Godot Engine supports a wide range of controllers, gamepads, and joysticks. You can use the `Input.get_connected_controller()` function to check if a controller is connected.
+You can detect controllers, gamepads, and joysticks using the `Input.is_controller_connected()` function.
 
 ### Example:
 ```gdscript
-var controller = Input.get_connected_controller()
-if controller:
-    print("Controller found")
+extends Node
+
+func _process(delta):
+    if Input.is_controller_connected(0):
+        print("Controller connected!")
+    else:
+        print("No controller connected.")
 ```
 ## Controller Features
 
-Godot Engine provides several features for working with controllers, including support for analog sticks, directional buttons, and trigger buttons.
+Controllers, gamepads, and joysticks have various features, such as acceleration, braking, and axis values. You can access these values using the `Input.get_joy_axis()` function.
 
 ### Example:
 ```gdscript
-var controller = Input.get_connected_controller()
-if controller:
-    var analog_stick_x = controller.get_analog_stick_x()
-    var analog_stick_y = controller.get_analog_stick_y()
-    print("Analog stick values: ", analog_stick_x, ", ", analog_stick_y)
+extends Node
+
+func _process(delta):
+    var axis_value = Input.get_joy_axis(0, 0)
+    print("Axis Value:", axis_value)
 ```
 ## Handling Quit Requests
 
-You can handle quit requests using the `Input.is_key_pressed()` function.
+You can handle quit requests by listening for the `Input.quitting` event.
 
 ### Example:
 ```gdscript
-if Input.is_key_pressed(KEY_ESC):
-    print("Escape key pressed")
-    # Handle quit request here
+extends Node
+
+func _process(delta):
+    if Input.quitting:
+        print("Quit request received!")
+        # Handle quit request
 ```
-By mastering input handling in Godot Engine, you can create more immersive and responsive gaming experiences.
+By using these APIs and examples, you can handle user input effectively in your Godot Engine project.

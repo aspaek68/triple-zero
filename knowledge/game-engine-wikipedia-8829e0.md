@@ -1,136 +1,57 @@
 # Game engine - Wikipedia
 
 - **Source**: https://en.wikipedia.org/wiki/Game_engine
-- **Fetched**: 2026-11-17T18:06:32
+- **Fetched**: 2026-11-18T03:10:33
 
-Game engine - Wikipedia
-Jump to content
-From Wikipedia, the free encyclopedia
-Game development and framework for computer science research platform
-This article has multiple issues.
-Please help
-Learn how and when to remove these messages
-This article needs to be
-February 2018
-This article
-Please
-August 2019
-Learn how and when to remove this message
-This article
-Please help
-Find sources:
-JSTOR
-November 2019
-Learn how and when to remove this message
-You can help
+**Game Engine**
+================
 
----
+A game engine is a software framework primarily designed for the development of video games, and generally includes relevant libraries and support programs.
 
-Game engine - Wikipedia
-Jump to content
-From Wikipedia, the free encyclopedia
-Game development and framework for computer science research platform
-This article has multiple issues.
-Please help
-improve it
-or discuss these issues on the
-talk page
-.
-(
-Learn how and when to remove these messages
-)
-This article needs to be
-updated
-.
-Please help update this article to reflect recent events or newly available information.
-(
-February 2018
-)
-This article
-may contain
-original research
-.
-Please
-improve it
-by
-verifying
-the claims made and adding
-inline citations
-. Statements consisting only of original research should be removed.
-(
-August 2019
-)
-(
-Learn how and when to remove this message
-)
-This article
-needs
-more citations
-.
-Please help
-improve this article
-by
-adding citations to reliable sources
-. Unsourced material may be challenged and
-removed
-.
-Find sources:
-"Game engine"
-–
-news
-·
-newspapers
-·
-books
-·
-scholar
-·
-JSTOR
-(
-November 2019
-)
-(
-Learn how and when to remove this message
-)
-You can help
-expand this article with text translated from
-the corresponding article
-in Portuguese
-.
-(February 2026)
-Click [show] for important translation instructions.
-Consider
-adding a topic
-to this template: there are already 623 articles in the
-main category
-, and specifying
-|
-topic
-=
-will aid in categorization.
-Do not translate text that appears unreliable or low-quality. If possible, verify the text with references provided in the foreign-language article.
-You
-must
-provide
-copyright attribution
-in the
-edit summary
-accompanying your translation by providing an
-interlanguage link
-to the source of your translation. A model attribution edit summary is
-Content in this edit is translated from the existing Portuguese Wikipedia article at [[:Pt:Motor de jogo]]; see its history for attribution.
-You may also add the template
-{{Translated|Pt|Motor de jogo}}
-to the
-talk page
-.
-For more guidance, see
-Wikipedia:Translation
-.
-(
-Learn how and when to remove this message
-)
-Part of a series on the
-Video gam
+**Key Facts**
 
-[... truncated ...]
+* Game engines provide a suite of visual development tools and features for developing video games.
+* They offer core functionalities such as:
+	+ 2D or 3D rendering
+	+ Physics engine
+	+ Audio engine
+	+ Scripting
+	+ Animation
+	+ Artificial intelligence
+	+ Networking
+	+ Streaming
+	+ Memory management
+	+ Threads
+	+ Localization support
+	+ Scene graph
+	+ Cinematics
+* Game engines allow for rapid development of games in a data-driven manner.
+
+**APIs and Examples**
+
+* Some popular game engines include:
+	+ Unity
+	+ Unreal Engine
+	+ Godot
+	+ CryEngine
+* APIs for game engines can vary, but common ones include:
+	+ C++ and C# for Unity
+	+ C++ and Blueprints for Unreal Engine
+	+ C and Python for Godot
+	+ C and C++ for CryEngine
+
+**Features and Benefits**
+
+* Game engines provide a flexible and reusable software platform that provides all the core functionality needed to develop a game application.
+* They offer platform abstraction, allowing the same game to run on various platforms with few, if any, changes made to the game source code.
+* Game engines can reduce costs, complexities, and time-to-market, making them critical for the competitive video game industry.
+
+**Types of Game Engines**
+
+* Middleware: a flexible and reusable software platform that provides all the core functionality needed to develop a game application.
+* Component-based architecture: allows specific systems in the engine to be replaced or extended with more specialized game-middleware components.
+
+**Industry and Research**
+
+* Game engines are used in the development of video games across platforms, including desktops, mobile devices, video game consoles, and other types of computers.
+* Game engines are often used in computer science research platforms.

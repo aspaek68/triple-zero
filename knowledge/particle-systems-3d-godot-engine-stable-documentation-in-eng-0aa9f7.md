@@ -1,61 +1,88 @@
 # Particle systems (3D) — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/3d/particles/index.html
-- **Fetched**: 2026-11-17T20:36:42
+- **Fetched**: 2026-11-18T03:01:12
 
 **Particle Systems (3D) in Godot Engine**
-=============================================
+=====================================
 
 **Introduction**
 ---------------
 
-Particle systems are a powerful tool for simulating complex physical effects in Godot Engine, such as fire, sparks, smoke, and magical effects. They are well-suited for creating dynamic and organic behavior, adding "life" to your scenes.
+Particle systems are a powerful tool in Godot Engine for simulating complex physical effects, adding dynamic and organic behavior to scenes, and creating realistic simulations of fire, sparks, smoke, and magical effects.
 
-**Particle System Components**
+**Overview**
+------------
+
+A particle system consists of two main parts: particles and emitters. Particles are the visible part of the system, while emitters are responsible for creating the particles.
+
+**Types of Particle Systems**
 -----------------------------
 
-A particle system consists of two main parts:
+*   **GPUParticles3D**: GPU-accelerated particle systems that run on the GPU, providing high performance and flexibility.
+*   **CPUParticles3D**: CPU-based particle systems that are less flexible but work on a wider range of hardware.
 
-* **Particles**: The visible part of a particle system, representing tiny specks of dust, flames, or glowing orbs.
-* **Emitters**: The node that creates the particles, controlling where and how they are spawned.
+**Particle Properties and Behavior**
+--------------------------------------
 
-**Node Overview**
------------------
-
-Godot Engine offers two types of 3D particle systems:
-
-* **GPUParticles3D**: GPU-accelerated particles processed on the GPU, offering high performance and flexibility.
-* **CPUParticles3D**: CPU-based particles processed on the CPU, providing better support for older hardware and mobile phones.
-
-**GPUParticles3D**
------------------
-
-* **Attractor Nodes**: Control the force applied to particles, pulling them closer or pushing them away.
-	+ `GPUParticlesAttractorBox3D`
-	+ `GPUParticlesAttractorSphere3D`
-	+ `GPUParticlesAttractorVectorField3D`
-* **Collision Nodes**: Define how particles interact with the environment.
-	+ `GPUParticlesCollisionBox3D`
-	+ `GPUParticlesCollisionSphere3D`
-	+ `GPUParticlesCollisionSDF3D`
-	+ `GPUParticlesCollisionHeightField3D`
+*   **Particles**: Can be randomized to create organic behavior, with attributes such as size, speed, movement direction, and color.
+*   **Emitters**: Can have a shape, controlling where and how particles are spawned.
+*   **Attractors**: Nodes that apply a force to particles, pulling them closer or pushing them away.
+*   **Collision Nodes**: Nodes that create complex collision behavior, such as collision with boxes, spheres, or heightmaps.
 
 **Basic Usage**
 ----------------
 
-1. Create a 3D particle system and set its properties:
-	* Spawn: Control the number of particles spawned.
-	* Accelerations: Define the acceleration values for particles.
-	* Display: Set the display options for particles.
-	* Collision: Define how particles interact with the environment.
-2. Customize the process material and particle flags to control particle behavior.
+*   Creating a 3D particle system
+*   Setting properties, such as spawn interval, acceleration, display, and collision
+*   Customizing the process material and particle flags
 
 **Advanced Topics**
-------------------
+-------------------
 
-* **Particle Sub-Emitters**: Create smaller sub-particle systems within the main particle system.
-* **Particle Trails**: Create trails behind moving particles.
-* **Particle Turbulence**: Add random movement to particles.
-* **3D Particle Attractors**: Control the force applied to particles using attractor nodes.
-* **3D Particle Collisions**: Define how particles interact with the environment using collision nodes.
-* **Complex Emission Shapes**: Create complex shapes to control particle emission.
+*   **Particle Sub-Emitters**: Creating sub-emitters to control the behavior of particles
+*   **3D Particle Trails**: Creating trails of particles for a more realistic effect
+*   **Particle Turbulence**: Adding randomization to particle behavior for a more organic effect
+*   **3D Particle Attractors**: Using attractor nodes to create complex particle behavior
+*   **3D Particle Collisions**: Using collision nodes to create complex collision behavior
+*   **Complex Emission Shapes**: Creating complex emission shapes using custom shaders and material properties.
+
+**APIs and Examples**
+----------------------
+
+*   `GPUParticles3D`
+*   `CPUParticles3D`
+*   `GPUParticlesAttractorBox3D`
+*   `GPUParticlesAttractorSphere3D`
+*   `GPUParticlesAttractorVectorField3D`
+*   `GPUParticlesCollisionBox3D`
+*   `GPUParticlesCollisionSphere3D`
+*   `GPUParticlesCollisionSDF3D`
+*   `GPUParticlesCollisionHeightField3D`
+*   Custom shaders and material properties for advanced usage.
+
+**Example Use Case**
+--------------------
+
+```gdscript
+# Create a GPUParticles3D system
+var particles = GPUParticles3D.new()
+
+# Set properties
+particles.set_spawn_interval(1.0)
+particles.set_acceleration(Vector3(0, 0, 1))
+particles.set_display(true)
+particles.set_collision(true)
+
+# Add emitters
+var emitter = Node3D.new()
+emitter.add_child(particles)
+
+# Create a custom shader for the particles
+var shader = ShaderMaterial.new()
+shader.set_shader_type(ShaderType.ShaderMaterial)
+shader.set_shader_code(code)
+
+# Set the shader as the material for the particles
+particles.set_material(shader)
+```

@@ -1,60 +1,59 @@
 # Export — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/export/index.html
-- **Fetched**: 2026-11-17T20:49:52
+- **Fetched**: 2026-11-18T03:08:25
 
-Exporting Projects in Godot Engine
-================================
+# Exporting a Build in Godot Engine
+=====================================================
 
-Overview
---------
+The Godot Engine provides a way to export a build of your project, allowing you to share your game or application with others. This documentation outlines the various options and procedures for exporting builds for different platforms.
 
-Exporting a build of your project allows you to create a distributable package that can be shared with others or deployed on a target platform.
+## Platforms
+-----------
 
-### Types of Exports
+### Windows
 
-*   Packs: Exporting the entire project as a single package.
-*   Patches: Exporting a set of changes to the project.
-*   Mods: Exporting additional content for the project, such as levels or assets.
+*   Manually change the application icon using the `set_app_icon` function in GDScript or C#.
 
-### Exporting for Different Platforms
+### Linux
 
-*   **Windows**: Manually change application icon using the `ApplicationIcon` node.
-*   **Linux**: Run Godot apps on macOS using the `export` command in the terminal.
-*   **macOS**: Run Godot apps on macOS using the `export` command in the terminal.
-*   **Android**: Use Gradle builds to deploy the app.
-*   **iOS**: Use Xcode to deploy the app.
-*   **visionOS**: Use the `export` command in the terminal.
-*   **Web**: Export the project to be run in a web browser.
+*   Exporting options can be found in the `Project` > `Project Settings` > `Export` tab.
 
-### One-Click Deploy
+### macOS
 
-Godot provides a one-click deploy feature for dedicated servers.
+*   Running Godot apps on macOS requires the `Godot` application to be installed.
+*   Exporting options can be found in the `Project` > `Project Settings` > `Export` tab.
 
-### Example Code
+### Android
 
-```gdscript
-// Exporting the entire project as a pack
-extends Export
+*   Use Gradle builds to export your project.
+*   One-click deploy is not currently supported.
 
-func _ready():
-    export_pack("my_project_pack.gdpack")
-```
+### iOS
 
-```gdscript
-// Exporting a set of changes to the project (patches)
-extends ExportPatch
+*   Exporting options can be found in the `Project` > `Project Settings` > `Export` tab.
 
-func _ready():
-    export_patch("my_patch.patch")
-```
+### visionOS
 
-```gdscript
-// Exporting additional content for the project (mods)
-extends ExportMod
+*   Exporting options can be found in the `Project` > `Project Settings` > `Export` tab.
 
-func _ready():
-    export_mod("my_mod.mod")
-```
+### Web
 
-Note: The provided example code snippets are for illustrative purposes only and may require modifications to suit your specific use case.
+*   Exporting options can be found in the `Project` > `Project Settings` > `Export` tab.
+
+## Patches, Packs, and Mods
+---------------------------
+
+*   Exporting packs, patches, and mods is a separate process from exporting the main project.
+
+## Contributing
+-------------
+
+*   Learn how to contribute to the Godot Engine documentation on GitHub.
+
+## Additional Resources
+----------------------
+
+*   For more information on exporting properties from scripts, see:
+    *   GDScript exported properties
+    *   C# exported properties

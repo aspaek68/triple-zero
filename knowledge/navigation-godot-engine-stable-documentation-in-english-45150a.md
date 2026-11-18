@@ -1,81 +1,101 @@
 # Navigation — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/navigation/index.html
-- **Fetched**: 2026-11-17T20:38:21
+- **Fetched**: 2026-11-18T03:03:36
 
-**Navigation in Godot Engine**
-================================
+Navigation in Godot Engine
+==========================
 
-Navigation is a system in Godot Engine that enables efficient navigation and collision detection for 2D and 3D scenes. It provides a range of features and tools to support navigation in different scenarios.
+Navigation is a crucial feature in Godot Engine that enables characters and agents to navigate through the game world. It provides a flexible and extensible way to manage navigation, allowing developers to create complex and realistic navigation systems.
 
-**Key Concepts**
-----------------
+### Navigation Overviews
 
-### Navigation Types
+*   **2D Navigation**: Used for 2D games and projects that require navigation in a flat plane.
+*   **3D Navigation**: Used for 3D games and projects that require navigation in a three-dimensional space.
 
-* **2D Navigation**: Used for 2D scenes with colliders.
-* **3D Navigation**: Used for 3D scenes with colliders.
+### Navigation Components
 
-### Navigation Server
+#### NavigationServer
 
-* A central node that manages navigation data and queries.
+A top-level node that manages navigation for all navigation regions in a node tree.
 
-### Navigation Maps
+#### NavigationMaps
 
-* A data structure that stores navigation information for a specific map.
+Represents a map that contains navigation data, such as obstacles and regions.
 
-### Navigation Regions
+#### NavigationRegions
 
-* A way to define areas in a scene where navigation is enabled.
+A region that contains navigation data, such as obstacles and points of interest.
 
-### Navigation Meshes
+#### NavigationMeshes
 
-* A mesh-based representation of navigation data.
+A collection of navigation data points that form a mesh, used to define the navigation space.
 
-### Navigation Paths
+#### NavigationPaths
 
-* A data structure that stores navigation information for a specific path.
+A path that connects two navigation data points, used to define a route between two points.
 
-### Navigation Path Query Objects
+#### NavigationPathQueryObjects
 
-* Used to query navigation data along a specific path.
+Used to query navigation data, such as finding the shortest path between two points.
 
-### Navigation Agents
+#### NavigationAgents
 
-* Entities that use navigation data to move around in a scene.
+Represents an agent that uses navigation to move around the game world.
 
-### Navigation Obstacles
+#### NavigationObstacles
 
-* Used to prevent navigation agents from passing through certain areas.
+Represents an obstacle that blocks the navigation path.
 
-### Navigation Links
+#### NavigationLinks
 
-* Used to connect navigation meshes and regions.
+Represents a link between two navigation data points, used to define a connection between two points.
 
-### Navigation Layers
+#### NavigationLayers
 
-* A way to organize navigation data into layers.
+A layer that contains navigation data, such as obstacles and regions.
 
-**APIs and Examples**
---------------------
+### Navigation Debug Tools
 
-### Navigation APIs
+Godot provides several debug tools for navigation, including:
 
-* `NavigationServer`: Manages navigation data and queries.
-* `NavigationMap`: Stores navigation information for a specific map.
-* `NavigationRegion`: Defines areas in a scene where navigation is enabled.
-* `NavigationMesh`: A mesh-based representation of navigation data.
+*   **Navigation debug visualizer**: A visual tool that displays navigation data in the scene tree.
+*   **Navigation debug map**: A tool that displays navigation data on a map.
 
-### Example Use Cases
+### Best Practices
 
-* Use `NavigationServer` to manage navigation data and queries.
-* Use `NavigationMap` to store navigation information for a specific map.
-* Use `NavigationRegion` to define areas in a scene where navigation is enabled.
-* Use `NavigationMesh` to create a mesh-based representation of navigation data.
+#### Connecting Navigation Meshes
 
-**Optimizing Navigation Performance**
--------------------------------------
+To connect navigation meshes, use the `connect` function on the `NavigationMesh` node.
 
-* Use `NavigationLayers` to organize navigation data into layers.
-* Use `NavigationObstacles` to prevent navigation agents from passing through certain areas.
-* Use `NavigationPaths` to store navigation information for a specific path.
+#### Supporting Different Actor Types
+
+Use the `set_affected_types` function on the `Navigation` node to support different actor types.
+
+#### Supporting Different Actor Locomotion
+
+Use the `set_locomotion` function on the `Navigation` node to support different actor locomotion.
+
+#### Optimizing Navigation Performance
+
+Use the following tips to optimize navigation performance:
+
+*   Use caching to reduce the number of calculations.
+*   Use spatial partitioning to reduce the number of queries.
+*   Use optimization techniques, such as raycasting, to reduce the number of calculations.
+
+Example Code
+------------
+
+```gdscript
+extends NavigationServer
+
+func _ready():
+    # Create a new navigation map
+    var navigation_map = NavigationMap.new()
+    navigation_map.add_obstacle(Vector2(0, 0), Vector2(0, 1))
+    navigation_map.add_region(Vector2(0, 1), Vector2(1, 1))
+    add_map(navigation_map)
+```
+
+This code creates a new navigation map and adds an obstacle and a region to it. The `add_map` function is then called to add the map to the navigation server.

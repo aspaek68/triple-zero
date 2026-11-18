@@ -10,3 +10,15 @@ https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_sty
 https://docs.godotengine.org/en/stable/tutorials/3d/fog.html
 https://docs.godotengine.org/en/stable/tutorials/optimization/index.html
 https://docs.godotengine.org/en/stable/tutorials/rendering/index.html
+https://docs.godotengine.org/en/stable/tutorials/inputs/index.html
+https://docs.godotengine.org/en/stable/tutorials/ui/index.html
+https://docs.godotengine.org/en/stable/tutorials/io/background_loading.html
+https://docs.godotengine.org/en/stable/tutorials/export/index.html
+https://docs.python.org/3/tutorial/index.html
+https://developer.mozilla.org/en-US/docs/Web/CSS
+https://en.wikipedia.org/wiki/Game_engine
+https://en.wikipedia.org/wiki/Procedural_generation
+https://en.wikipedia.org/wiki/Computer_graphics
+https://en.wikipedia.org/wiki/Pathfinding
+https://en.wikipedia.org/wiki/Artificial_intelligence
+https://en.wikipedia.org/wiki/Machine_learning

@@ -1,77 +1,147 @@
 # Performance — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/performance/index.html
-- **Fetched**: 2026-11-17T18:06:18
+- **Fetched**: 2026-11-18T03:03:06
 
-Performance — Godot Engine (stable) documentation in English
-Godot Engine 4.7 documentation in English
-Performance
-Edit on GitHub
-Learn how to contribute!
-Performance
-Introduction
-Godot follows a balanced performance philosophy. In the performance world,
-Rendering large amounts of objects efficiently is easy, but when a
-Configuring the properties of every material for every object that
-In 3D physics, a similar situation happens. The best algorithms to
-And there are many more examples of this! Game engines strive to be
-Godot is not an exception to this. While it is designed to have backends
-With this clear, the aim of this tutorial section is to explain how to get the
-General optimization tips
-Common
-General optimization tips
-Optimization using Servers
-CPU
-CPU optimization
+**Performance Optimization in Godot Engine**
+=============================================
 
----
+**Introduction**
+---------------
 
-Performance — Godot Engine (stable) documentation in English
-Godot Engine 4.7 documentation in English
-Performance
-Edit on GitHub
-Learn how to contribute!
-Performance
-
-Introduction
-
-Godot follows a balanced performance philosophy. In the performance world,
-there are always tradeoffs, which consist of trading speed for usability
-and flexibility. Some practical examples of this are:
-Rendering large amounts of objects efficiently is easy, but when a
-large scene must be rendered, it can become inefficient. To solve this,
-visibility computation must be added to the rendering. This makes rendering
-less efficient, but at the same time, fewer objects are rendered. Therefore,
-the overall rendering efficiency is improved.
-Configuring the properties of every material for every object that
-needs to be rendered is also slow. To solve this, objects are sorted by
-material to reduce the costs. At the same time, sorting has a cost.
-In 3D physics, a similar situation happens. The best algorithms to
-handle large amounts of physics objects (such as SAP) are slow at
-insertion/removal of objects and raycasting. Algorithms that allow faster
-insertion and removal, as well as raycasting, will not be able to handle as
-many active objects.
-And there are many more examples of this! Game engines strive to be
-general-purpose in nature. Balanced algorithms are always favored over
-algorithms that might be fast in some situations and slow in others, or
-algorithms that are fast but are more difficult to use.
-Godot is not an exception to this. While it is designed to have backends
-swappable for different algorithms, the default backends prioritize balance and
-flexibility over performance.
-With this clear, the aim of this tutorial section is to explain how to get the
-maximum performance out of Godot. While the tutorials can be read in any order,
-it is a good idea to start from
-General optimization tips
-.
-Common
-
-General optimization tips
-Optimization using Servers
-CPU
-
-CPU optimization
-GPU
-
-GPU o
+Godot Engine follows a balanced performance philosophy, where tradeoffs are made between speed, usability, and flexibility. This documentation will guide you on how to get the maximum performance out of Godot Engine.
 
-[... truncated ...]
+**General Optimization Tips**
+---------------------------
+
+### Optimization using Servers
+
+*   Use a server for rendering large scenes or objects to reduce the load on the client's machine.
+
+### CPU Optimization
+
+*   Optimize CPU performance by:
+    *   Minimizing unnecessary computations
+    *   Using multi-threading to take advantage of multiple CPU cores
+    *   Using thread-safe APIs
+
+### GPU Optimization
+
+*   Optimize GPU performance by:
+    *   Minimizing unnecessary GPU computations
+    *   Using multi-threading to take advantage of multiple GPU cores
+    *   Using GPU-specific features like multi-threading and multi-threading
+
+### Optimization using MultiMeshes
+
+*   Reduce stutter from shader (pipeline) compilations by:
+    *   Batching multiple objects together
+    *   Reducing the number of shader changes
+
+### 3D Performance Optimization
+
+*   Optimize 3D performance by:
+    *   Minimizing unnecessary 3D computations
+    *   Using multi-threading to take advantage of multiple CPU cores
+    *   Reducing the number of physics objects
+
+### Animating Thousands of Objects
+
+*   Optimize animating thousands of objects by:
+    *   Using multi-threading to take advantage of multiple CPU cores
+    *   Reducing the number of animation objects
+
+### Using Multiple Threads
+
+*   Use multiple threads to:
+    *   Take advantage of multiple CPU cores
+    *   Improve performance in CPU-bound tasks
+
+### Thread-Safe APIs
+
+*   Use thread-safe APIs to:
+    *   Ensure safe access to shared resources
+    *   Improve performance in multi-threaded applications
+
+**APIs and Examples**
+--------------------
+
+### CPU Optimization APIs
+
+*   `Thread` API: Used to create and manage threads.
+*   `Task` API: Used to schedule tasks for execution.
+
+### GPU Optimization APIs
+
+*   `Mesh` API: Used to create and manage meshes.
+*   `Shader` API: Used to create and manage shaders.
+
+### MultiMesh Optimization APIs
+
+*   `MultiMesh` API: Used to create and manage multi-meshes.
+
+### 3D Physics Optimization APIs
+
+*   `Physics` API: Used to create and manage physics objects.
+
+### Animating Thousands of Objects APIs
+
+*   `AnimationPlayer` API: Used to create and manage animation players.
+
+### Using Multiple Threads APIs
+
+*   `Thread` API: Used to create and manage threads.
+*   `Task` API: Used to schedule tasks for execution.
+
+**Example Code**
+-------------
+
+```gdscript
+// CPU Optimization Example
+func _process(delta):
+    for i in range(10000):
+        # Perform CPU-intensive computation
+        pass
+
+// GPU Optimization Example
+func _process(delta):
+    var mesh = Mesh.new()
+    mesh.add_vertex(Vector3(0, 0, 0))
+    mesh.add_vertex(Vector3(1, 0, 0))
+
+    # Use GPU-specific features
+    var shader = Shader.new()
+    shader.compile()
+
+    # Use multi-threading to take advantage of multiple GPU cores
+    var thread = Thread.new()
+    thread.call_func(self, "_gpu_thread", [mesh, shader])
+
+func _gpu_thread(mesh, shader):
+    # Perform GPU-intensive computation
+    pass
+
+// MultiMesh Optimization Example
+func _process(delta):
+    var multi_mesh = MultiMesh.new()
+    multi_mesh.add_mesh(Mesh.new())
+    multi_mesh.add_mesh(Mesh.new())
+
+    # Batching multiple objects together
+    multi_mesh.add_vertex(Vector3(0, 0, 0))
+    multi_mesh.add_vertex(Vector3(1, 0, 0))
+
+    # Reducing stutter from shader (pipeline) compilations
+    var shader = Shader.new()
+    shader.compile()
+
+    # Using multi-threading to take advantage of multiple GPU cores
+    var thread = Thread.new()
+    thread.call_func(self, "_gpu_thread", [multi_mesh, shader])
+
+func _gpu_thread(multi_mesh, shader):
+    # Perform GPU-intensive computation
+    pass
+```
+
+Note: This is a summary of the provided text and may not cover all the topics and examples.

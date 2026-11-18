@@ -1,66 +1,87 @@
 # Rendering — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/rendering/index.html
-- **Fetched**: 2026-11-17T20:45:30
+- **Fetched**: 2026-11-18T03:06:50
 
-# Rendering in Godot Engine
-=====================================
+Rendering
+================
 
-Rendering in Godot Engine refers to the process of preparing graphical content for display on the screen. The engine provides various tools and features to manage rendering, including renderers, viewports, and the Compositor.
+Overview
+--------
 
-## Overview of Renderers
-------------------------
+Godot Engine provides a robust rendering system to handle various graphical needs. This section covers the basics of rendering, including renderers, viewports, and the Compositor.
 
-Renderers are responsible for managing the rendering pipeline in Godot Engine. They are used to render 2D and 3D graphics, and can be configured to handle various aspects of rendering, such as resolution scaling and input lag.
+### Viewports
 
-### Using Viewports
-------------------
+A viewport is a region of the screen where the game's content is rendered. Godot provides two types of viewports:
 
-Viewports are a type of renderer that allows you to render graphical content to a specific area of the screen. You can use viewports to create custom user interfaces, or to render 2D graphics.
+*   **SceneViewport**: renders the scene's nodes.
+*   **SpriteViewport**: renders sprites.
+
+Example:
+```gdscript
+extends Viewport
+
+func _process(delta):
+    # Example code to render a custom texture
+    var texture = load("res://texture.tres")
+    set_texture(texture)
+```
 
 ### Multiple Resolutions
------------------------
 
-Godot Engine allows you to render at multiple resolutions simultaneously. This can be useful for creating high-performance graphics that can handle multiple screen resolutions.
+Godot allows for multiple resolutions to be handled efficiently. This can be achieved through the use of:
+
+*   **Viewport Resolution**: sets the resolution for a specific viewport.
+*   **Screen Resolution**: sets the resolution for the entire screen.
+
+Example:
+```gdscript
+extends Viewport
+
+func _process(delta):
+    # Example code to set the viewport resolution
+    set_viewport_size(1920, 1080)
+```
 
 ### Fixing Jitter, Stutter, and Input Lag
------------------------------------------
 
-Jitter, stutter, and input lag are common issues that can affect the performance of your game. Godot Engine provides various tools and techniques to help you fix these issues, including:
+Jitter, stutter, and input lag can be mitigated using the following techniques:
 
-*   **VSync**: Enables vertical sync to prevent screen tearing.
-*   **Frame rate limiting**: Limits the frame rate to prevent overloading the GPU.
-*   **Input lag compensation**: Compensates for input lag to improve responsiveness.
+*   **Async Queue**: allows for asynchronous processing, reducing lag.
+*   **Async Texture Loading**: loads textures asynchronously, reducing stuttering.
+*   **Input Lag Compensation**: compensates for input lag by adjusting rendering times.
+
+Example:
+```gdscript
+extends Node2D
+
+func _process(delta):
+    # Example code to use an async queue
+    async_queue.begin_async_task(func_name, "texture_load")
+```
 
 ### The Compositor
-------------------
 
-The Compositor is a rendering pipeline component that manages the rendering process. It is responsible for handling tasks such as:
+The Compositor is a central component in Godot's rendering pipeline. It handles tasks such as:
 
-*   **Texture rendering**: Renders textures to the screen.
-*   **Sprite rendering**: Renders sprites to the screen.
-*   **Scalable rendering**: Scales graphics to fit the screen resolution.
+*   **HDR Output**: supports High Dynamic Range (HDR) rendering.
+*   **Color Space**: handles color spaces and conversions.
 
-### Using DrawableTextures
----------------------------
+Example:
+```gdscript
+extends Node2D
 
-DrawableTextures are a type of texture that can be used to render graphical content. They provide a number of benefits, including:
+func _process(delta):
+    # Example code to use the compositor
+    var compositor = get_compositor()
+    compositor.update HDR rendering
+```
 
-*   **Improved performance**: DrawableTextures can improve performance by reducing the number of draw calls.
-*   **Customization**: DrawableTextures can be customized to fit specific use cases.
+See also
+--------
 
-### HDR Output
---------------
+For more information on 2D and 3D rendering, refer to:
 
-HDR (High Dynamic Range) output allows you to render graphics with a wider range of colors and contrast levels. This can improve the overall visual quality of your game.
-
-### API References
-------------------
-
-*   `Viewport`
-*   `Renderer`
-*   `Compositor`
-*   `DrawableTexture`
-*   `VSync`
-*   `Frame rate limiting`
-*   `Input lag compensation`
+*   [2D Rendering](https://docs.godotengine.org/en/stable/extends/viewport.html)
+*   [3D Rendering](https://docs.godotengine.org/en/stable/extends/3d_node.html)
