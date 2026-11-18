@@ -53,6 +53,10 @@ affiche les invites du périphérique que vous venez d'utiliser.
 Réglages manette dans les options : sensibilité des sticks, zone morte,
 vibration. La manette vibre au tir, aux impacts et au boost.
 
+L'interface est **bilingue FR/EN** : le bouton « Langue », en tête des options,
+bascule menus, HUD et messages des trois actes. Le choix est conservé dans
+`user://options.cfg`.
+
 ### Viseur
 
 Un **viseur** dessiné par le HUD (croix + point central) reste au centre de
