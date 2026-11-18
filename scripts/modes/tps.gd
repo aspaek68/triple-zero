@@ -1007,12 +1007,13 @@ func _finish(success: bool = true) -> void:
 		return
 	_ended = true
 	GameState.last_act_success = success
+	GameState.last_act_reason = "" if success else "intégrité à zéro"
 	if success:
 		Score.time_bonus += 3000
 		Progress.record_run(GameState.Mode.TPS, Score.total(), Score.rank())
 	else:
 		# The armed challenge cannot be met by a dead player either.
-		Progress.fail("intégrité à zéro")
+		Progress.fail(GameState.last_act_reason)
 	Progress.evaluate()
 	# Completing the act is what clears it; the armed challenge is an optional
 	# extra goal and its verdict is shown separately on the results screen.

@@ -371,6 +371,16 @@ func _check_editor() -> void:
 	}), "level loader rejected a level with one bad node")
 	_expect(LevelData.custom_path.size() == 2, "level loader kept a malformed node")
 	_expect(LevelData.props.size() == 1, "level loader kept an unknown prop kind")
+	_expect(LevelData.has_custom(), "has_custom() misses a valid saved track")
+
+	# The menu must announce that act 3 will use the custom track.
+	var menu_script: GDScript = load("res://scripts/ui/menu.gd")
+	if menu_script != null:
+		var menu: Control = menu_script.new()
+		add_child(menu)
+		_expect(_labels_contain(menu, "Custom track active — act 3"),
+			"menu does not announce the active custom track")
+		menu.queue_free()
 
 	# Props dropped in the editor must actually appear in the drive act.
 	var drive_script: GDScript = load("res://scripts/modes/drive.gd")
@@ -440,6 +450,23 @@ func _check_results_screen() -> void:
 		"results screen hides accuracy when shots were fired")
 	tps_menu.queue_free()
 	Score.reset()
+
+	# A failed run posts no score/rank: it must say so (with the reason) instead
+	# of contradicting "ACT FAILED" with a rank line.
+	var failed_menu: Control = script.new()
+	GameState.show_results_on_load = true
+	GameState.last_act_success = false
+	GameState.last_act_reason = "temps écoulé"
+	add_child(failed_menu)
+	_expect(_labels_contain(failed_menu, "No score recorded"),
+		"failed results screen does not say no score was recorded")
+	_expect(_labels_contain(failed_menu, "time ran out"),
+		"failed results screen hides the failure reason")
+	_expect(not _labels_contain(failed_menu, "Rank:"),
+		"failed results screen still shows a rank")
+	failed_menu.queue_free()
+	GameState.last_act_success = true
+	GameState.last_act_reason = ""
 	Loc.set_language(saved_lang)
 
 
@@ -585,10 +612,13 @@ func _check_death_is_failure() -> void:
 			"dying in act 1 reported a successful act")
 		_expect(Progress.cleared_acts == saved_acts,
 			"dying in act 1 cleared the act anyway")
+		_expect(GameState.last_act_reason == "intégrité à zéro",
+			"dying in act 1 kept no failure reason for the results screen")
 		probe.free()
 	Progress.selected_challenge = saved_challenge
 	Progress.cleared_acts = saved_acts
 	GameState.last_act_success = true
+	GameState.last_act_reason = ""
 	GameState.show_results_on_load = saved_results
 
 

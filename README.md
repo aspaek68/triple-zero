@@ -265,9 +265,15 @@ cinématique.
 L'écran de résultats annonce **ACTE RÉUSSI / ACTE ÉCHOUÉ**, le score, la
 précision, le rang, le meilleur score et le détail du défi (avec la **raison** de
 l'échec : touché, trop lent, aucun tir, précision insuffisante, aucun itinéraire
-alternatif, temps écoulé). Il propose directement **ACTE SUIVANT** (après une
-réussite), **REJOUER L'ACTE** ou **FERMER LES RÉSULTATS**. Menu principal et
-options **défilent** pour rester utilisables sur toutes les tailles de fenêtre.
+alternatif, temps écoulé). Un acte **échoué** (intégrité à zéro en Acte 1, temps
+écoulé en Acte 3) n'enregistre ni score ni rang : l'écran l'indique et donne la
+raison. Il propose directement **ACTE SUIVANT** (après une réussite),
+**REJOUER L'ACTE** ou **FERMER LES RÉSULTATS**. Menu principal et options
+**défilent** pour rester utilisables sur toutes les tailles de fenêtre.
+
+Une **piste personnalisée** enregistrée dans l'éditeur est signalée dans le
+menu (« Piste personnalisée active — acte 3 ») pour que l'on sache quel tracé
+l'Acte 3 va utiliser.
 
 ## Options et accessibilité
 

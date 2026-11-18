@@ -801,11 +801,12 @@ func _finish(success: bool) -> void:
 		return
 	_ended = true
 	GameState.last_act_success = success
+	GameState.last_act_reason = "" if success else "temps écoulé"
 	_car.engine_force = 0.0
 	# A failed run (out of time) cannot satisfy the armed challenge: report the
 	# real reason instead of a verdict that contradicts "ACTE ÉCHOUÉ".
 	if not success:
-		Progress.fail("temps écoulé")
+		Progress.fail(GameState.last_act_reason)
 	Progress.evaluate()
 	if success:
 		# Finishing the act clears it even when the optional challenge failed.

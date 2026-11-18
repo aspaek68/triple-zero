@@ -661,6 +661,7 @@ func _finish() -> void:
 		return
 	_ended = true
 	GameState.last_act_success = true
+	GameState.last_act_reason = ""
 	Progress.evaluate()
 	# The act is cleared by finishing it; the challenge is a separate verdict.
 	Progress.mark_act_cleared(GameState.Mode.RAIL)

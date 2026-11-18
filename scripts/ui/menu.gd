@@ -129,6 +129,16 @@ func _modifier_row() -> VBoxContainer:
 	acts.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	row.add_child(acts)
 
+	# The editor's track is what act 3 will drive: say so, otherwise the player
+	# has no way to tell a saved custom level is active.
+	if LevelData.has_custom():
+		var custom := Label.new()
+		custom.text = Loc.t("Piste personnalisée active — acte 3")
+		custom.add_theme_font_size_override("font_size", 13)
+		custom.add_theme_color_override("font_color", Color(0.6, 0.9, 0.7))
+		custom.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		row.add_child(custom)
+
 	if Progress.ng_plus_unlocked:
 		var ng := Button.new()
 		ng.name = "NgPlusButton"
@@ -223,23 +233,33 @@ func _results_panel() -> VBoxContainer:
 	panel.add_child(outcome)
 
 	var lines := Label.new()
-	var rows: Array = [Loc.t("Score total : %d") % Score.total()]
-	# The driving act has no shooting: showing "Accuracy: 0%" there would be
-	# meaningless, so the line only appears when shots were actually fired.
-	if Score.shots_fired > 0:
-		rows.append(Loc.t("Précision : %d%%") % int(Score.accuracy_ratio() * 100.0))
-	rows.append(Loc.t("Civils sauvés : %d   perdus : %d") % [
-		Score.civilians_saved, Score.civilians_lost])
-	rows.append(Loc.t("Matériel récupéré : %d   comms rétablies : %d") % [
-		Score.equipment_recovered, Score.comm_restored])
-	rows.append(Loc.t("Itinéraires alternatifs : %d") % Score.alternate_paths)
-	rows.append(Loc.t("Rang : %s") % Score.rank())
-	lines.text = "\n".join(rows)
+	if GameState.last_act_success:
+		var rows: Array = [Loc.t("Score total : %d") % Score.total()]
+		# The driving act has no shooting: showing "Accuracy: 0%" there would be
+		# meaningless, so the line only appears when shots were actually fired.
+		if Score.shots_fired > 0:
+			rows.append(Loc.t("Précision : %d%%") % int(Score.accuracy_ratio() * 100.0))
+		rows.append(Loc.t("Civils sauvés : %d   perdus : %d") % [
+			Score.civilians_saved, Score.civilians_lost])
+		rows.append(Loc.t("Matériel récupéré : %d   comms rétablies : %d") % [
+			Score.equipment_recovered, Score.comm_restored])
+		rows.append(Loc.t("Itinéraires alternatifs : %d") % Score.alternate_paths)
+		rows.append(Loc.t("Rang : %s") % Score.rank())
+		lines.text = "\n".join(rows)
+	else:
+		# A failed run posts no score and no rank; showing them contradicted
+		# "ACTE ÉCHOUÉ". State the real reason instead.
+		var reason: String = GameState.last_act_reason
+		if reason == "":
+			lines.text = Loc.t("Aucun score enregistré")
+		else:
+			lines.text = Loc.t("Aucun score enregistré — %s") % Loc.t(reason)
+		lines.add_theme_color_override("font_color", Color(1.0, 0.72, 0.55))
 	lines.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	panel.add_child(lines)
 
 	var best := Progress.best_for(GameState.mode)
-	if best["score"] > 0:
+	if GameState.last_act_success and best["score"] > 0:
 		var best_label := Label.new()
 		best_label.text = Loc.t("Meilleur : %d (%s)%s") % [best["score"], best["rank"],
 			Loc.t("  •  NOUVEAU RECORD !") if Progress.last_record else ""]
@@ -302,6 +322,7 @@ func _results_panel() -> VBoxContainer:
 func _launch(mode: int) -> void:
 	GameState.mode = mode as GameState.Mode
 	GameState.last_act_success = true
+	GameState.last_act_reason = ""
 	Score.reset()
 	Progress.begin()
 	Audio.stop_music()

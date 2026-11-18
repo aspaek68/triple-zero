@@ -35,6 +35,8 @@ var show_results_on_load := false
 ## Whether the last finished act was actually cleared (act 3 can run out of
 ## time), so the results screen can say so instead of showing a bare score.
 var last_act_success := true
+## Why the last act failed (empty on success), shown on the results screen.
+var last_act_reason := ""
 var cli_consumed := false
 ## New Game+: tougher hostiles, tighter resources. Toggled from the menu once
 ## the player has finished all three acts.

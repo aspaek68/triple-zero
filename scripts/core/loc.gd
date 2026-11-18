@@ -68,6 +68,8 @@ const EN := {
 	"REJOUER L'ACTE": "REPLAY ACT",
 	"ACTE SUIVANT": "NEXT ACT",
 	"FERMER LES RÉSULTATS": "CLOSE RESULTS",
+	"Aucun score enregistré": "No score recorded",
+	"Piste personnalisée active — acte 3": "Custom track active — act 3",
 
 	# ----------------------------------------------------------------- pause
 	"PAUSE": "PAUSE",
@@ -239,6 +241,7 @@ const EN_TEMPLATES := {
 	"Débloqué en terminant l'acte — 2e emplacement en Nouvelle Partie+":
 		"Unlocked by clearing the act — 2nd slot in New Game+",
 	"Score total : %d": "Total score: %d",
+	"Aucun score enregistré — %s": "No score recorded — %s",
 	"Précision : %d%%": "Accuracy: %d%%",
 	"Civils sauvés : %d   perdus : %d": "Civilians saved: %d   lost: %d",
 	"Matériel récupéré : %d   comms rétablies : %d":
