@@ -48,6 +48,8 @@ const EN := {
 	"ACTE RÉUSSI": "ACT PASSED",
 	"ACTE ÉCHOUÉ": "ACT FAILED",
 	"touché": "hit",
+	"civil touché": "civilian hit",
+	"percuté": "rammed",
 	"trop lent": "too slow",
 	"aucun tir": "no shots fired",
 	"précision insuffisante": "accuracy too low",
@@ -83,7 +85,8 @@ const EN := {
 	"Partie libre": "Free run",
 	"Sans contrainte": "No restrictions",
 	"Sans dégâts": "No damage",
-	"Terminer sans être touché": "Finish without being hit",
+	"Terminer sans être touché ni causer de dégâts":
+		"Finish without taking or dealing damage",
 	"Contre-la-montre": "Time attack",
 	"Terminer en moins de 4 min": "Finish in under 4 min",
 	"Tireur d'élite": "Sharpshooter",
@@ -221,6 +224,7 @@ const EN := {
 ## `%4.1f` and `%%` are supported; the values are carried over unchanged.
 const EN_TEMPLATES := {
 	"Défi : %s — %s": "Challenge: %s — %s",
+	"DÉFI ÉCHOUÉ — %s": "CHALLENGE FAILED — %s",
 	"%d nœuds • %d props\nOutil : %s\nClic : ajouter/déplacer • Clic droit : supprimer":
 		"%d nodes • %d props\nTool: %s\nClick: add/move • Right click: delete",
 	"Actes terminés : %d / 3": "Acts cleared: %d / 3",

@@ -59,6 +59,9 @@ func _check_localisation() -> void:
 	Loc.set_language("en")
 	_expect(Loc.t("OPTIONS") == "OPTIONS", "EN label missing: OPTIONS")
 	_expect(Loc.t("Partie libre") == "Free run", "EN label missing: challenge name")
+	_expect(Loc.t("Terminer sans être touché ni causer de dégâts") ==
+		"Finish without taking or dealing damage",
+		"EN label missing: no-damage challenge description")
 	_expect(Loc.t("MUNITIONS %d / %d") % [12, 30] == "AMMO 12 / 30",
 		"EN ammo template not translated")
 	# The modes use an em dash (U+2014) in these lines; the template keys must
@@ -72,6 +75,9 @@ func _check_localisation() -> void:
 		"EN em-dash reinforcement template not matched")
 	_expect(Loc.t("INTÉGRITÉ 75%") == "INTEGRITY 75%",
 		"EN percent template not matched")
+	_expect(Loc.t("DÉFI ÉCHOUÉ — %s") % Loc.t("civil touché") ==
+		"CHALLENGE FAILED — civilian hit",
+		"EN challenge failure template not translated")
 	_expect(Loc.t("REPRENDRE") == "RESUME", "EN label missing: REPRENDRE")
 	_expect(Loc.t("QUITTER LE JEU") == "QUIT GAME", "EN label missing: QUITTER LE JEU")
 	_expect(Loc.t("FERMER LES RÉSULTATS") == "CLOSE RESULTS",
@@ -207,6 +213,14 @@ func _check_hud() -> void:
 	Loc.set_language("en")
 	_expect(hud._title.text == "ACT 1 — TOWER",
 		"HUD did not retranslate on language change")
+	# A challenge that becomes unreachable mid-run must tell the player why,
+	# and the notice must follow a language change too.
+	hud.notify_challenge_failed("touché")
+	_expect(hud._status.text == "CHALLENGE FAILED — hit",
+		"challenge failure notice is not translated")
+	Loc.set_language("fr")
+	_expect(hud._status.text == "DÉFI ÉCHOUÉ — touché",
+		"challenge failure notice did not retranslate")
 	Loc.set_language(saved_lang)
 	hud.queue_free()
 
@@ -240,20 +254,24 @@ func _check_pause() -> void:
 ## The level editor is reachable from the menu: it must build in either
 ## language and expose its status line (and it must not crash headless).
 func _check_editor() -> void:
+	var saved_lang: String = Options.language
+	Loc.set_language("en")
 	var script: GDScript = load("res://scripts/ui/level_editor.gd")
 	_expect(script != null, "level editor script does not load")
 	if script == null:
+		Loc.set_language(saved_lang)
 		return
 	var editor: Control = script.new()
 	add_child(editor)
 	var titled := false
 	for node in editor.find_children("*", "Label", true, false):
-		if (node as Label).text == Loc.t("ÉDITEUR DE NIVEAU"):
+		if (node as Label).text == "LEVEL EDITOR":
 			titled = true
 	_expect(titled, "level editor title missing or untranslated")
-	_expect(editor._status != null and editor._status.text != "",
-		"level editor status line is empty")
+	_expect(editor._status != null and editor._status.text.contains("Tool:"),
+		"level editor status template is not translated")
 	editor.queue_free()
+	Loc.set_language(saved_lang)
 
 
 ## The results screen offers the next act after a clear (the three acts form a
@@ -380,6 +398,15 @@ func _check_challenges() -> void:
 	var aborted := Progress.evaluate()
 	_expect(not aborted["success"], "a failed run should fail its challenge")
 	_expect(aborted["reason"] == "temps écoulé", "failed run reason was not kept")
+
+	# "No damage" has to be reachable in every act: the rail act fails it on a
+	# civilian hit and the driving act on a ram (neither used to call fail()).
+	Progress.selected_challenge = "no_damage"
+	Progress.begin()
+	Progress.fail("percuté")
+	var rammed := Progress.evaluate()
+	_expect(not rammed["success"], "no-damage challenge should fail after a ram")
+	_expect(rammed["reason"] == "percuté", "no-damage reason was not kept")
 	Score.reset()
 
 	Progress.cleared_acts = [0, 1, 2]

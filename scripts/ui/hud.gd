@@ -83,6 +83,8 @@ var _ammo_raw: Array = [0, 0]
 var _secondary_raw: Array = [0, 0, 0]
 var _boss_fr := ""
 var _boss_frac := 0.0
+## Reason a replayable challenge just failed, so a language change keeps it.
+var _challenge_fail_reason := ""
 
 
 func build(title: String, objective: String, keyboard_hint: String, gamepad_hint := "") -> void:
@@ -135,6 +137,8 @@ func build(title: String, objective: String, keyboard_hint: String, gamepad_hint
 	_build_motion_blur()
 	Score.changed.connect(_refresh)
 	GameState.device_changed.connect(_refresh)
+	if not Progress.challenge_failed.is_connected(notify_challenge_failed):
+		Progress.challenge_failed.connect(notify_challenge_failed)
 	if not Loc.changed.is_connected(retranslate):
 		Loc.changed.connect(retranslate)
 	_refresh()
@@ -251,8 +255,23 @@ func set_objective(text: String) -> void:
 
 func set_status(text: String) -> void:
 	_status_fr = text
+	_challenge_fail_reason = ""
 	if _status:
 		_status.text = Loc.t(text)
+
+
+## Shows why a replayable challenge just became unreachable (damage taken,
+## civilian hit, rammed by a rival...). Kept apart from `set_status()` so the
+## next mode event can take the line back.
+func notify_challenge_failed(reason: String) -> void:
+	_challenge_fail_reason = reason
+	_show_challenge_failed()
+
+
+func _show_challenge_failed() -> void:
+	if _status == null or _challenge_fail_reason == "":
+		return
+	_status.text = Loc.t("DÉFI ÉCHOUÉ — %s") % Loc.t(_challenge_fail_reason)
 
 
 ## A secondary line (weather, replay status) shown under the main status.
@@ -401,6 +420,8 @@ func _refresh(_device: String = "") -> void:
 ## langue). Modes refresh status/score themselves, but title, objective, ammo,
 ## secondary objectives and the boss bar would otherwise stay in the old one.
 func retranslate() -> void:
+	# `set_status()` clears the failure notice, so remember it across the rebuild.
+	var failed := _challenge_fail_reason
 	set_title(_title_fr)
 	set_objective(_objective_fr)
 	set_status(_status_fr)
@@ -412,6 +433,8 @@ func retranslate() -> void:
 			int(_secondary_raw[2]))
 	if _boss_root and _boss_root.visible:
 		set_boss_health(_boss_fr, _boss_frac)
+	if failed != "":
+		notify_challenge_failed(failed)
 	_refresh()
 
 

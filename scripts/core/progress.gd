@@ -10,7 +10,7 @@ const PATH := "user://progress.cfg"
 ## Replayable challenges (modifiers). "none" is a free run.
 const CHALLENGES: Array = [
 	{"id": "none", "name": "Partie libre", "desc": "Sans contrainte"},
-	{"id": "no_damage", "name": "Sans dégâts", "desc": "Terminer sans être touché"},
+	{"id": "no_damage", "name": "Sans dégâts", "desc": "Terminer sans être touché ni causer de dégâts"},
 	{"id": "time", "name": "Contre-la-montre", "desc": "Terminer en moins de 4 min"},
 	{"id": "accuracy", "name": "Tireur d'élite", "desc": "Précision d'au moins 90 %"},
 	{"id": "explorer", "name": "Explorateur", "desc": "Emprunter un itinéraire alternatif"},

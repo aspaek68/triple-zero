@@ -537,6 +537,9 @@ func _shoot() -> void:
 	else:
 		Score.register_shot(false)
 		Score.register_civilian(false)
+		# In the rail act the only way to take a hit is to hit a civilian, so
+		# that is what breaks the "no damage" challenge here.
+		Progress.fail("civil touché")
 		Audio.civilian_hit()
 		Options.rumble(0.8, 0.2, 0.3)
 		_combo = 0

@@ -145,6 +145,13 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   `GameState.ng_plus`), et `_reconcile_equipment()` répare les sauvegardes
   anciennes au chargement. Le menu affiche les six lignes en lecture seule :
   l'équipement se gagne en jouant, plus en cliquant.
+- **Défis** : `Progress.fail(raison)` n'accepte que le **premier** échec et
+  émet `challenge_failed`. Le HUD s'y connecte (`notify_challenge_failed`) et
+  affiche `DÉFI ÉCHOUÉ — raison`, conservé à travers un changement de langue.
+  Chaque acte doit pouvoir échouer « Sans dégâts » : Acte 1 sur un tir reçu,
+  Acte 2 sur un civil touché (`rail.gd`, seul « dégât » possible), Acte 3 sur
+  une voiture rivale qui percute (`drive.gd`). Sans ces appels le défi était
+  un laissez-passer gratuit dans les actes 2 et 3.
 - **Viseur** : `Hud` possède un `Reticle` interne (Control dessiné, en espace
   écran) partagé par les deux modes de tir. `set_reticle_visible()` l'affiche à
   la fin de l'intro ; par défaut il **suit le centre du viewport** (Acte 1), et

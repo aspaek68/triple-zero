@@ -179,7 +179,6 @@ func _modifier_row() -> VBoxContainer:
 	row.add_child(unlock_hint)
 
 	return row
-	_build()
 
 
 func _cycle_challenge() -> void:
