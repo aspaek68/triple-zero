@@ -36,7 +36,10 @@ var best_rank: Dictionary = {}
 var _active := "none"
 ## Armed challenge that does not apply to the current act (see `begin()`).
 var _skipped := ""
-var _started_at := 0
+## Play time of the current run, in seconds. It is accumulated per frame
+## instead of read off the wall clock: a pause or a mid-run replay froze the
+## game, but the timed challenge kept losing seconds.
+var _elapsed := 0.0
 var _failed := false
 var _fail_reason := ""
 var last_success := false
@@ -50,6 +53,14 @@ func _ready() -> void:
 	if not ng_plus_unlocked:
 		ng_plus_enabled = false
 	GameState.ng_plus = ng_plus_enabled
+
+
+## Counts play time only: `_process` is skipped while the tree is paused (pause
+## menu, mid-run replay), which the wall clock did not.
+func _process(delta: float) -> void:
+	if _active == "none" or get_tree().paused:
+		return
+	_elapsed += delta
 
 
 func load_from_disk() -> void:
@@ -256,7 +267,7 @@ func equipment_description(mode: int, slot: int) -> String:
 func begin() -> void:
 	_skipped = "" if challenge_applies(GameState.mode) else selected_challenge
 	_active = "none" if _skipped != "" else selected_challenge
-	_started_at = Time.get_ticks_msec()
+	_elapsed = 0.0
 	_failed = false
 	_fail_reason = ""
 	# A run that never reaches `record_run` (act 3 out of time) must not keep
@@ -281,7 +292,7 @@ func is_active() -> bool:
 
 
 func elapsed() -> float:
-	return (Time.get_ticks_msec() - _started_at) / 1000.0
+	return _elapsed
 
 
 ## Remaining seconds for the timed challenge (negative when over).

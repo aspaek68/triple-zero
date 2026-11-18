@@ -160,6 +160,11 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   à l'expiration. En conduite, `_update_hud()` réécrit la ligne à chaque frame :
   `_flash_status()` (raccourci, matériel, comms) la garde 1,6 s avant que la
   vitesse ne reprenne la main.
+  Le **contre-la-montre** mesure le temps de jeu, pas l'horloge murale :
+  `Progress._process()` accumule `_elapsed` et s'arrête quand l'arbre est en
+  pause (menu pause, replay en cours de partie). `Time.get_ticks_msec()`
+  continuait pendant la pause et faisait échouer un défi de 240 s après deux
+  minutes d'arrêt.
   Chaque acte doit pouvoir échouer « Sans dégâts » : Acte 1 sur un tir reçu,
   Acte 2 sur un civil touché (`rail.gd`, seul « dégât » possible), Acte 3 sur
   une voiture rivale qui percute (`drive.gd`). Sans ces appels le défi était

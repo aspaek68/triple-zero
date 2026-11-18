@@ -760,6 +760,23 @@ func _check_challenges() -> void:
 	Progress.selected_challenge = saved_challenge
 	Progress.cleared_acts = saved_acts
 
+	# Timed challenge: the wall clock kept running behind the pause menu (and a
+	# mid-run replay), so a two-minute pause failed a 240 s challenge. Play time
+	# must only advance while the tree runs.
+	Progress.selected_challenge = "time"
+	Progress.begin()
+	Progress._elapsed = 5.0
+	get_tree().paused = true
+	Progress._process(1.0)
+	_expect(is_equal_approx(Progress.elapsed(), 5.0),
+		"paused time counted toward the timed challenge")
+	get_tree().paused = false
+	Progress._process(1.0)
+	_expect(is_equal_approx(Progress.elapsed(), 6.0),
+		"play time did not count toward the timed challenge")
+	Progress.selected_challenge = saved_challenge
+	Progress.begin()
+
 
 ## Dying in act 1 used to call the same `_finish()` as a successful extraction,
 ## so a dead player cleared the act and posted a score. `_finish(false)` must
