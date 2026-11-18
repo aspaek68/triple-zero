@@ -126,34 +126,39 @@ static func smoke(parent: Node3D, point: Vector3,
 		tree.create_timer(2.0).timeout.connect(particles.queue_free)
 
 
-## A persistent dark mark where a shot hit a solid surface.
+## A persistent dark mark where a shot hit a solid surface, using a native Decal
+## that projects onto the geometry (no manual orientation / z-fighting).
 static func impact_mark(parent: Node3D, point: Vector3, normal: Vector3,
 		color := Color(0.08, 0.07, 0.06)) -> void:
 	if parent == null or not parent.is_inside_tree():
 		return
 	var n := normal.normalized() if normal.length_squared() > 0.0001 else Vector3.UP
-	var node := MeshInstance3D.new()
-	var quad := QuadMesh.new()
-	quad.size = Vector2(0.2, 0.2)
-	node.mesh = quad
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = Color(color.r, color.g, color.b, 0.85)
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	node.material_override = mat
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(node)
-	node.global_position = point + n * 0.015
-	var up := Vector3.UP if absf(n.dot(Vector3.UP)) < 0.99 else Vector3.RIGHT
-	node.look_at(node.global_position - n, up)
-	var tree := node.get_tree()
+	var decal := Decal.new()
+	decal.size = Vector3(0.35, 0.35, 0.35)
+	# Radial dark spot texture.
+	var grad := Gradient.new()
+	grad.colors = [Color(color.r, color.g, color.b, 0.85), Color(color.r, color.g, color.b, 0.0)]
+	grad.offsets = [0.0, 1.0]
+	var gtex := GradientTexture2D.new()
+	gtex.gradient = grad
+	gtex.fill = GradientTexture2D.FILL_RADIAL
+	gtex.fill_from = Vector2(0.5, 0.5)
+	gtex.fill_to = Vector2(0.5, 0.0)
+	decal.texture_albedo = gtex
+	decal.modulate = Color(1, 1, 1, 0.9)
+	decal.upper_fade = 0.05
+	decal.lower_fade = 0.05
+	decal.cull_mask = 1
+	parent.add_child(decal)
+	decal.global_position = point + n * 0.05
+	decal.look_at(decal.global_position - n, Vector3.UP if absf(n.dot(Vector3.UP)) < 0.99 else Vector3.RIGHT)
+	var tree := decal.get_tree()
 	if tree:
-		tree.create_timer(6.0).timeout.connect(func():
-			if is_instance_valid(node):
-				var t := node.create_tween()
-				t.tween_property(mat, "albedo_color:a", 0.0, 1.5)
-				t.tween_callback(node.queue_free))
+		tree.create_timer(8.0).timeout.connect(func():
+			if is_instance_valid(decal):
+				var t := decal.create_tween()
+				t.tween_property(decal, "modulate:a", 0.0, 1.5)
+				t.tween_callback(decal.queue_free))
 
 
 ## A brief spark burst at the impact point, flying along the surface normal.
