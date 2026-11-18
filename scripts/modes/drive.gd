@@ -14,6 +14,11 @@ const BOOST_COOLDOWN := 5.0
 const CHECKPOINT_RADIUS := 12.0
 const TIME_PER_CHECKPOINT := 8.0
 const ROAD_WIDTH := 22.0
+# Rivals follow the centreline rather than aiming at the player, and lift off
+# for the bends so they do not park themselves against the outside wall.
+const CHASER_SPEED := 34.0
+const CHASER_TURN_SPEED := 18.0
+const CHASER_RESPAWN_TIME := 2.5
 
 # Off-road shortcuts between path nodes; driving through one is an alternate route.
 const SHORTCUTS := [
@@ -118,27 +123,44 @@ func _build_track() -> void:
 	# Checkpoint gates at every path node except the start.
 	for i in range(1, _path.size()):
 		var p: Vector2 = _path[i]
-		_checkpoints.append(_build_gate(Vector3(p.x, 0, p.y), i))
+		var dir: Vector2 = _path[i + 1] - _path[i] if i < _path.size() - 1 else _path[i] - _path[i - 1]
+		_checkpoints.append(_build_gate(Vector3(p.x, 0, p.y), i, _yaw(dir)))
+
+
+## Yaw that maps a box's local +Z onto a path direction given in (x, z).
+## `Vector2.angle()` measures from +X, but `Node3D.rotation.y` rotates +Z, so
+## the two differ by 90°. Building the track with `-dir.angle()` turned every
+## slab sideways: the road ran across the route and the side walls lay across
+## it, stopping the car dead at the first segment.
+func _yaw(dir: Vector2) -> float:
+	return atan2(dir.x, dir.y)
 
 
 func _build_segment(a: Vector2, b: Vector2) -> void:
 	var dir := (b - a)
 	var length := dir.length()
-	var angle := dir.angle()  # radians in the XZ plane
+	var yaw := _yaw(dir)
 	var mid := (a + b) / 2.0
 	var center := Vector3(mid.x, 0.02, mid.y)
 
-	# Road surface.
-	var road := _slab(center, Vector3(ROAD_WIDTH, 0.1, length + 4), EnvBuilder.MAT_ROAD)
-	road.rotation.y = -angle
+	# Road surface: thin visual slab, 1.2 m collider (a car dropped from the
+	# spawn height used to tunnel through the 10 cm box and wedge underneath).
+	var road := _slab(center, Vector3(ROAD_WIDTH, 0.1, length + 4), EnvBuilder.MAT_ROAD,
+		Vector3(ROAD_WIDTH, 1.2, length + 4))
+	road.rotation.y = yaw
 
-	# Side barriers, offset perpendicular to the segment.
+	# Side barriers, offset perpendicular to the segment. The road slab is
+	# `length + 4` so neighbouring segments overlap, but the walls must stop at
+	# the path node: at `length + 4` each wall poked ~2 m into the next
+	# segment's road and formed a stub across the lane (the car wedged on one
+	# 55 m short of the last gate). A short extension closes the corner joint
+	# without blocking the turn.
 	var perp := Vector2(-dir.y, dir.x).normalized() * (ROAD_WIDTH / 2.0 + 1.0)
 	for side in [1.0, -1.0]:
 		var off: Vector2 = perp * side
 		var wall_center := Vector3(mid.x + off.x, 1.4, mid.y + off.y)
-		var wall := _slab(wall_center, Vector3(1.2, 2.8, length + 4), EnvBuilder.MAT_WALL_A)
-		wall.rotation.y = -angle
+		var wall := _slab(wall_center, Vector3(1.2, 2.8, length + 0.6), EnvBuilder.MAT_WALL_A)
+		wall.rotation.y = yaw
 
 
 
@@ -158,7 +180,7 @@ func _build_city() -> void:
 		var b: Vector2 = _path[i + 1]
 		var dir := (b - a).normalized()
 		var perp := Vector2(-dir.y, dir.x)
-		var angle := -dir.angle()
+		var angle := _yaw(dir)
 		var blocks := int((b - a).length() / 34.0) + 1
 		for side in [1.0, -1.0]:
 			for k in blocks:
@@ -219,10 +241,10 @@ func _build_props() -> void:
 		for side in [1.0, -1.0]:
 			var p: Vector2 = a.lerp(b, 0.5) + perp * side * (ROAD_WIDTH / 2.0 + 2.0)
 			EnvBuilder.prop_native_at(self, "streetlamp", EnvBuilder.lamp_fallback(), lamp_mat,
-					Vector3(p.x, 0, p.y), -dir.angle() + (0.0 if side > 0 else PI))
+					Vector3(p.x, 0, p.y), _yaw(dir) + (0.0 if side > 0 else PI))
 			var q: Vector2 = a.lerp(b, 0.22) + perp * side * (ROAD_WIDTH / 2.0 - 0.6)
 			EnvBuilder.prop_native_at(self, "barrier", EnvBuilder.cone_fallback(), lamp_mat,
-					Vector3(q.x, 0, q.y), -dir.angle())
+					Vector3(q.x, 0, q.y), _yaw(dir))
 
 
 ## Props dropped in the level editor. They are saved in `LevelData.props`, and
@@ -241,9 +263,10 @@ func _build_editor_props() -> void:
 		EnvBuilder.prop_native_at(self, kind, fallback, mat, pos)
 
 
-func _build_gate(pos: Vector3, index: int) -> Dictionary:
+func _build_gate(pos: Vector3, index: int, yaw := 0.0) -> Dictionary:
 	var holder := Node3D.new()
 	holder.position = pos
+	holder.rotation.y = yaw
 	add_child(holder)
 	var color := Color(0.95, 0.85, 0.3) if index < _path.size() - 1 else Color(0.3, 0.9, 0.5)
 	for side in [-1.0, 1.0]:
@@ -286,10 +309,10 @@ func _build_traffic() -> void:
 			var t := 0.35 + k * 0.3
 			var base := a.lerp(b, t)
 			var lane := perp * (4.0 if k == 0 else -4.0)
-			_spawn_obstacle(Vector3(base.x + lane.x, 0.7, base.y + lane.y), -dir.angle(), false)
+			_spawn_obstacle(Vector3(base.x + lane.x, 0.7, base.y + lane.y), _yaw(dir), false)
 		# One fuel tanker per segment, near the centre of the road.
 		var mid := a.lerp(b, 0.7)
-		_spawn_obstacle(Vector3(mid.x, 0.7, mid.y), -dir.angle(), true)
+		_spawn_obstacle(Vector3(mid.x, 0.7, mid.y), _yaw(dir), true)
 
 
 func _spawn_obstacle(pos: Vector3, angle: float, explosive: bool) -> void:
@@ -317,6 +340,7 @@ func _spawn_obstacle(pos: Vector3, angle: float, explosive: bool) -> void:
 	bs.size = box.size
 	shape.shape = bs
 	body.add_child(shape)
+	body.add_to_group("traffic")
 	if explosive:
 		body.add_to_group("fuel")
 	add_child(body)
@@ -332,6 +356,17 @@ func _build_car() -> void:
 	# which stays empty unless the contact monitor is on.
 	_car.contact_monitor = true
 	_car.max_contacts_reported = 4
+	# A sleeping RigidBody3D ignores engine_force (the vehicle forces are applied
+	# inside the physics step), so a car that stopped against a wall once could
+	# never drive again.
+	_car.can_sleep = false
+	# With the default centre of mass (the body origin, at axle height) the
+	# 2.6 g launch torque lifted the front wheels off the road: only two wheels
+	# kept contact, the steered ones were in the air, and the car ploughed
+	# straight into the first bend. Lowering the mass point keeps all four
+	# tyres planted under full throttle.
+	_car.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
+	_car.center_of_mass = Vector3(0, -0.3, 0)
 	add_child(_car)
 
 	var paint := EnvBuilder.material(EnvBuilder.MAT_ACCENT, 0.3, 0.4)
@@ -375,8 +410,17 @@ func _build_car() -> void:
 		wheel.position = p
 		wheel.wheel_radius = 0.4
 		wheel.wheel_rest_length = 0.15
-		wheel.use_as_traction = p.z < 0.0
-		wheel.use_as_steering = p.z > 0.0
+		# 900 kg on four stock springs (5.88) bottoms the suspension out: the
+		# chassis then rests on the road and the car cannot move at all (the
+		# engine force is fine, the wheels carry no weight). 80 holds the body
+		# on its wheels with ~5 cm of ground clearance.
+		wheel.suspension_stiffness = 80.0
+		# The nose is on -Z (headlights there, track runs that way): the wheels
+		# at z < 0 steer and the ones at z > 0 drive. It was the other way
+		# round, so the car had rear-wheel steering — pressing right turned it
+		# left and it could not follow the road.
+		wheel.use_as_traction = p.z > 0.0
+		wheel.use_as_steering = p.z < 0.0
 		_car.add_child(wheel)
 		_wheels.append(wheel)
 		var tyre := MeshInstance3D.new()
@@ -476,12 +520,26 @@ func _physics_process(delta: float) -> void:
 		Options.rumble(0.6, 0.3, 0.4)
 
 	var top := BOOST_SPEED if _boost_left > 0.0 else MAX_SPEED
-	if throttle > 0.0:
-		_car.engine_force = throttle * ACCEL * _car.mass
+	var forward := -_car.global_transform.basis.z
+	var along := _car.linear_velocity.dot(forward)
+	# `VehicleBody3D.engine_force` pushes along the body's **+Z** axis: the
+	# friction impulse is `-engine_force * step` applied along the wheel's
+	# forward axis (-Z), and the two signs cancel. Our car is modelled with
+	# its headlights on -Z and the track runs that way, so forward throttle is
+	# a *negative* force. A positive force drove it backwards, off the start
+	# line and away from every checkpoint gate.
+	if throttle > 0.0 and along < top:
+		_car.engine_force = -throttle * ACCEL * _car.mass
 	elif throttle < 0.0:
-		_car.engine_force = throttle * ACCEL * _car.mass * 0.5
+		_car.engine_force = -throttle * ACCEL * _car.mass * 0.5
 	else:
 		_car.engine_force = 0.0
+	# Nothing else caps the speed: `top` only scaled the steering, so holding
+	# the throttle kept accelerating past MAX_SPEED (and past BOOST_SPEED while
+	# boosting). Bleed the excess off instead of snapping, so the end of a
+	# boost reads as the car coasting back down.
+	if along > top:
+		_car.linear_velocity -= forward * minf(along - top, 10.0 * delta)
 	_car.brake = BRAKE * _car.mass if Input.is_action_pressed("handbrake") else 0.0
 	_car.steering = steer * TURN_RATE * (1.0 - clampf(absf(_car.linear_velocity.length()) / top, 0.0, 0.7))
 
@@ -513,8 +571,6 @@ func _check_collisions(delta: float) -> void:
 	# no speed scrub), so compare against the speed of the previous frame.
 	var impact := maxf(speed, _prev_speed)
 	_prev_speed = speed
-	if impact < 6.0:
-		return
 	# Reading the contact list without the monitor logs an engine error, so
 	# bail out before the query rather than per body.
 	if not _car.contact_monitor:
@@ -523,13 +579,38 @@ func _check_collisions(delta: float) -> void:
 		if collider is StaticBody3D and collider.is_in_group("fuel"):
 			_detonate_tanker(collider)
 			continue
-		if _crash_cooldown <= 0.0:
+		# Traffic is smashed on contact, even at walking pace: a static box
+		# left under the car let it climb on the roof and stay wedged there
+		# (the run was lost to a parked car it could not drive off). Removing
+		# the obstacle always leaves the car free to keep going.
+		if collider is StaticBody3D and collider.is_in_group("traffic"):
+			_smash_traffic(collider)
+			continue
+		if impact >= 6.0 and _crash_cooldown <= 0.0:
 			_crash_cooldown = 0.6
 			Audio.crash()
 			Options.rumble(0.7, 0.4, 0.2)
 			_add_shake(0.6)
 			# A hard impact scrubs off a chunk of speed.
 			_car.linear_velocity *= 0.55
+
+
+## A parked car is knocked out of the way (arcade traffic, not a wall).
+func _smash_traffic(body: Node3D) -> void:
+	if not is_instance_valid(body) or body.is_queued_for_deletion():
+		return
+	var pos := body.global_position
+	body.remove_from_group("traffic")
+	body.remove_from_group("fuel")
+	if _crash_cooldown <= 0.0:
+		_crash_cooldown = 0.45
+		Audio.crash()
+		Options.rumble(0.5, 0.3, 0.2)
+		_add_shake(0.35)
+		_car.linear_velocity *= 0.7
+	_spawn_flash(pos)
+	Vfx.smoke(self, pos)
+	body.queue_free()
 
 
 func _detonate_tanker(body: Node3D) -> void:
@@ -611,6 +692,9 @@ func _build_chasers() -> void:
 		var body := VehicleBody3D.new()
 		body.position = Vector3(6.0 * (1 if i % 2 == 0 else -1), 1.0, z)
 		body.mass = 850.0
+		body.can_sleep = false
+		body.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
+		body.center_of_mass = Vector3(0, -0.3, 0)
 		add_child(body)
 		var model := EnvBuilder.prop_native("car_body", BoxMesh.new(), paint)
 		body.add_child(model)
@@ -624,29 +708,51 @@ func _build_chasers() -> void:
 			wheel.position = p
 			wheel.wheel_radius = 0.4
 			wheel.wheel_rest_length = 0.15
-			wheel.use_as_traction = p.z < 0.0
-			wheel.use_as_steering = p.z > 0.0
+			# Same reason as the player car: stock springs let the 850 kg body
+			# sink until the chassis scrapes, so the rivals barely moved.
+			wheel.suspension_stiffness = 80.0
+			wheel.use_as_traction = p.z > 0.0
+			wheel.use_as_steering = p.z < 0.0
 			body.add_child(wheel)
-		_chasers.append({"body": body, "wrecked": false, "cooldown": 0.0})
+		_chasers.append({"body": body, "wrecked": false, "cooldown": 0.0, "stuck": 0.0,
+			"lane": -3.0 + 3.0 * i, "back": 16.0 + 4.0 * i})
 
 
 func _update_chasers(delta: float) -> void:
 	for c in _chasers:
-		var body: VehicleBody3D = c["body"]
-		if c["wrecked"] or not is_instance_valid(body):
+		if c["wrecked"]:
+			continue
+		# Read the body untyped: a wrecked chaser is `queue_free()`d, and
+		# assigning that freed instance to a `VehicleBody3D`-typed variable
+		# raises "Trying to assign invalid previously freed instance" before
+		# the validity check below can run.
+		var body = c["body"]
+		if not is_instance_valid(body):
+			c["wrecked"] = true
 			continue
 		c["cooldown"] = maxf(c["cooldown"] - delta, 0.0)
-		# Steer toward the player and keep the throttle pinned.
-		var to_player := _car.global_position - body.global_position
-		var flat := Vector3(to_player.x, 0, to_player.z)
-		var dist := flat.length()
-		var forward := -body.global_transform.basis.z
-		# A chaser sitting exactly on the player would normalise a zero vector.
-		if dist > 0.01:
-			var angle := forward.signed_angle_to(flat.normalized(), Vector3.UP)
-			body.steering = clampf(angle * 1.4, -0.6, 0.6)
-		body.engine_force = ACCEL * body.mass * 0.7
-		# Ramming the player costs the player speed and rattles the camera.
+		var speed: float = body.linear_velocity.length()
+		# Follow the track, not the player. Steering straight at the player made
+		# every rival cut the first bend and wedge itself against the outside
+		# wall, where it sat at zero speed for the rest of the act.
+		var target := _path_ahead(body.global_position, 9.0 + speed * 0.55)
+		var to: Vector3 = target - body.global_position
+		var flat := Vector3(to.x, 0.0, to.z)
+		var forward: Vector3 = -body.global_transform.basis.z
+		if flat.length() > 0.01:
+			var angle: float = forward.signed_angle_to(flat.normalized(), Vector3.UP)
+			body.steering = clampf(angle * 1.2, -0.6, 0.6)
+		else:
+			body.steering = 0.0
+		# Lift off and brake for the bends instead of ploughing into the wall.
+		var want := CHASER_SPEED if absf(body.steering) < 0.35 else CHASER_TURN_SPEED
+		# Same sign convention as the player car: negative force drives the
+		# nose (-Z) forward. Positive force sent them the other way.
+		body.engine_force = -ACCEL * body.mass * 0.7 if speed < want else 0.0
+		body.brake = 2.5 if speed > want + 3.0 else 0.0
+		# Ramming and wrecking still use the real distance to the player.
+		var to_player: Vector3 = _car.global_position - body.global_position
+		var dist := Vector3(to_player.x, 0.0, to_player.z).length()
 		if dist < 3.4 and c["cooldown"] <= 0.0:
 			c["cooldown"] = 1.2
 			_car.linear_velocity *= 0.8
@@ -659,6 +765,103 @@ func _update_chasers(delta: float) -> void:
 		# A boost is enough to wreck a chaser on contact.
 		if dist < 3.0 and _boost_left > 0.0:
 			_wreck_chaser(c)
+			continue
+		# A rival pinned against scenery rejoins the race behind the player
+		# rather than sitting out the rest of the act.
+		if speed < 1.0:
+			c["stuck"] = c["stuck"] + delta
+		else:
+			c["stuck"] = 0.0
+		if c["stuck"] > CHASER_RESPAWN_TIME:
+			c["stuck"] = 0.0
+			_respawn_chaser(body, c["lane"], c["back"])
+
+
+## Point on the act's path `ahead` metres in front of `pos` (negative = behind):
+## project onto the closest segment, then walk the polyline. Used by the rivals
+## to steer, and to rejoin behind the player when they get pinned.
+func _path_ahead(pos: Vector3, ahead: float) -> Vector3:
+	if _path.size() < 2:
+		return pos
+	var p := Vector2(pos.x, pos.z)
+	var best_d := INF
+	var best_i := 0
+	var best_t := 0.0
+	for i in _path.size() - 1:
+		var a: Vector2 = _path[i]
+		var b: Vector2 = _path[i + 1]
+		var ab := b - a
+		var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+		var d := p.distance_to(a + ab * t)
+		if d < best_d:
+			best_d = d
+			best_i = i
+			best_t = t
+	var remain := absf(ahead)
+	var idx := best_i
+	var t2 := best_t
+	while remain > 0.0:
+		if ahead >= 0.0:
+			if idx >= _path.size() - 1:
+				break
+			var a2: Vector2 = _path[idx]
+			var b2: Vector2 = _path[idx + 1]
+			var seg := (b2 - a2).length()
+			var left := seg * (1.0 - t2)
+			if left <= 0.0001:
+				idx += 1
+				t2 = 0.0
+			elif left >= remain:
+				t2 += remain / maxf(seg, 0.001)
+				remain = 0.0
+			else:
+				remain -= left
+				idx += 1
+				t2 = 0.0
+		else:
+			if idx < 0:
+				break
+			var a3: Vector2 = _path[idx]
+			var b3: Vector2 = _path[idx + 1]
+			var seg2 := (b3 - a3).length()
+			var left2 := seg2 * t2
+			if left2 <= 0.0001:
+				idx -= 1
+				t2 = 1.0
+			elif left2 >= remain:
+				t2 -= remain / maxf(seg2, 0.001)
+				remain = 0.0
+			else:
+				remain -= left2
+				idx -= 1
+				t2 = 1.0
+	if idx < 0:
+		idx = 0
+		t2 = 0.0
+	idx = mini(idx, _path.size() - 1)
+	t2 = clampf(t2, 0.0, 1.0)
+	var i0 := idx
+	var i1 := mini(idx + 1, _path.size() - 1)
+	var q: Vector2 = (_path[i0] as Vector2).lerp(_path[i1], t2)
+	return Vector3(q.x, 0.0, q.y)
+
+
+## Puts a stuck rival back on the road **behind** the player, nose down the
+## track. Respawning ahead parked them across the racing line (and all three at
+## the same spot), which blocked the player instead of chasing them.
+func _respawn_chaser(body: VehicleBody3D, lane: float, back: float) -> void:
+	var pos := _path_ahead(_car.global_position, -back)
+	var ahead := _path_ahead(pos, 8.0)
+	var dir := ahead - pos
+	if dir.length() > 0.01:
+		var perp := Vector3(-dir.z, 0.0, dir.x).normalized()
+		pos += perp * lane
+	body.linear_velocity = Vector3.ZERO
+	body.angular_velocity = Vector3.ZERO
+	body.global_position = pos + Vector3(0, 1.0, 0)
+	if dir.length() > 0.01:
+		# The nose is -Z, and `look_at` points -Z at the target.
+		body.look_at(pos + dir, Vector3.UP)
 
 
 ## Explodes a chaser and clears it from the hunt.
@@ -666,8 +869,10 @@ func _wreck_chaser(c: Dictionary) -> void:
 	if c["wrecked"]:
 		return
 	c["wrecked"] = true
-	var body: VehicleBody3D = c["body"]
-	var pos := body.global_position
+	var body = c["body"]
+	if not is_instance_valid(body):
+		return
+	var pos: Vector3 = body.global_position
 	Audio.explosion()
 	Options.rumble(1.0, 0.6, 0.5)
 	_add_shake(1.0)
@@ -794,7 +999,11 @@ func _check_secondaries() -> void:
 ## Wet roads cut the tyres' friction, so the storm makes the car slide.
 func _apply_grip() -> void:
 	var wet: float = _weather.wetness() if _weather else 0.0
-	var friction := lerpf(1.6, 0.95, clampf(wet, 0.0, 1.0))
+	# Godot's `wheel_friction_slip` defaults to 10.5; the old 1.6/0.95 range
+	# left the tyres with almost no lateral grip, so the car understeered wide
+	# on every bend and buried itself in the outside wall. Keep dry grip close
+	# to stock and let rain halve it.
+	var friction := lerpf(9.5, 5.0, clampf(wet, 0.0, 1.0))
 	# Drive equipment: sport tyres hold the road a little better.
 	if Progress.has_equipment(GameState.Mode.DRIVE, 0):
 		friction *= 1.15
@@ -863,7 +1072,7 @@ func _on_replay_done() -> void:
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 
-func _slab(center: Vector3, size: Vector3, color: Color) -> StaticBody3D:
+func _slab(center: Vector3, size: Vector3, color: Color, collision_size := Vector3.ZERO) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.position = center
 	var mesh := MeshInstance3D.new()
@@ -874,8 +1083,13 @@ func _slab(center: Vector3, size: Vector3, color: Color) -> StaticBody3D:
 	body.add_child(mesh)
 	var shape := CollisionShape3D.new()
 	var bs := BoxShape3D.new()
-	bs.size = size
+	# A thin visual slab (the road is 10 cm) needs a thicker collider or a
+	# falling car tunnels straight through it and ends up wedged underneath.
+	var csize := size if collision_size == Vector3.ZERO else collision_size
+	bs.size = csize
 	shape.shape = bs
+	# Keep the top of the collider aligned with the top of the visual slab.
+	shape.position.y = (size.y - csize.y) * 0.5
 	body.add_child(shape)
 	add_child(body)
 	return body

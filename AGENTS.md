@@ -182,10 +182,41 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   appelle `Score.register_damage(1)` pour couper le multiplicateur ×1.5.
 - **Voitures rivales** : `_build_chasers()` crée trois `VehicleBody3D`, mais
   c'est `_update_chasers(delta)` — appelé depuis `_physics_process` — qui les
-  fait pivoter vers le joueur, percuter (`Progress.fail("percuté")` +
+  conduit, les fait percuter (`Progress.fail("percuté")` +
   `Score.register_damage(1)`) et exploser au boost. La fonction avait perdu son
-  appel : les rivaux restaient immobiles. `_verify._check_drive_chasers()`
-  vérifie le site d'appel et le couple volant/accélération.
+  appel : les rivaux restaient immobiles. Ils **suivent le tracé**, pas le
+  joueur : viser la voiture faisait couper tous les virages à l'extérieur, où
+  ils restaient collés au mur à l'arrêt. La cible est
+  `_path_ahead(body.global_position, 9.0 + vitesse * 0.55)`, avec
+  `CHASER_SPEED = 34` / `CHASER_TURN_SPEED = 18` (ils lèvent le pied dans les
+  courbes) et un frein au-delà de la vitesse voulue. `_path_ahead(pos, ahead)`
+  est **signé** : `ahead < 0` remonte le tracé (projection sur le segment le
+  plus proche puis marche le long de la polyligne) et il renvoie `pos` tel quel
+  si `_path.size() < 2`. Un rival bloqué (`stuck > CHASER_RESPAWN_TIME = 2.5 s`)
+  réapparaît **derrière** le joueur (`_respawn_chaser(body, lane, back)`,
+  décalage de voie par rival) : le faire réapparaître devant le garait en
+  travers de la trajectoire. `_verify._check_drive_chasers()` vérifie le site
+  d'appel, l'allure avant/arrière de `_path_ahead`, l'accélération négative
+  (nez en `-Z`) et l'absence de braquage vers le joueur hors piste.
+- **Physique de la voiture (Acte 3)** : `VehicleBody3D.engine_force` pousse
+  vers le **+Z** local, or le nez (phares) est en `-Z` : l'accélérateur applique
+  donc une force **négative** (`-throttle * ACCEL * mass`, rivaux
+  `-ACCEL * mass * 0.7`). Les roues en `z < 0` braquent, celles en `z > 0`
+  motricent. `rotation.y` tourne le `+Z` local alors que `Vector2.angle()` part
+  du `+X` : l'orientation d'un segment est `atan2(dir.x, dir.y)` (`_yaw()`), et
+  `-dir.angle()` couchait la route en travers. Sans
+  `center_of_mass = Vector3(0, -0.3, 0)`
+  (`CENTER_OF_MASS_MODE_CUSTOM`), le couple de lancement à 2,6 g levait les
+  roues avant : les roues directrices quittaient la route et la voiture fonçait
+  tout droit dans le premier virage. `can_sleep = false` sur la voiture et les
+  rivales (un `RigidBody3D` endormi ignore `engine_force`).
+  `wheel_friction_slip` reste proche du défaut Godot (10,5) : `lerpf(9.5, 5.0,
+  wetness())`, un grip très bas rendait la voiture incontrôlable.
+  `_verify._check_drive_motion()` lance la **vraie scène** `drive.tscn`,
+  attend que la cinématique rende la main, presse `move_forward` via
+  `Input.action_press()` pendant 150 images et exige `_speed > 5` **et** un
+  déplacement vers les `z` négatifs ; il coupe trafic et rivaux avant, puis
+  pose `_ended = true` pour ne pas enregistrer de partie.
 - **Collisions (Acte 3)** : `VehicleBody3D` est un `RigidBody3D`, il n'a **pas**
   `get_slide_collision_count()` (API de `CharacterBody3D`). `_check_collisions()`
   lisait cette fonction : la première image où la voiture dépassait 6 m/s
@@ -199,6 +230,16 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   `_physics_process` tourne, donc un choc frontal à pleine vitesse passait pour
   un arrêt et ne déclenchait ni son, ni secousse, ni perte de vitesse. Le
   refroidissement (`_crash_cooldown`) décroît à chaque image, hors de la boucle.
+  Le trafic porte le groupe `"traffic"` : tout contact le détruit
+  (`_smash_traffic()` : flash, fumée, `queue_free`, vitesse × 0,7, temps de
+  recharge) au lieu de coincer la voiture ; les citernes (`"fuel"`) explosent
+  toujours via `_detonate_tanker()`. Les murs latéraux mesurent
+  `length + 0.6` (la dalle de route reste `length + 4` pour recouvrir les
+  jonctions) : à `length + 4` chaque mur dépassait d'environ 2 m dans le segment
+  suivant et barrait la voie. Un rival détruit est `queue_free()` : la boucle
+  lit `var body = c["body"]` **sans type** puis `is_instance_valid(body)`, sinon
+  l'affectation d'une instance libérée à une variable typée `VehicleBody3D`
+  logue « Trying to assign invalid previously freed instance » avant le test.
 - **Portes (Acte 3)** : `_checkpoint` est le numéro **1-based** de la prochaine
   porte ; `_check_checkpoints()` lit `_checkpoints[_checkpoint - 1]` et termine
   quand `_checkpoint > _checkpoints.size()`. L'indexer directement sautait la

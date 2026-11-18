@@ -24,12 +24,14 @@ func _ready() -> void:
 	_check_director()
 	await _check_replay()
 	await _check_drive_crash()
+	await _check_drive_motion()
 	_check_score()
 	_check_challenges()
 	_check_death_is_failure()
 	_check_drive_chasers()
 	_check_equipment()
 	_check_keybinds()
+	await _check_combat()
 
 	if _failures.is_empty():
 		print("VERIFY RESULT: OK")
@@ -880,6 +882,9 @@ func _check_drive_chasers() -> void:
 	add_child(host)
 	var car := VehicleBody3D.new()
 	car.mass = 900.0
+	# Off the track to the right: aiming at the player used to turn the rival
+	# into the outside wall on every bend.
+	car.position = Vector3(20, 0, 0)
 	host.add_child(car)
 	var rival := VehicleBody3D.new()
 	rival.mass = 850.0
@@ -888,10 +893,22 @@ func _check_drive_chasers() -> void:
 	var probe := Node3D.new()
 	probe.set_script(script)
 	probe._car = car
-	probe._chasers.append({"body": rival, "wrecked": false, "cooldown": 0.0})
+	probe._path = [Vector2(0, 0), Vector2(0, -100)]
+	# `_path_ahead` must walk the polyline, not snap to a node, and must also
+	# walk backwards (that is how a stuck rival rejoins behind the player).
+	var ahead: Vector3 = probe._path_ahead(Vector3(0, 0, -20), 30.0)
+	_expect(is_equal_approx(ahead.z, -50.0) and is_equal_approx(ahead.x, 0.0),
+		"the path look-ahead does not follow the centreline")
+	var behind: Vector3 = probe._path_ahead(Vector3(0, 0, -20), -15.0)
+	_expect(is_equal_approx(behind.z, -5.0),
+		"the path look-ahead cannot walk backwards")
+	probe._chasers.append({"body": rival, "wrecked": false, "cooldown": 0.0,
+		"stuck": 0.0, "lane": 0.0, "back": 16.0})
 	probe._update_chasers(0.016)
-	_expect(rival.engine_force > 0.0, "rival car gets no throttle")
-	_expect(absf(rival.steering) > 0.0, "rival car does not steer toward the player")
+	_expect(rival.engine_force < 0.0,
+		"rival car throttle does not push its nose forward")
+	_expect(absf(rival.steering) < 0.2,
+		"rival car steers at the player instead of following the track")
 	probe.free()
 	host.free()
 
@@ -1015,6 +1032,56 @@ func _check_drive_crash() -> void:
 	host.free()
 
 
+## The car must actually move under full throttle. With the default centre of
+## mass, the 2.6 g launch lifted the front wheels, the steered wheels left the
+## road and the car drove straight on into the first bend. Headless mode never
+## pressed a key, so nothing caught it.
+##
+## This runs the real act scene: `drive.gd` builds the whole world in `_ready`,
+## so a bare probe node cannot call `_build_car()` without also building the
+## track, city, HUD and weather. Synthetic input goes through the same
+## `Input.action_press()` path a player uses, which is what made the difference
+## between "car exists" and "car moves" invisible until now.
+func _check_drive_motion() -> void:
+	var scene: PackedScene = load("res://scenes/modes/drive.tscn")
+	_expect(scene != null, "drive act scene does not load")
+	if scene == null:
+		return
+	var act = scene.instantiate()
+	add_child(act)
+	# Clear traffic and rivals: a scripted straight-line launch cannot dodge a
+	# tanker or absorb a ram, and those failures say nothing about the car
+	# moving. `_update_chasers` skips wrecked entries, so marking them is enough.
+	for t in act._traffic:
+		var tb = t["body"]
+		if is_instance_valid(tb):
+			tb.queue_free()
+	act._traffic.clear()
+	for c in act._chasers:
+		var cb = c["body"]
+		if is_instance_valid(cb):
+			cb.queue_free()
+		c["wrecked"] = true
+	# The intro cinematic self-finishes in headless, but `_physics_process`
+	# ignores input until it does. 40 frames is a comfortable margin.
+	for i in 40:
+		await get_tree().physics_frame
+	Input.action_press("move_forward")
+	for i in 150:
+		await get_tree().physics_frame
+	Input.action_release("move_forward")
+	var speed: float = act._speed
+	# The nose points down -Z, so the car must travel toward negative z.
+	var z: float = act._car.global_position.z
+	_expect(speed > 5.0,
+		"the drive car does not move under full throttle (speed %.1f m/s)" % speed)
+	_expect(z < 10.0, "the drive car drives the wrong way down the track (z %.1f)" % z)
+	# Skip `_finish()`: this probe must not record a run or post a result.
+	act._ended = true
+	act.queue_free()
+	await get_tree().physics_frame
+
+
 func _check_equipment() -> void:
 	var saved_equip: int = Progress.equipment_unlocked
 	var saved_acts: Array = Progress.cleared_acts
@@ -1107,4 +1174,50 @@ func _first_key(action: String) -> int:
 		if ev is InputEventKey:
 			return ev.physical_keycode if ev.physical_keycode != 0 else ev.keycode
 	return 0
+
+
+## The two shooting paths only run on a real trigger press, which headless runs
+## never produce: a bad call in `_fire()` / `_shoot()` stayed invisible until a
+## player pulled the trigger. Load each act for real and fire one shot.
+func _check_combat() -> void:
+	Score.reset()
+	var rail_scene: PackedScene = load("res://scenes/modes/rail.tscn")
+	_expect(rail_scene != null, "the rail act scene does not load")
+	if rail_scene:
+		var rail := rail_scene.instantiate()
+		add_child(rail)
+		await get_tree().process_frame
+		rail._intro = null
+		var shots_before: int = Score.shots_fired
+		rail._aim = get_viewport().get_visible_rect().size * 0.5
+		# A shot into the scenery (no target under the reticle).
+		rail._shoot()
+		_expect(Score.shots_fired == shots_before + 1, "the rail act fires no shot")
+		# A hostile right under the reticle must die from that one shot.
+		var target: Dictionary = rail._spawn_target(Vector3(0, 1, -20), true)
+		rail._targets.append(target)
+		rail._aim = rail._camera.unproject_position(target.node.global_position)
+		rail._shoot()
+		_expect(not target.alive, "a rail shot on a hostile does not kill it")
+		_expect(Score.shots_hit >= 1, "a rail hit does not count as a hit")
+		rail._ended = true
+		rail.queue_free()
+		await get_tree().process_frame
+
+	Score.reset()
+	var tps_scene: PackedScene = load("res://scenes/modes/tps.tscn")
+	_expect(tps_scene != null, "the TPS act scene does not load")
+	if tps_scene:
+		var tps := tps_scene.instantiate()
+		add_child(tps)
+		await get_tree().process_frame
+		tps._intro = null
+		var ammo_before: int = tps._ammo
+		tps._fire()
+		_expect(Score.shots_fired == 1, "the TPS trigger fires no shot")
+		_expect(tps._ammo == ammo_before - 1, "firing does not spend ammo")
+		tps._ended = true
+		tps.queue_free()
+		await get_tree().process_frame
+	Score.reset()
 
