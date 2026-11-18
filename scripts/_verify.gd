@@ -22,6 +22,8 @@ func _ready() -> void:
 	_check_director()
 	_check_score()
 	_check_challenges()
+	_check_death_is_failure()
+	_check_drive_chasers()
 	_check_equipment()
 	_check_keybinds()
 
@@ -512,6 +514,64 @@ func _check_challenges() -> void:
 
 	Progress.selected_challenge = saved_challenge
 	Progress.cleared_acts = saved_acts
+
+
+## Dying in act 1 used to call the same `_finish()` as a successful extraction,
+## so a dead player cleared the act and posted a score. `_finish(false)` must
+## report a failed act and leave the cleared list untouched.
+func _check_death_is_failure() -> void:
+	var saved_acts: Array = Progress.cleared_acts.duplicate()
+	var saved_challenge: String = Progress.selected_challenge
+	var saved_results: bool = GameState.show_results_on_load
+	var script: GDScript = load("res://scripts/modes/tps.gd")
+	_expect(script != null, "tps act script does not load")
+	if script != null:
+		var probe := Node3D.new()
+		probe.set_script(script)
+		Progress.selected_challenge = "none"
+		Progress.begin()
+		probe._finish(false)
+		_expect(not GameState.last_act_success,
+			"dying in act 1 reported a successful act")
+		_expect(Progress.cleared_acts == saved_acts,
+			"dying in act 1 cleared the act anyway")
+		probe.free()
+	Progress.selected_challenge = saved_challenge
+	Progress.cleared_acts = saved_acts
+	GameState.last_act_success = true
+	GameState.show_results_on_load = saved_results
+
+
+## The rival cars used to be built but never updated (`_update_chasers` had no
+## caller), so the Act 3 chase was inert. Prove the physics loop drives them.
+func _check_drive_chasers() -> void:
+	var script: GDScript = load("res://scripts/modes/drive.gd")
+	_expect(script != null, "drive act script does not load")
+	if script == null:
+		return
+	var source := FileAccess.get_file_as_string("res://scripts/modes/drive.gd")
+	_expect(source.count("_update_chasers(") >= 2,
+		"drive physics loop never updates the rival cars")
+	# Physics bodies need a world: a plain host node in the tree gives the
+	# probe valid global transforms without running the drive act's `_ready`.
+	var host := Node3D.new()
+	add_child(host)
+	var car := VehicleBody3D.new()
+	car.mass = 900.0
+	host.add_child(car)
+	var rival := VehicleBody3D.new()
+	rival.mass = 850.0
+	rival.position = Vector3(0, 1, -30)
+	host.add_child(rival)
+	var probe := Node3D.new()
+	probe.set_script(script)
+	probe._car = car
+	probe._chasers.append({"body": rival, "wrecked": false, "cooldown": 0.0})
+	probe._update_chasers(0.016)
+	_expect(rival.engine_force > 0.0, "rival car gets no throttle")
+	_expect(absf(rival.steering) > 0.0, "rival car does not steer toward the player")
+	probe.free()
+	host.free()
 
 
 func _check_equipment() -> void:

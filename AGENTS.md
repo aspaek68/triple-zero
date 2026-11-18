@@ -157,6 +157,17 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   (l'Acte 3 offrait sinon 1000 points gratuits). HUD et écran de résultats
   masquent la ligne « Précision » dans ce cas ; un impact de voiture rivale
   appelle `Score.register_damage(1)` pour couper le multiplicateur ×1.5.
+- **Voitures rivales** : `_build_chasers()` crée trois `VehicleBody3D`, mais
+  c'est `_update_chasers(delta)` — appelé depuis `_physics_process` — qui les
+  fait pivoter vers le joueur, percuter (`Progress.fail("percuté")` +
+  `Score.register_damage(1)`) et exploser au boost. La fonction avait perdu son
+  appel : les rivaux restaient immobiles. `_verify._check_drive_chasers()`
+  vérifie le site d'appel et le couple volant/accélération.
+- **Mort = échec (Acte 1)** : `tps._finish(success)` distingue l'extraction
+  réussie de l'intégrité à zéro. Mourir appelle `_finish(false)` : l'acte n'est
+  ni validé ni enregistré et le défi est marqué échoué. `_on_replay_done()`
+  teste `is_inside_tree()` pour que `_verify` puisse appeler `_finish(false)`
+  sur un nœud détaché sans changer de scène.
 - **Viseur** : `Hud` possède un `Reticle` interne (Control dessiné, en espace
   écran) partagé par les deux modes de tir. `set_reticle_visible()` l'affiche à
   la fin de l'intro ; par défaut il **suit le centre du viewport** (Acte 1), et

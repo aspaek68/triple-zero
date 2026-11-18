@@ -768,7 +768,8 @@ func _take_damage(amount: int) -> void:
 	if _hud:
 		_hud.set_status("INTÉGRITÉ %d%%" % _health)
 	if _health <= 0:
-		_finish()
+		# Dying is a failed run: it must not count as a cleared act.
+		_finish(false)
 
 
 ## True while the intro cinematic still owns the camera.
@@ -999,17 +1000,24 @@ func _open_extraction() -> void:
 	Score.register_comm_restored()
 
 
-func _finish() -> void:
+## Ends the act. `success` is false when the player's integrity hit zero: a
+## death is a failed run, so it must not clear the act or post a score.
+func _finish(success: bool = true) -> void:
 	if _ended:
 		return
 	_ended = true
-	GameState.last_act_success = true
-	Score.time_bonus += 3000
-	Progress.record_run(GameState.Mode.TPS, Score.total(), Score.rank())
+	GameState.last_act_success = success
+	if success:
+		Score.time_bonus += 3000
+		Progress.record_run(GameState.Mode.TPS, Score.total(), Score.rank())
+	else:
+		# The armed challenge cannot be met by a dead player either.
+		Progress.fail("intégrité à zéro")
 	Progress.evaluate()
 	# Completing the act is what clears it; the armed challenge is an optional
 	# extra goal and its verdict is shown separately on the results screen.
-	Progress.mark_act_cleared(GameState.Mode.TPS)
+	if success:
+		Progress.mark_act_cleared(GameState.Mode.TPS)
 	if _hud:
 		_hud.set_secondary_objectives(Score.civilians_saved, Score.equipment_recovered, Score.comm_restored)
 	Audio.stop_music()
@@ -1023,7 +1031,9 @@ func _finish() -> void:
 
 func _on_replay_done() -> void:
 	GameState.show_results_on_load = true
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	# The headless checks call `_finish()` on a detached probe node.
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 
 func _slab(center: Vector3, size: Vector3, color: Color) -> void:

@@ -149,7 +149,7 @@ entre eux), les **caisses** se brisent. Les explosions déclenchent une lumière
 brève, un son et une vibration manette. Trois **événements scriptés** rythment
 l'Acte 1 (effondrement, embuscade) et l'Acte 3 (citernes à l'impact). L'Acte 3
 ajoute des **voitures rivales** : elles vous percutent pour vous ralentir, et
-une ruade au **boost** suffit à en envoyer une au tapis (+300 au score).
+une ruade au **boost** suffit à en envoyer une au tapis (+150 au score).
 
 ## Assets (textures et sons)
 
@@ -248,7 +248,9 @@ percute (Acte 3), et le HUD affiche alors **DÉFI ÉCHOUÉ** avec la raison.
 Chaque acte terminé débloque son premier **équipement** (le second emplacement
 est réservé à la Nouvelle Partie+) : ils changent l'approche sans augmenter la
 puissance brute. Un acte compté comme réussi le reste même si le défi choisi
-échoue ; le verdict du défi s'affiche séparément. Terminer les trois actes
+échoue ; le verdict du défi s'affiche séparément. **Mourir en Acte 1** (intégrité
+à zéro) est un échec : l'acte n'est pas validé, aucun score n'est enregistré et
+l'écran propose de le rejouer. Terminer les trois actes
 débloque la **Nouvelle Partie+** (ennemis plus coriaces, ressources plus rares) ;
 le choix est **mémorisé** d'une session à l'autre.
 

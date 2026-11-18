@@ -479,6 +479,7 @@ func _physics_process(delta: float) -> void:
 
 	_check_checkpoints()
 	_check_collisions(delta)
+	_update_chasers(delta)
 	_update_chase(delta)
 	_update_hud()
 	Audio.set_intensity(clampf(_speed / MAX_SPEED, 0.0, 1.0))
