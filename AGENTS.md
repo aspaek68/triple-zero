@@ -489,3 +489,11 @@ chargeurs valident donc **chaque** valeur avant de l'affecter :
   sauvegarde ; `options_menu.gd` capture `physical_keycode` et relit les
   liaisons par `_key_name()`. `_verify._check_keybinds()` couvre les trois
   cas (défaut affiché, remappage, réinitialisation).
+- **Gâchettes** : les invites manette affichées par les HUDs doivent suivre
+  les vraies liaisons. `shoot` (Actes 1 et 2) et `boost` (Acte 3) sont sur la
+  **gâchette droite** (`JOY_AXIS_TRIGGER_RIGHT`) ; `sprint` (Acte 1) sur la
+  gauche. L'Acte 1 affichait « X/LT tirer » alors que le tir était sur RT, et
+  l'Acte 3 « RT boost » alors que le boost était sur LT. Corrigé des deux
+  côtés (invite + liaison) ; `_verify._check_gamepad_bindings()` vérifie que
+  `shoot` et `boost` écoutent bien la gâchette droite. Un run headless ne
+  presse jamais une gâchette, donc ce genre d'écart ne se voit qu'en jouant.

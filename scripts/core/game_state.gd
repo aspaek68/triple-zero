@@ -136,7 +136,9 @@ func _ensure_input_actions() -> void:
 	_axis_action("sprint", JOY_AXIS_TRIGGER_LEFT, 1.0)
 	_add_keys("boost", [KEY_SHIFT])
 	_add_buttons("boost", [JOY_BUTTON_RIGHT_SHOULDER])
-	_axis_action("boost", JOY_AXIS_TRIGGER_LEFT, 1.0)
+	# The drive HUD says "RT boost": keep the binding on the right trigger so
+	# the prompt is true. (Sprint uses the left trigger in the on-foot acts.)
+	_axis_action("boost", JOY_AXIS_TRIGGER_RIGHT, 1.0)
 
 	_add_keys("reload", [KEY_F])
 	_add_buttons("reload", [JOY_BUTTON_LEFT_SHOULDER])

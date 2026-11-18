@@ -32,6 +32,7 @@ func _ready() -> void:
 	_check_drive_chasers()
 	_check_equipment()
 	_check_keybinds()
+	_check_gamepad_bindings()
 	await _check_combat()
 
 	if _failures.is_empty():
@@ -1263,6 +1264,23 @@ func _first_key(action: String) -> int:
 		if ev is InputEventKey:
 			return ev.physical_keycode if ev.physical_keycode != 0 else ev.keycode
 	return 0
+
+
+## The on-screen prompts say "X/RT tirer" and "RT boost": the actions behind
+## them must actually listen to the right trigger. A headless run never pulls a
+## trigger, so a prompt/binding mismatch would only surface for a player.
+func _check_gamepad_bindings() -> void:
+	_expect(_has_joy_axis("shoot", JOY_AXIS_TRIGGER_RIGHT),
+		"shoot is not bound to the right trigger (the HUD says RT)")
+	_expect(_has_joy_axis("boost", JOY_AXIS_TRIGGER_RIGHT),
+		"drive boost is not bound to the right trigger (the HUD says RT)")
+
+
+func _has_joy_axis(action: String, axis: int) -> bool:
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventJoypadMotion and ev.axis == axis:
+			return true
+	return false
 
 
 ## The two shooting paths only run on a real trigger press, which headless runs

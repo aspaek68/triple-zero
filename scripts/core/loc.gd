@@ -165,8 +165,8 @@ const EN := {
 		"Objective: secure the three zones, then reach extraction",
 	"ZQSD bouger • Souris viser • Clic/Space tirer • Ctrl couvert • F recharger • C météo • R replay":
 		"WASD move • Mouse aim • Click/Space fire • Ctrl cover • F reload • C weather • R replay",
-	"Stick G bouger • Stick D viser • X/LT tirer • B couvert • LB recharger • Y météo • Back replay":
-		"L stick move • R stick aim • X/LT fire • B cover • LB reload • Y weather • Back replay",
+	"Stick G bouger • Stick D viser • X/RT tirer • B couvert • LB recharger • Y météo • Back replay":
+		"L stick move • R stick aim • X/RT fire • B cover • LB reload • Y weather • Back replay",
 	"Objectif : couvrir l'évacuation": "Objective: cover the evacuation",
 	"Objectif : couvrir l'évacuation, épargner les civils":
 		"Objective: cover the evacuation, spare the civilians",

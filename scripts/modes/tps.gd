@@ -91,7 +91,7 @@ func _ready() -> void:
 	_hud = Hud.new()
 	_hud.build("ACTE 1 — TOUR", "Objectif : sécuriser les trois zones",
 		"ZQSD bouger • Souris viser • Clic/Space tirer • Ctrl couvert • F recharger • C météo • R replay",
-		"Stick G bouger • Stick D viser • X/LT tirer • B couvert • LB recharger • Y météo • Back replay")
+		"Stick G bouger • Stick D viser • X/RT tirer • B couvert • LB recharger • Y météo • Back replay")
 	add_child(_hud)
 	_hud.set_ammo(_ammo, MAG_SIZE)
 	_pause = PauseMenu.new()
