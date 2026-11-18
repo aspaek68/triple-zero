@@ -39,7 +39,7 @@ func _build_ui() -> void:
 	col.add_theme_constant_override("separation", 6)
 	panel.add_child(col)
 	var title := Label.new()
-	title.text = "ÉDITEUR DE NIVEAU"
+	title.text = Loc.t("ÉDITEUR DE NIVEAU")
 	title.add_theme_font_size_override("font_size", 20)
 	col.add_child(title)
 	_status = Label.new()
@@ -62,7 +62,7 @@ func _build_ui() -> void:
 
 func _button(parent: Node, text: String, action: Callable) -> void:
 	var b := Button.new()
-	b.text = text
+	b.text = Loc.t(text)
 	b.custom_minimum_size = Vector2(0, 32)
 	b.pressed.connect(action)
 	parent.add_child(b)
@@ -93,14 +93,21 @@ func _pop_node() -> void:
 
 func _test() -> void:
 	LevelData.save_level()
+	# Same launch path as the menu: without the mode, a fresh score and an armed
+	# challenge, the act's results screen would report the previous run.
+	GameState.mode = GameState.Mode.DRIVE
+	GameState.last_act_success = true
+	Score.reset()
+	Progress.begin()
+	Audio.stop_music()
 	get_tree().change_scene_to_file("res://scenes/modes/drive.tscn")
 
 
 func _refresh() -> void:
 	var kind: String = LevelData.PROP_KINDS[_kind]
-	var tool := "nœuds du circuit" if _tool == "node" else "props (%s)" % kind
+	var tool := Loc.t("nœuds du circuit") if _tool == "node" else Loc.t("props (%s)") % kind
 	if _status:
-		_status.text = "%d nœuds • %d props\nOutil : %s\nClic : ajouter/déplacer • Clic droit : supprimer" % [
+		_status.text = Loc.t("%d nœuds • %d props\nOutil : %s\nClic : ajouter/déplacer • Clic droit : supprimer") % [
 			LevelData.custom_path.size(), LevelData.props.size(), tool]
 	queue_redraw()
 

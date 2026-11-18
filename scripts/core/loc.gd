@@ -24,6 +24,18 @@ const EN := {
 	"Clavier : flèches naviguer • Entrée valider":
 		"Keyboard: arrows navigate • Enter confirm",
 	"ÉDITEUR DE NIVEAU (acte 3)": "LEVEL EDITOR (act 3)",
+	"ÉDITEUR DE NIVEAU": "LEVEL EDITOR",
+	"Outil : nœuds": "Tool: nodes",
+	"Outil : props": "Tool: props",
+	"Type de prop →": "Prop type →",
+	"Nouveau": "New",
+	"Charger": "Load",
+	"Enregistrer": "Save",
+	"Ajouter un nœud": "Add node",
+	"Supprimer le dernier": "Delete last",
+	"Tester l'acte 3": "Test act 3",
+	"nœuds du circuit": "track nodes",
+	"props (%s)": "props (%s)",
 	"OPTIONS": "OPTIONS",
 	"activée": "on",
 	"désactivée": "off",
@@ -120,6 +132,8 @@ const EN := {
 	"Pause": "Pause",
 	"Météo": "Weather",
 	"Ralenti": "Slow motion",
+	"RALENTI": "SLOW MOTION",
+	"● RALENTI — R pour passer": "● SLOW MOTION — R to skip",
 	"Réinitialiser les touches": "Reset key bindings",
 	"AUDIO": "AUDIO",
 	"Volume général": "Master volume",
@@ -205,6 +219,8 @@ const EN := {
 ## `%4.1f` and `%%` are supported; the values are carried over unchanged.
 const EN_TEMPLATES := {
 	"Défi : %s — %s": "Challenge: %s — %s",
+	"%d nœuds • %d props\nOutil : %s\nClic : ajouter/déplacer • Clic droit : supprimer":
+		"%d nodes • %d props\nTool: %s\nClick: add/move • Right click: delete",
 	"Actes terminés : %d / 3": "Acts cleared: %d / 3",
 	"NOUVELLE PARTIE+ : %s": "NEW GAME+ : %s",
 	"Équipement %s : %s — %s": "Equipment %s: %s — %s",

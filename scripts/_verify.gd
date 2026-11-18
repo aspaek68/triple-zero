@@ -16,6 +16,7 @@ func _ready() -> void:
 	_check_destructibles()
 	_check_hud()
 	_check_pause()
+	_check_editor()
 	await _check_vfx()
 	_check_director()
 	_check_score()
@@ -69,6 +70,15 @@ func _check_localisation() -> void:
 	_expect(Loc.t("ACTE ÉCHOUÉ") == "ACT FAILED", "EN label missing: ACTE ÉCHOUÉ")
 	_expect(Loc.t("Défi « %s » : %s%s") % ["Sans dégâts", Loc.t("échoué"), " — " + Loc.t("touché")] ==
 		"Challenge \"Sans dégâts\": failed — hit", "EN challenge template not translated")
+	_expect(Loc.t("ÉDITEUR DE NIVEAU") == "LEVEL EDITOR",
+		"EN label missing: ÉDITEUR DE NIVEAU")
+	_expect(Loc.t("Tester l'acte 3") == "Test act 3", "EN label missing: Tester l'acte 3")
+	_expect(Loc.t("RALENTI") == "SLOW MOTION", "EN label missing: RALENTI")
+	_expect(Loc.t("● RALENTI — R pour passer") == "● SLOW MOTION — R to skip",
+		"EN replay caption not translated")
+	_expect(Loc.t("%d nœuds • %d props\nOutil : %s\nClic : ajouter/déplacer • Clic droit : supprimer") % [3, 2, "x"] ==
+		"3 nodes • 2 props\nTool: x\nClick: add/move • Right click: delete",
+		"EN editor status template not translated")
 	Loc.set_language(saved)
 
 
@@ -214,6 +224,25 @@ func _check_pause() -> void:
 	_expect(not pause.is_open(), "pause menu did not close")
 	_expect(not get_tree().paused, "pause menu did not release the tree")
 	pause.queue_free()
+
+
+## The level editor is reachable from the menu: it must build in either
+## language and expose its status line (and it must not crash headless).
+func _check_editor() -> void:
+	var script: GDScript = load("res://scripts/ui/level_editor.gd")
+	_expect(script != null, "level editor script does not load")
+	if script == null:
+		return
+	var editor: Control = script.new()
+	add_child(editor)
+	var titled := false
+	for node in editor.find_children("*", "Label", true, false):
+		if (node as Label).text == Loc.t("ÉDITEUR DE NIVEAU"):
+			titled = true
+	_expect(titled, "level editor title missing or untranslated")
+	_expect(editor._status != null and editor._status.text != "",
+		"level editor status line is empty")
+	editor.queue_free()
 
 
 ## Shot feedback: tracers and impact sparks appear, self-free, and ignore

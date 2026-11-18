@@ -194,7 +194,7 @@ func _build_overlay(parent: Node) -> void:
 		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_overlay.add_child(bar)
 	_caption = Label.new()
-	_caption.text = "● RALENTI — R pour passer" if Options.subtitles else "RALENTI"
+	_caption.text = Loc.t("● RALENTI — R pour passer") if Options.subtitles else Loc.t("RALENTI")
 	_caption.add_theme_font_size_override("font_size", 26)
 	_caption.add_theme_color_override("font_color", Color(1.0, 0.35, 0.3))
 	_caption.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))

@@ -233,7 +233,8 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   PROCESS_MODE_ALWAYS` car la lecture tourne pendant que l'arbre est **en pause**
   (`Director.start_replay` met `get_tree().paused = true` et le relâche à la
   fin). Un acteur en cours de partie peut disparaître : on garde sa dernière
-  transform valide dans `_last`.
+  transform valide dans `_last`. La légende du ralenti passe par `Loc.t()`
+  (`● RALENTI — R pour passer`, ou `RALENTI` si les sous-titres sont coupés).
 - **Director** (`scripts/core/director.gd`, `extends Object`) : câblage commun
   aux trois actes — `spawn_weather`, `spawn_replay`, `start_replay`,
   `cycle_weather`. Les modes ne font que décrire quoi filmer et où est la
@@ -244,7 +245,11 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   `active_path(default)` renvoie le tracé perso s'il existe (>= 2 nœuds), sinon
   celui du mode. `drive.gd` lit `_path = LevelData.active_path(PATH)` et pose
   les props enregistrés. Le bouton du menu charge le script via `load()` et
-  l'ajoute en enfant (pas de `.tscn`).
+  l'ajoute en enfant (pas de `.tscn`). Ses libellés et sa ligne d'état passent
+  par `Loc.t()` ; **Tester l'acte 3** rejoue le chemin de lancement du menu
+  (`GameState.mode`, `Score.reset()`, `Progress.begin()`, `Audio.stop_music()`)
+  avant de charger la scène, sinon l'écran de résultats afficherait la partie
+  précédente.
 - **Entrées** : actions `weather` (C / Y) et `replay` (R / Back) déclarées dans
   `game_state.gd` (`_ensure_input_actions`). Options `weather`,
   `weather_dynamic`, `replay_enabled` dans `options.gd`, exposées dans
