@@ -51,6 +51,7 @@ var _chasers: Array = []
 var _intro: Cinematic
 var _ended := false
 var _hud: Hud
+var _pause: PauseMenu
 var _path: Array = []
 var _weather: Weather
 var _replay: Replay
@@ -78,6 +79,8 @@ func _ready() -> void:
 		"ZQSD conduire • Espace frein à main • Maj boost • C météo • R replay",
 		"Stick G conduire • B frein à main • RT boost • Y météo • Back replay")
 	add_child(_hud)
+	_pause = PauseMenu.new()
+	add_child(_pause)
 	_weather = Director.spawn_weather(self, _car, _hud)
 	_replay = Director.spawn_replay(self)
 	_replay.track(_car, Color(0.95, 0.75, 0.25), Vector3(2.0, 1.0, 4.2))
@@ -634,7 +637,12 @@ func _alive_chasers() -> int:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("weather"):
+	if _ended or _intro_locked():
+		return
+	if event.is_action_pressed("pause") and _pause:
+		get_viewport().set_input_as_handled()
+		_pause.open()
+	elif event.is_action_pressed("weather"):
 		Director.cycle_weather(_weather)
 	elif event.is_action_pressed("replay") and _replay and _replay.has_footage():
 		Director.start_replay(self, _replay, _hud, Callable())
@@ -770,6 +778,7 @@ func _finish(success: bool) -> void:
 	if _ended:
 		return
 	_ended = true
+	GameState.last_act_success = success
 	_car.engine_force = 0.0
 	var challenge := Progress.evaluate()
 	if success and challenge["success"]:

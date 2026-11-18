@@ -27,9 +27,17 @@ func _build() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 
+	# A scroll container keeps every entry reachable on small windows and after
+	# the results panel is added; focus follows the gamepad and scrolls to it.
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	add_child(scroll)
+
 	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(center)
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(center)
 
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 14)
@@ -56,6 +64,9 @@ func _build() -> void:
 	pad_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(pad_hint)
 
+	if _showing_results:
+		column.add_child(_results_panel())
+
 	column.add_child(HSeparator.new())
 
 	for m in [GameState.Mode.TPS, GameState.Mode.RAIL, GameState.Mode.DRIVE]:
@@ -76,14 +87,24 @@ func _build() -> void:
 	options.pressed.connect(_open_options)
 	column.add_child(options)
 
-	if _showing_results:
-		column.add_child(_results_panel())
+	var quit := Button.new()
+	quit.text = Loc.t("QUITTER LE JEU")
+	quit.custom_minimum_size = Vector2(0, 44)
+	quit.pressed.connect(_quit_game)
+	column.add_child(quit)
 
-	# Give the first button focus so the gamepad can drive the menu right away.
-	for child in column.get_children():
-		if child is Button:
-			child.grab_focus()
-			break
+	# Give the first button focus so the gamepad can drive the menu right away;
+	# after a run, the retry button is the most likely next action.
+	var focus_target: Button = null
+	if _showing_results:
+		focus_target = column.find_child("RetryButton", true, false) as Button
+	if focus_target == null:
+		for child in column.get_children():
+			if child is Button:
+				focus_target = child
+				break
+	if focus_target:
+		focus_target.grab_focus()
 
 
 ## Challenge picker, equipment unlocks and the New Game+ toggle.
@@ -177,6 +198,14 @@ func _results_panel() -> VBoxContainer:
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	panel.add_child(header)
 
+	var outcome := Label.new()
+	outcome.text = Loc.t("ACTE RÉUSSI" if GameState.last_act_success else "ACTE ÉCHOUÉ")
+	outcome.add_theme_font_size_override("font_size", 18)
+	outcome.add_theme_color_override("font_color",
+		Color(0.5, 0.95, 0.6) if GameState.last_act_success else Color(1.0, 0.5, 0.45))
+	outcome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	panel.add_child(outcome)
+
 	var lines := Label.new()
 	lines.text = Loc.t("Score total : %d\nPrécision : %d%%\nCivils sauvés : %d   perdus : %d\nMatériel récupéré : %d   comms rétablies : %d\nItinéraires alternatifs : %d\nRang : %s") % [
 		Score.total(), int(Score.accuracy_ratio() * 100.0),
@@ -196,13 +225,19 @@ func _results_panel() -> VBoxContainer:
 		best_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 		panel.add_child(best_label)
 
-	var challenge := Label.new()
-	var verdict := Loc.t("réussi") if Progress.last_success else Loc.t("échoué")
-	challenge.text = Loc.t("Défi « %s » : %s") % [Loc.t(Progress.last_name), verdict]
-	challenge.add_theme_font_size_override("font_size", 15)
-	challenge.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
-	challenge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	panel.add_child(challenge)
+	# A free run has no challenge verdict; the other challenges add the reason
+	# they failed, which the results screen used to hide.
+	if Progress.selected_challenge != "none":
+		var challenge := Label.new()
+		var verdict := Loc.t("réussi") if Progress.last_success else Loc.t("échoué")
+		var reason := "" if Progress.last_reason == "" else " — " + Loc.t(Progress.last_reason)
+		challenge.text = Loc.t("Défi « %s » : %s%s") % [
+			Loc.t(Progress.last_name), verdict, reason
+		]
+		challenge.add_theme_font_size_override("font_size", 15)
+		challenge.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
+		challenge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		panel.add_child(challenge)
 
 	var acts := Label.new()
 	var suffix := Loc.t("  •  Nouvelle partie+ débloquée") if Progress.ng_plus_unlocked else ""
@@ -214,11 +249,27 @@ func _results_panel() -> VBoxContainer:
 	acts.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	panel.add_child(acts)
 
+	var retry := Button.new()
+	retry.name = "RetryButton"
+	retry.text = Loc.t("REJOUER L'ACTE")
+	retry.custom_minimum_size = Vector2(0, 44)
+	retry.pressed.connect(func(): _launch(GameState.mode))
+	panel.add_child(retry)
+
+	var hide := Button.new()
+	hide.text = Loc.t("FERMER LES RÉSULTATS")
+	hide.custom_minimum_size = Vector2(0, 34)
+	hide.pressed.connect(func():
+		_showing_results = false
+		_build())
+	panel.add_child(hide)
+
 	return panel
 
 
 func _launch(mode: int) -> void:
 	GameState.mode = mode as GameState.Mode
+	GameState.last_act_success = true
 	Score.reset()
 	Progress.begin()
 	Audio.stop_music()
@@ -237,6 +288,10 @@ func _open_options() -> void:
 	var menu: Node = script.new()
 	menu.connect("closed", _build)
 	add_child(menu)
+
+
+func _quit_game() -> void:
+	get_tree().quit()
 
 
 func _unhandled_input(event: InputEvent) -> void:

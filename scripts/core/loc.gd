@@ -33,10 +33,26 @@ const EN := {
 	"verrouillé": "locked",
 	"Conduite": "Driving",
 	"RÉSULTATS": "RESULTS",
+	"ACTE RÉUSSI": "ACT PASSED",
+	"ACTE ÉCHOUÉ": "ACT FAILED",
+	"touché": "hit",
+	"trop lent": "too slow",
+	"aucun tir": "no shots fired",
+	"précision insuffisante": "accuracy too low",
+	"aucun itinéraire alternatif": "no alternate route",
 	"  •  NOUVEAU RECORD !": "  •  NEW RECORD!",
 	"réussi": "passed",
 	"échoué": "failed",
 	"  •  Nouvelle partie+ débloquée": "  •  New Game+ unlocked",
+	"REJOUER L'ACTE": "REPLAY ACT",
+	"FERMER LES RÉSULTATS": "CLOSE RESULTS",
+
+	# ----------------------------------------------------------------- pause
+	"PAUSE": "PAUSE",
+	"REPRENDRE": "RESUME",
+	"RECOMMENCER": "RESTART",
+	"MENU PRINCIPAL": "MAIN MENU",
+	"QUITTER LE JEU": "QUIT GAME",
 
 	# ------------------------------------------------------------ mode info
 	"ACTE 1 — TOUR": "ACT 1 — TOWER",
@@ -195,7 +211,7 @@ const EN_TEMPLATES := {
 	"Score total : %d\nPrécision : %d%%\nCivils sauvés : %d   perdus : %d\nMatériel récupéré : %d   comms rétablies : %d\nItinéraires alternatifs : %d\nRang : %s":
 		"Total score: %d\nAccuracy: %d%%\nCivilians saved: %d   lost: %d\nEquipment recovered: %d   comms restored: %d\nAlternate routes: %d\nRank: %s",
 	"Meilleur : %d (%s)%s": "Best: %d (%s)%s",
-	"Défi « %s » : %s": "Challenge \"%s\": %s",
+	"Défi « %s » : %s%s": "Challenge \"%s\": %s%s",
 	"Actes terminés : %d / 3%s\nChoisissez un acte pour rejouer":
 		"Acts cleared: %d / 3%s\nChoose an act to replay",
 	"Manette détectée : %s": "Gamepad detected: %s",

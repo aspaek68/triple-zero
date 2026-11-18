@@ -25,6 +25,7 @@ var _yaw := 0.0
 var _pitch := -0.18
 var _arm: SpringArm3D
 var _hud: Hud
+var _pause: PauseMenu
 var _intro: Cinematic
 var _weather: Weather
 var _replay: Replay
@@ -92,6 +93,8 @@ func _ready() -> void:
 		"Stick G bouger • Stick D viser • X/LT tirer • B couvert • LB recharger • Y météo • Back replay")
 	add_child(_hud)
 	_hud.set_ammo(_ammo, MAG_SIZE)
+	_pause = PauseMenu.new()
+	add_child(_pause)
 	_weather = Director.spawn_weather(self, _player, _hud)
 	_replay = Director.spawn_replay(self)
 	_replay.track(_player, Color(0.4, 0.9, 0.5), Vector3(0.9, 1.8, 0.9))
@@ -426,8 +429,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		Director.cycle_weather(_weather)
 	elif event.is_action_pressed("replay") and _replay and _replay.has_footage():
 		Director.start_replay(self, _replay, _hud, Callable())
-	elif event.is_action_pressed("pause"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	elif event.is_action_pressed("pause") and _pause:
+		get_viewport().set_input_as_handled()
+		_pause.open()
 
 
 func _physics_process(delta: float) -> void:
@@ -998,6 +1002,7 @@ func _finish() -> void:
 	if _ended:
 		return
 	_ended = true
+	GameState.last_act_success = true
 	Score.time_bonus += 3000
 	Progress.record_run(GameState.Mode.TPS, Score.total(), Score.rank())
 	var challenge := Progress.evaluate()

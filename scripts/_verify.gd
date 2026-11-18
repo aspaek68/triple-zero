@@ -15,6 +15,7 @@ func _ready() -> void:
 	_check_models()
 	_check_destructibles()
 	_check_hud()
+	_check_pause()
 	await _check_vfx()
 	_check_director()
 	_check_score()
@@ -61,6 +62,13 @@ func _check_localisation() -> void:
 		"EN dynamic template not matched")
 	_expect(Loc.t("INTÉGRITÉ 75%") == "INTEGRITY 75%",
 		"EN percent template not matched")
+	_expect(Loc.t("REPRENDRE") == "RESUME", "EN label missing: REPRENDRE")
+	_expect(Loc.t("QUITTER LE JEU") == "QUIT GAME", "EN label missing: QUITTER LE JEU")
+	_expect(Loc.t("FERMER LES RÉSULTATS") == "CLOSE RESULTS",
+		"EN label missing: FERMER LES RÉSULTATS")
+	_expect(Loc.t("ACTE ÉCHOUÉ") == "ACT FAILED", "EN label missing: ACTE ÉCHOUÉ")
+	_expect(Loc.t("Défi « %s » : %s%s") % ["Sans dégâts", Loc.t("échoué"), " — " + Loc.t("touché")] ==
+		"Challenge \"Sans dégâts\": failed — hit", "EN challenge template not translated")
 	Loc.set_language(saved)
 
 
@@ -173,6 +181,29 @@ func _check_hud() -> void:
 	GameState._set_device("gamepad")
 	GameState._set_device("keyboard")
 	hud.queue_free()
+
+
+## The in-act pause overlay freezes the tree while open and releases it on
+## close; the modes rely on that to stop the simulation behind the menu.
+func _check_pause() -> void:
+	var pause := PauseMenu.new()
+	add_child(pause)
+	_expect(not pause.is_open(), "pause menu starts open")
+	_expect(pause.layer > 1, "pause menu draws below the HUD")
+	pause.open()
+	_expect(pause.is_open(), "pause menu did not open")
+	_expect(get_tree().paused, "pause menu did not freeze the tree")
+	# The options sub-screen runs while the tree is paused, then hands control
+	# back to the pause panel.
+	pause._open_options()
+	_expect(pause._options != null, "pause menu did not open options")
+	if pause._options != null:
+		pause._options._close()
+	_expect(pause._options == null, "pause options did not close")
+	pause.close()
+	_expect(not pause.is_open(), "pause menu did not close")
+	_expect(not get_tree().paused, "pause menu did not release the tree")
+	pause.queue_free()
 
 
 ## Shot feedback: tracers and impact sparks appear, self-free, and ignore

@@ -47,7 +47,7 @@ affiche les invites du périphérique que vous venez d'utiliser.
 | Frein à main / déraper (Acte 3) | **B** | **Espace** |
 | Météo (change le temps) | **Y** | **C** |
 | Replay (ralenti) | **Back** | **R** |
-| Pause / libérer la souris | **Start** | **Échap** |
+| Pause (menu) | **Start** | **Échap** |
 | Naviguer dans les menus | **Croix / stick gauche**, **A** valider, **B** retour | **Flèches**, **Entrée**, **Échap** |
 
 Réglages manette dans les options : sensibilité des sticks, zone morte,
@@ -227,10 +227,27 @@ remplacer les fichiers **en place**, sans toucher au code.
 **protection des civils** ; multiplicateur ×1.5 si aucun dégât subi. À la fin
 d'un acte, un rang **S/A/B/C** s'affiche sur l'écran de résultats.
 
+## Menu pause et résultats
+
+**Échap** (ou **Start**) ouvre un vrai **menu pause** dans les trois actes :
+*Reprendre*, *Options*, *Recommencer*, *Menu principal*, *Quitter le jeu*. La
+simulation est gelée, la souris libérée puis restaurée, et tout se navigue à la
+manette comme à la souris. Le menu pause passe au-dessus du HUD et de la
+cinématique.
+
+L'écran de résultats annonce **ACTE RÉUSSI / ACTE ÉCHOUÉ**, le score, la
+précision, le rang, le meilleur score et le détail du défi (avec la **raison** de
+l'échec : touché, trop lent, aucun tir, précision insuffisante, aucun itinéraire
+alternatif). Il propose directement **REJOUER L'ACTE** ou **FERMER LES
+RÉSULTATS**. Menu principal et options **défilent** pour rester utilisables sur
+toutes les tailles de fenêtre.
+
 ## Options et accessibilité
 
-Menu **OPTIONS** (depuis le menu principal), persisté dans `user://options.cfg` :
+Menu **OPTIONS** (depuis le menu principal ou la pause), persisté dans
+`user://options.cfg` :
 
+- **langue** FR / EN (menus, HUD, messages des actes) ;
 - difficulté (dégâts entrants), assistance de visée (tolérance de tir) ;
 - taille du réticule, sensibilité souris, inversion d'axe vertical ;
 - secousses caméra, flou de mouvement, sous-titres ;
@@ -265,7 +282,7 @@ scripts/
     enemy.gd               # hostile à points de vie, touchable par les explosions
     weather.gd             # météo dynamique : ciel, brouillard, soleil, pluie, éclairs
   modes/{tps,rail,drive}.gd
-  ui/{menu,options_menu,hud}.gd
+  ui/{menu,options_menu,pause_menu,hud}.gd
   ui/level_editor.gd       # éditeur de niveau de l'acte 3 (vue de dessus)
 tools/
   gen_assets.py            # génère assets/textures/*.png et assets/audio/*.wav

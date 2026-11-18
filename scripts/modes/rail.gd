@@ -26,6 +26,7 @@ var _intro: Cinematic
 var _weather: Weather
 var _replay: Replay
 var _hud: Hud
+var _pause: PauseMenu
 var _section := 0
 var _combo := 0
 var _combo_timer := 0.0
@@ -42,6 +43,8 @@ func _ready() -> void:
 		"Souris viser • Clic/Space tirer • Rouge = menaces • C météo • R replay",
 		"Stick D viser • X/RT tirer • Rouge = menaces • Y météo • Back replay")
 	add_child(_hud)
+	_pause = PauseMenu.new()
+	add_child(_pause)
 	_aim = get_viewport().get_visible_rect().size * 0.5
 	_hud.set_reticle_position(_aim)
 	_weather = Director.spawn_weather(self, _camera, _hud)
@@ -297,8 +300,12 @@ func _input(event: InputEvent) -> void:
 		Director.cycle_weather(_weather)
 	elif event.is_action_pressed("replay") and _replay and _replay.has_footage():
 		Director.start_replay(self, _replay, _hud, Callable())
-	elif event.is_action_pressed("pause"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	elif event.is_action_pressed("pause") and _pause:
+		# The mode handles pause in `_input`; without marking the event handled
+		# the overlay's own `_unhandled_input` would receive the same press and
+		# close it in the same frame.
+		get_viewport().set_input_as_handled()
+		_pause.open()
 
 
 func _process(delta: float) -> void:
@@ -650,6 +657,7 @@ func _finish() -> void:
 	if _ended:
 		return
 	_ended = true
+	GameState.last_act_success = true
 	var challenge := Progress.evaluate()
 	if challenge["success"]:
 		Progress.mark_act_cleared(GameState.Mode.RAIL)

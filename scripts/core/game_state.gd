@@ -29,6 +29,9 @@ const MODE_INFO: Dictionary = {
 
 var mode: Mode = Mode.TPS
 var show_results_on_load := false
+## Whether the last finished act was actually cleared (act 3 can run out of
+## time), so the results screen can say so instead of showing a bare score.
+var last_act_success := true
 var cli_consumed := false
 ## New Game+: tougher hostiles, tighter resources. Toggled from the menu once
 ## the player has finished all three acts.

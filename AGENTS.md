@@ -109,11 +109,27 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   néons, panneaux), et des **voitures rivales** (`_build_chasers()` :
   `VehicleBody3D` qui pivotent vers le joueur ; au contact elles ralentissent le
   joueur, au boost elles explosent via `Score.register_kill()`).
-- `scripts/ui/` — `menu.gd`, `hud.gd`, `options_menu.gd`, `cinematic.gd`
+- `scripts/ui/` — `menu.gd`, `hud.gd`, `options_menu.gd`, `pause_menu.gd`,
+  `cinematic.gd`
   (cinématique d'intro partagée : fondu, bandes, caméra qui survole). Chaque
   acte appelle `Cinematic.play()` puis lance la musique sur le signal
   `finished` ; `is_done()` sert à verrouiller l'entrée pendant la lecture. En
   headless (pas de fenêtre, pas d'input) elle s'auto-termine en 0,2 s.
+- **Pause et résultats** : `PauseMenu` (`scripts/ui/pause_menu.gd`,
+  `class_name`, `extends CanvasLayer`) est créé par chaque acte après le HUD et
+  ouvert par l'action `pause`. Il passe en `PROCESS_MODE_ALWAYS`, met
+  `get_tree().paused = true`, mémorise le mode souris et le restaure à la
+  fermeture. Boutons : reprendre, options (écran d'options en
+  `PROCESS_MODE_ALWAYS`), recommencer (`reload_current_scene()` +
+  `Score.reset()` + `Progress.begin()`), menu principal, quitter. Il vit sur la
+  **couche 10** : un simple `Control` sous la racine 3D dessinerait *sous* le
+  HUD (`Hud` est un `CanvasLayer` de couche 1) et sous la cinématique (couche
+  4). L'écran de résultats du menu principal annonce acte réussi/échoué
+  (`GameState.last_act_success`, positionné par chaque `_finish()`), le détail
+  du défi avec sa raison d'échec (`Progress.last_reason`) et propose
+  **REJOUER L'ACTE** (`GameState.mode`) ou **FERMER LES RÉSULTATS**. Menu et
+  options défilent (`ScrollContainer` + `follow_focus`) pour rester utilisables
+  sur une fenêtre de 900 px.
 - **Viseur** : `Hud` possède un `Reticle` interne (Control dessiné, en espace
   écran) partagé par les deux modes de tir. `set_reticle_visible()` l'affiche à
   la fin de l'intro ; par défaut il **suit le centre du viewport** (Acte 1), et

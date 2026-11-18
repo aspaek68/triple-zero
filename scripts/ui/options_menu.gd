@@ -27,20 +27,40 @@ func _build() -> void:
 	bg.bg_color = Color(0.1, 0.12, 0.17, 0.97)
 	add_theme_stylebox_override("panel", bg)
 
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(center)
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 48)
+	margin.add_theme_constant_override("margin_right", 48)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	add_child(margin)
 
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 10)
-	column.custom_minimum_size = Vector2(620, 0)
-	center.add_child(column)
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 10)
+	margin.add_child(outer)
 
 	var title := Label.new()
 	title.text = Loc.t("OPTIONS")
 	title.add_theme_font_size_override("font_size", 34)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(title)
+	outer.add_child(title)
+
+	# The settings list is taller than a 900 px window, so it scrolls; RETOUR
+	# stays outside the scroll and is always reachable.
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	outer.add_child(scroll)
+
+	var center := CenterContainer.new()
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(center)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 10)
+	column.custom_minimum_size = Vector2(620, 0)
+	center.add_child(column)
 
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 8)
@@ -136,7 +156,7 @@ func _build() -> void:
 	close.text = Loc.t("RETOUR")
 	close.custom_minimum_size = Vector2(0, 44)
 	close.pressed.connect(_close)
-	column.add_child(close)
+	outer.add_child(close)
 	close.grab_focus()
 
 

@@ -37,6 +37,7 @@ var _fail_reason := ""
 var last_success := false
 var last_name := ""
 var last_record := false
+var last_reason := ""
 
 
 func _ready() -> void:
@@ -158,6 +159,10 @@ func begin() -> void:
 	_started_at = Time.get_ticks_msec()
 	_failed = false
 	_fail_reason = ""
+	# A run that never reaches `record_run` (act 3 out of time) must not keep
+	# showing the previous run's "new record" banner on the results screen.
+	last_record = false
+	last_reason = ""
 
 
 func is_active() -> bool:
@@ -214,4 +219,5 @@ func evaluate() -> Dictionary:
 			if not success:
 				reason = "aucun itinéraire alternatif"
 	last_success = success
+	last_reason = reason
 	return {"success": success, "name": last_name, "reason": reason}
