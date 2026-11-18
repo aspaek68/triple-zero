@@ -48,6 +48,19 @@ const TEXTURE_SCALE := {
 static func setup_world(parent: Node, sun_degrees: float = -48.0) -> void:
 	parent.add_child(_build_environment())
 	parent.add_child(_build_sun(sun_degrees))
+	parent.add_child(_build_reflection_probe())
+
+
+static func _build_reflection_probe() -> ReflectionProbe:
+	var probe := ReflectionProbe.new()
+	probe.name = "ReflectionProbe"
+	probe.size = Vector3(120, 60, 120)
+	probe.position = Vector3(0, 8, -30)
+	probe.update_mode = ReflectionProbe.UPDATE_ONCE
+	probe.intensity = 1.0
+	probe.max_distance = 80.0
+	probe.mesh_lod_threshold = 0.5
+	return probe
 
 
 static func _build_environment() -> WorldEnvironment:
