@@ -39,29 +39,73 @@ func load_from_disk() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) != OK:
 		return
-	difficulty = cfg.get_value("game", "difficulty", difficulty)
-	aim_assist = cfg.get_value("game", "aim_assist", aim_assist)
-	crosshair_scale = cfg.get_value("game", "crosshair_scale", crosshair_scale)
-	mouse_sensitivity = cfg.get_value("game", "mouse_sensitivity", mouse_sensitivity)
-	gamepad_sensitivity = cfg.get_value("game", "gamepad_sensitivity", gamepad_sensitivity)
-	gamepad_deadzone = cfg.get_value("game", "gamepad_deadzone", gamepad_deadzone)
-	gamepad_vibration = cfg.get_value("game", "gamepad_vibration", gamepad_vibration)
-	invert_y = cfg.get_value("game", "invert_y", invert_y)
-	screen_shake = cfg.get_value("game", "screen_shake", screen_shake)
-	motion_blur = cfg.get_value("game", "motion_blur", motion_blur)
-	post_fx = cfg.get_value("game", "post_fx", post_fx)
-	subtitles = cfg.get_value("game", "subtitles", subtitles)
-	weather = cfg.get_value("staging", "weather", weather)
-	weather_dynamic = cfg.get_value("staging", "weather_dynamic", weather_dynamic)
-	replay_enabled = cfg.get_value("staging", "replay_enabled", replay_enabled)
-	master_volume = cfg.get_value("audio", "master", master_volume)
-	music_volume = cfg.get_value("audio", "music", music_volume)
-	sfx_volume = cfg.get_value("audio", "sfx", sfx_volume)
-	language = cfg.get_value("ui", "language", language)
-	keybinds = cfg.get_value("controls", "keybinds", keybinds)
+	# `options.cfg` is hand-editable (and can be left half-written): every value
+	# is validated, because a bad type would crash the typed assignment here and
+	# take the whole game down at launch.
+	difficulty = _read_int(cfg, "game", "difficulty", difficulty, 0, 2)
+	aim_assist = _read_int(cfg, "game", "aim_assist", aim_assist, 0, 2)
+	crosshair_scale = _read_float(cfg, "game", "crosshair_scale", crosshair_scale, 0.5, 2.0)
+	mouse_sensitivity = _read_float(cfg, "game", "mouse_sensitivity", mouse_sensitivity, 0.2, 3.0)
+	gamepad_sensitivity = _read_float(cfg, "game", "gamepad_sensitivity",
+		gamepad_sensitivity, 0.2, 3.0)
+	gamepad_deadzone = _read_float(cfg, "game", "gamepad_deadzone", gamepad_deadzone, 0.0, 0.6)
+	gamepad_vibration = _read_float(cfg, "game", "gamepad_vibration",
+		gamepad_vibration, 0.0, 1.0)
+	invert_y = _read_bool(cfg, "game", "invert_y", invert_y)
+	screen_shake = _read_float(cfg, "game", "screen_shake", screen_shake, 0.0, 1.5)
+	motion_blur = _read_float(cfg, "game", "motion_blur", motion_blur, 0.0, 1.0)
+	post_fx = _read_float(cfg, "game", "post_fx", post_fx, 0.0, 1.0)
+	subtitles = _read_bool(cfg, "game", "subtitles", subtitles)
+	weather = _read_int(cfg, "staging", "weather", weather, 0, 3)
+	weather_dynamic = _read_bool(cfg, "staging", "weather_dynamic", weather_dynamic)
+	replay_enabled = _read_bool(cfg, "staging", "replay_enabled", replay_enabled)
+	master_volume = _read_float(cfg, "audio", "master", master_volume, 0.0, 1.0)
+	music_volume = _read_float(cfg, "audio", "music", music_volume, 0.0, 1.0)
+	sfx_volume = _read_float(cfg, "audio", "sfx", sfx_volume, 0.0, 1.0)
+	var lang: Variant = cfg.get_value("ui", "language", language)
+	# `Loc` is not loaded yet when this runs, so the codes are spelled out.
+	language = lang if lang is String and lang in ["fr", "en"] else "fr"
+	keybinds = _sanitize_keybinds(cfg.get_value("controls", "keybinds", keybinds))
 	_apply_deadzones()
 	_apply_buses()
 	apply_keybinds()
+
+
+func _read_int(cfg: ConfigFile, section: String, key: String, fallback: int,
+		lo: int, hi: int) -> int:
+	var v: Variant = cfg.get_value(section, key, fallback)
+	if v is int or v is float:
+		return clampi(int(v), lo, hi)
+	return fallback
+
+
+func _read_float(cfg: ConfigFile, section: String, key: String, fallback: float,
+		lo: float, hi: float) -> float:
+	var v: Variant = cfg.get_value(section, key, fallback)
+	if v is int or v is float:
+		return clampf(float(v), lo, hi)
+	return fallback
+
+
+func _read_bool(cfg: ConfigFile, section: String, key: String, fallback: bool) -> bool:
+	var v: Variant = cfg.get_value(section, key, fallback)
+	return v if v is bool else fallback
+
+
+## Keeps only real actions bound to a non-zero keycode: `apply_keybinds()` would
+## otherwise feed a string into `int()` and crash the InputMap setup.
+func _sanitize_keybinds(v: Variant) -> Dictionary:
+	var out := {}
+	if not v is Dictionary:
+		return out
+	for action in v:
+		var code: Variant = v[action]
+		if not action is String or not (code is int or code is float):
+			continue
+		var key := int(code)
+		if key > 0:
+			out[action] = key
+	return out
 
 
 func save_to_disk() -> void:

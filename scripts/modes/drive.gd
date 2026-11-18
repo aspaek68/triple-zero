@@ -574,9 +574,9 @@ func _intro_locked() -> bool:
 
 # ------------------------------------------------------------------ chasers
 
-## Rival cars that hunt the player along the track. Two spawn behind and one
-## ahead; they steer toward the player and ram, so a clean run means shaking
-## them off rather than trading paint.
+## Rival cars that hunt the player along the track. They spawn behind the start
+## line, steer toward the player and ram, so a clean run means shaking them off
+## rather than trading paint.
 func _build_chasers() -> void:
 	var paint := EnvBuilder.material(Color(0.12, 0.12, 0.14), 0.3, 0.5)
 	for i in 3:

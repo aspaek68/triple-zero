@@ -10,6 +10,7 @@ func _ready() -> void:
 	_check_autoloads()
 	_check_localisation()
 	_check_options_persistence()
+	_check_save_robustness()
 	_check_actors()
 	_check_materials()
 	_check_world()
@@ -146,6 +147,106 @@ func _check_options_persistence() -> void:
 	Options.weather_dynamic = saved_dynamic
 	Options.replay_enabled = saved_replay
 	Options.load_from_disk()
+
+
+## Both save files are hand-editable (and can be left half-written by a crash):
+## a wrong type must fall back to the in-memory default and an out-of-range
+## number must clamp, never crash the typed assignment at launch.
+func _check_save_robustness() -> void:
+	var options_bytes := PackedByteArray()
+	if FileAccess.file_exists(Options.PATH):
+		options_bytes = FileAccess.get_file_as_bytes(Options.PATH)
+	var progress_bytes := PackedByteArray()
+	if FileAccess.file_exists(Progress.PATH):
+		progress_bytes = FileAccess.get_file_as_bytes(Progress.PATH)
+	var saved_lang: String = Options.language
+	var saved_difficulty: int = Options.difficulty
+	var saved_invert: bool = Options.invert_y
+	var saved_subtitles: bool = Options.subtitles
+	var saved_game_ng: bool = GameState.ng_plus
+
+	var bad := ConfigFile.new()
+	bad.set_value("game", "difficulty", "hard")
+	bad.set_value("game", "aim_assist", 9)
+	bad.set_value("game", "crosshair_scale", "big")
+	bad.set_value("game", "mouse_sensitivity", 50.0)
+	bad.set_value("game", "invert_y", "yes")
+	bad.set_value("game", "subtitles", 3)
+	bad.set_value("staging", "weather", -4)
+	bad.set_value("staging", "weather_dynamic", "maybe")
+	bad.set_value("audio", "master", -2.0)
+	bad.set_value("ui", "language", 12)
+	bad.set_value("controls", "keybinds", "azerty")
+	bad.save(Options.PATH)
+
+	Options.difficulty = saved_difficulty
+	Options.invert_y = saved_invert
+	Options.subtitles = saved_subtitles
+	Options.keybinds = {}
+	Options.load_from_disk()
+	_expect(Options.difficulty == saved_difficulty,
+		"a non-numeric difficulty overrode the player's setting")
+	_expect(Options.aim_assist == 2, "out-of-range aim assist was not clamped")
+	_expect(is_equal_approx(Options.mouse_sensitivity, 3.0),
+		"out-of-range mouse sensitivity was not clamped")
+	_expect(Options.invert_y == saved_invert,
+		"a non-bool invert_y overrode the player's setting")
+	_expect(Options.subtitles == saved_subtitles,
+		"a non-bool subtitles overrode the player's setting")
+	_expect(Options.weather == 0, "negative weather preset was not clamped")
+	_expect(Options.weather_dynamic, "non-bool weather_dynamic was not ignored")
+	_expect(is_equal_approx(Options.master_volume, 0.0),
+		"negative volume was not clamped")
+	_expect(Options.language == "fr", "unknown language code was kept")
+	_expect(Options.keybinds is Dictionary and Options.keybinds.is_empty(),
+		"non-dictionary keybinds leaked into the InputMap setup")
+
+	var bad_progress := ConfigFile.new()
+	bad_progress.set_value("progress", "ng_plus_unlocked", "oui")
+	bad_progress.set_value("progress", "ng_plus_enabled", 7)
+	bad_progress.set_value("progress", "selected_challenge", 42)
+	bad_progress.set_value("progress", "cleared_acts", "tous")
+	bad_progress.set_value("progress", "equipment_unlocked", "beaucoup")
+	bad_progress.set_value("progress", "best_score", 5)
+	bad_progress.set_value("progress", "best_rank", ["S"])
+	bad_progress.save(Progress.PATH)
+
+	Progress.ng_plus_unlocked = false
+	Progress.ng_plus_enabled = false
+	Progress.selected_challenge = "none"
+	Progress.cleared_acts = []
+	Progress.equipment_unlocked = 0
+	Progress.best_score = {}
+	Progress.best_rank = {}
+	Progress.load_from_disk()
+	_expect(not Progress.ng_plus_unlocked, "non-bool NG+ flag leaked through")
+	_expect(not Progress.ng_plus_enabled, "non-bool NG+ setting leaked through")
+	_expect(Progress.selected_challenge == "none", "invalid challenge id was kept")
+	_expect(Progress.cleared_acts is Array and Progress.cleared_acts.is_empty(),
+		"non-array cleared acts leaked through")
+	_expect(Progress.equipment_unlocked == 0, "non-int equipment mask leaked through")
+	_expect(Progress.best_score is Dictionary and Progress.best_score.is_empty(),
+		"non-dictionary best score leaked through")
+	_expect(Progress.best_rank is Dictionary and Progress.best_rank.is_empty(),
+		"non-dictionary best rank leaked through")
+
+	# Put the player's files and in-memory settings back exactly as they were.
+	_restore_save(Options.PATH, options_bytes)
+	_restore_save(Progress.PATH, progress_bytes)
+	Options.load_from_disk()
+	Options.language = saved_lang
+	Progress.load_from_disk()
+	GameState.ng_plus = saved_game_ng
+
+
+func _restore_save(path: String, bytes: PackedByteArray) -> void:
+	if bytes.is_empty():
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+		return
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file:
+		file.store_buffer(bytes)
+		file.close()
 
 
 func _check_actors() -> void:

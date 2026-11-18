@@ -306,6 +306,27 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   `_verify._check_options_persistence()` fait un aller-retour réel sur le
   fichier puis restaure les réglages du joueur.
 
+## Sauvegardes (robustesse)
+
+`user://options.cfg`, `user://progress.cfg` et `user://level.json` peuvent être
+édités à la main ou laissés à moitié écrits par un arrêt brutal. Les deux
+chargeurs valident donc **chaque** valeur avant de l'affecter :
+
+- `Options.load_from_disk()` passe par `_read_int` / `_read_float` / `_read_bool`
+  (type attendu, puis `clampi`/`clampf` sur la plage du curseur), n'accepte que
+  `"fr"`/`"en"` pour la langue et filtre `keybinds` (`_sanitize_keybinds` :
+  dictionnaire, clé `String`, code entier > 0). Sans ça, un `difficulty = "hard"`
+  faisait planter l'affectation typée au lancement, et un `keybinds` non
+  dictionnaire cassait `apply_keybinds()`.
+- `Progress.load_from_disk()` fait de même (`_read_bool`, `_read_int`,
+  `_sanitize_acts` : indices 0..2 uniques, `_sanitize_dict` : clés `"0"`..`"2"`
+  avec score entier / rang `String`, `selected_challenge` doit exister dans
+  `CHALLENGES`).
+- `_verify._check_save_robustness()` écrit volontairement des fichiers corrompus
+  (mauvais types + valeurs hors plage), appelle les deux loaders, vérifie les
+  replis, puis **restaure les octets d'origine** et recharge : les réglages du
+  joueur ne bougent pas.
+
 ## Localisation (FR/EN)
 
 - `Loc` (`scripts/core/loc.gd`) est un autoload placé **après** `Options` ; la

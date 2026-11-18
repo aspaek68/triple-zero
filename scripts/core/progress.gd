@@ -54,14 +54,72 @@ func load_from_disk() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) != OK:
 		return
-	ng_plus_unlocked = cfg.get_value("progress", "ng_plus_unlocked", ng_plus_unlocked)
-	ng_plus_enabled = cfg.get_value("progress", "ng_plus_enabled", ng_plus_enabled)
-	selected_challenge = cfg.get_value("progress", "selected_challenge", selected_challenge)
-	cleared_acts = cfg.get_value("progress", "cleared_acts", cleared_acts)
-	equipment_unlocked = cfg.get_value("progress", "equipment_unlocked", equipment_unlocked)
-	best_score = cfg.get_value("progress", "best_score", best_score)
-	best_rank = cfg.get_value("progress", "best_rank", best_rank)
+	ng_plus_unlocked = _read_bool(cfg, "progress", "ng_plus_unlocked", ng_plus_unlocked)
+	ng_plus_enabled = _read_bool(cfg, "progress", "ng_plus_enabled", ng_plus_enabled)
+	var challenge: Variant = cfg.get_value("progress", "selected_challenge", selected_challenge)
+	selected_challenge = challenge if challenge is String and _has_challenge(challenge) else "none"
+	cleared_acts = _sanitize_acts(cfg.get_value("progress", "cleared_acts", cleared_acts))
+	equipment_unlocked = _read_int(cfg, "progress", "equipment_unlocked",
+		equipment_unlocked, 0, (1 << (3 * EQUIP_SLOTS)) - 1)
+	best_score = _sanitize_dict(cfg.get_value("progress", "best_score", best_score), true)
+	best_rank = _sanitize_dict(cfg.get_value("progress", "best_rank", best_rank), false)
 	_reconcile_equipment()
+
+
+## `progress.cfg` can be edited by hand (or left half-written): never trust the
+## stored types, or a bad value would crash a typed assignment on launch.
+func _read_bool(cfg: ConfigFile, section: String, key: String, fallback: bool) -> bool:
+	var v: Variant = cfg.get_value(section, key, fallback)
+	return v if v is bool else fallback
+
+
+func _read_int(cfg: ConfigFile, section: String, key: String, fallback: int,
+		lo: int, hi: int) -> int:
+	var v: Variant = cfg.get_value(section, key, fallback)
+	if v is int or v is float:
+		return clampi(int(v), lo, hi)
+	return fallback
+
+
+func _has_challenge(id: String) -> bool:
+	for c in CHALLENGES:
+		if c["id"] == id:
+			return true
+	return false
+
+
+## Keeps only mode indices 0..2, each once.
+func _sanitize_acts(v: Variant) -> Array:
+	var out: Array = []
+	if not v is Array:
+		return out
+	for a in v:
+		if not (a is int or a is float):
+			continue
+		var mode := int(a)
+		if mode >= 0 and mode < 3 and not out.has(mode):
+			out.append(mode)
+	return out
+
+
+## Keeps only entries keyed "0".."2" with the expected value type (int score,
+## String rank).
+func _sanitize_dict(v: Variant, ints: bool) -> Dictionary:
+	var out := {}
+	if not v is Dictionary:
+		return out
+	for k in v:
+		if not (k is String and k.is_valid_int()):
+			continue
+		var mode := int(k)
+		if mode < 0 or mode >= 3:
+			continue
+		var value: Variant = v[k]
+		if ints and (value is int or value is float):
+			out[k] = int(value)
+		elif not ints and value is String:
+			out[k] = value
+	return out
 
 
 ## Older saves could mark an act cleared without unlocking its first equipment

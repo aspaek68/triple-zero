@@ -129,6 +129,8 @@ func _test() -> void:
 	# challenge, the act's results screen would report the previous run.
 	GameState.mode = GameState.Mode.DRIVE
 	GameState.last_act_success = true
+	GameState.last_act_reason = ""
+	GameState.show_results_on_load = false
 	Score.reset()
 	Progress.begin()
 	Audio.stop_music()
