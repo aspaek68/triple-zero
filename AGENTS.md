@@ -299,7 +299,11 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   plantage. Le bouton du menu charge le script via `load()` et l'ajoute en
   enfant (pas de `.tscn`). Ses libellés et sa ligne d'état passent par
   `Loc.t()` ; les boutons Enregistrer/Charger/Nouveau affichent une
-  confirmation de 2,5 s au-dessus de la ligne d'état (`_notice`). **Tester l'acte 3** rejoue le chemin de lancement du menu
+  confirmation de 2,5 s au-dessus de la ligne d'état (`_notice`). La vue se
+  recadre (`_fit()`) sur `_refresh()` et sur `resized`, **jamais dans
+  `_draw()`** : recalculer la projection à chaque image faisait glisser toute
+  la carte sous le curseur pendant un glisser de nœud (le nœud ne suivait plus
+  la souris). Le recadrage final a lieu au relâchement du bouton. **Tester l'acte 3** rejoue le chemin de lancement du menu
   (`GameState.mode`, `Score.reset()`, `Progress.begin()`, `Audio.stop_music()`)
   avant de charger la scène, sinon l'écran de résultats afficherait la partie
   précédente.

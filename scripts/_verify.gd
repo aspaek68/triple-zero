@@ -459,6 +459,28 @@ func _check_editor() -> void:
 	editor._refresh()
 	_expect(editor._status.text.begins_with("Level saved"),
 		"level editor save confirmation is not translated")
+
+	# Dragging a node must map the mouse through a stable transform: `_draw()`
+	# used to re-fit the plan view every frame, so the whole map slid under the
+	# cursor instead of the node following it.
+	editor.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	editor.size = Vector2(800, 600)
+	editor._fit()
+	var world: Vector2 = editor._s2w(Vector2(400, 300))
+	var target := Vector2(roundf(world.x), roundf(world.y))
+	editor._drag = 0
+	var motion := InputEventMouseMotion.new()
+	motion.position = Vector2(400, 300)
+	editor._gui_input(motion)
+	_expect(LevelData.custom_path[0].is_equal_approx(target),
+		"dragging a node does not follow the cursor")
+	editor._drag = -1
+	var source := FileAccess.get_file_as_string("res://scripts/ui/level_editor.gd")
+	var draw_start := source.find("func _draw()")
+	var fit_start := source.find("func _fit()")
+	_expect(draw_start >= 0 and fit_start > draw_start and
+		not source.substr(draw_start, fit_start - draw_start).contains("_fit()"),
+		"the editor re-fits the plan view on every draw")
 	editor.queue_free()
 
 	# `user://level.json` is hand-editable, so a malformed file must be

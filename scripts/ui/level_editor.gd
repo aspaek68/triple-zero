@@ -33,9 +33,18 @@ func _process(delta: float) -> void:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	resized.connect(_on_resized)
 	if LevelData.load_level() == false:
 		LevelData.new_level()
 	_build_ui()
+	_refresh()
+
+
+## The plan view must not re-fit while a node is being dragged: recomputing the
+## projection every frame moved the whole map under the cursor (the node no
+## longer followed the mouse). `_draw()` only draws with the stored transform.
+func _on_resized() -> void:
+	_fit()
 	queue_redraw()
 
 
@@ -146,11 +155,11 @@ func _refresh() -> void:
 		if _notice != "":
 			text = Loc.t(_notice) + "\n" + text
 		_status.text = text
+	_fit()
 	queue_redraw()
 
 
 func _draw() -> void:
-	_fit()
 	var area := Rect2(Vector2.ZERO, size)
 	draw_rect(area, Color(0.08, 0.10, 0.14), true)
 	# Grid lines every 60 world units, for a sense of scale.
@@ -217,6 +226,11 @@ func _gui_input(event: InputEvent) -> void:
 				LevelData.remove_prop_near(_s2w(mb.position))
 				_refresh()
 		elif mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed:
+			if _drag >= 0:
+				# Re-fit only once the drag is over, so the view stayed stable
+				# while the node was following the cursor.
+				_fit()
+				queue_redraw()
 			_drag = -1
 	elif event is InputEventMouseMotion and _drag >= 0:
 		var world := _s2w((event as InputEventMouseMotion).position)
