@@ -101,6 +101,8 @@ const EN := {
 	"Précision d'au moins 90 %": "At least 90% accuracy",
 	"Explorateur": "Explorer",
 	"Emprunter un itinéraire alternatif": "Take an alternate route",
+	"Tireur d'élite : actes 1 et 2 uniquement (l'acte 3 ne tire pas)":
+		"Sharpshooter: acts 1 and 2 only (act 3 fires no shot)",
 
 	# ------------------------------------------------------------ equipment
 	"Déplacement 20 % plus rapide": "20% faster movement",
@@ -251,6 +253,8 @@ const EN_TEMPLATES := {
 	"Score %d • Rang %s%s": "Score %d • Rank %s%s",
 	"Meilleur : %d (%s)%s": "Best: %d (%s)%s",
 	"Défi « %s » : %s%s": "Challenge \"%s\": %s%s",
+	"Défi « %s » : non applicable (conduite)":
+		"Challenge \"%s\": not applicable (driving)",
 	"Actes terminés : %d / 3%s\nChoisissez un acte pour rejouer":
 		"Acts cleared: %d / 3%s\nChoose an act to replay",
 	"Manette détectée : %s": "Gamepad detected: %s",

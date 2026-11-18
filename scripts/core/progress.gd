@@ -34,6 +34,8 @@ var best_score: Dictionary = {}
 var best_rank: Dictionary = {}
 
 var _active := "none"
+## Armed challenge that does not apply to the current act (see `begin()`).
+var _skipped := ""
 var _started_at := 0
 var _failed := false
 var _fail_reason := ""
@@ -148,6 +150,13 @@ func challenge() -> Dictionary:
 	return CHALLENGES[0]
 
 
+func _challenge_name(id: String) -> String:
+	for c in CHALLENGES:
+		if c["id"] == id:
+			return c["name"]
+	return CHALLENGES[0]["name"]
+
+
 func select_challenge(id: String) -> void:
 	selected_challenge = id
 	save_to_disk()
@@ -241,9 +250,12 @@ func equipment_description(mode: int, slot: int) -> String:
 	return "Boost prolongé de 40 %"
 
 
-## Arms the selected challenge for a fresh run.
+## Arms the selected challenge for a fresh run. A challenge that needs a shot
+## (accuracy) cannot be judged in the driving act, so it is skipped there
+## instead of failing for a reason the player cannot avoid.
 func begin() -> void:
-	_active = selected_challenge
+	_skipped = "" if challenge_applies(GameState.mode) else selected_challenge
+	_active = "none" if _skipped != "" else selected_challenge
 	_started_at = Time.get_ticks_msec()
 	_failed = false
 	_fail_reason = ""
@@ -251,6 +263,17 @@ func begin() -> void:
 	# showing the previous run's "new record" banner on the results screen.
 	last_record = false
 	last_reason = ""
+
+
+## True when the armed challenge can be judged in `mode`. "Tireur d'élite"
+## needs shots, and the driving act fires none.
+func challenge_applies(mode: int) -> bool:
+	return not (selected_challenge == "accuracy" and mode == GameState.Mode.DRIVE)
+
+
+## True when the armed challenge was skipped for this run (see `begin()`).
+func is_skipped() -> bool:
+	return _skipped != ""
 
 
 func is_active() -> bool:
@@ -277,6 +300,13 @@ func fail(reason: String) -> void:
 
 ## Evaluates the armed challenge at the end of a run.
 func evaluate() -> Dictionary:
+	# A skipped challenge has no verdict: report it as such instead of a free
+	# pass or an unavoidable failure.
+	if _skipped != "":
+		last_name = _challenge_name(_skipped)
+		last_success = true
+		last_reason = ""
+		return {"success": true, "skipped": true, "name": last_name, "reason": ""}
 	last_name = challenge()["name"]
 	var success := true
 	var reason := ""

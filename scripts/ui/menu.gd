@@ -122,6 +122,16 @@ func _modifier_row() -> VBoxContainer:
 	challenge.pressed.connect(_cycle_challenge)
 	row.add_child(challenge)
 
+	if Progress.selected_challenge == "accuracy":
+		# Warn before the run: the driving act fires no shot, so this challenge
+		# is skipped there (shown as "not applicable" on the results screen).
+		var note := Label.new()
+		note.text = Loc.t("Tireur d'élite : actes 1 et 2 uniquement (l'acte 3 ne tire pas)")
+		note.add_theme_font_size_override("font_size", 12)
+		note.add_theme_color_override("font_color", Color(0.78, 0.72, 0.5))
+		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		row.add_child(note)
+
 	var acts := Label.new()
 	acts.text = Loc.t("Actes terminés : %d / 3") % Progress.cleared_acts.size()
 	acts.add_theme_font_size_override("font_size", 13)
@@ -271,11 +281,17 @@ func _results_panel() -> VBoxContainer:
 	# they failed, which the results screen used to hide.
 	if Progress.selected_challenge != "none":
 		var challenge := Label.new()
-		var verdict := Loc.t("réussi") if Progress.last_success else Loc.t("échoué")
-		var reason := "" if Progress.last_reason == "" else " — " + Loc.t(Progress.last_reason)
-		challenge.text = Loc.t("Défi « %s » : %s%s") % [
-			Loc.t(Progress.last_name), verdict, reason
-		]
+		if Progress.is_skipped():
+			# The driving act fires no shots: "Tireur d'élite" has no verdict
+			# there, so say it is not applicable instead of a fake pass/fail.
+			challenge.text = Loc.t("Défi « %s » : non applicable (conduite)") % \
+				Loc.t(Progress.last_name)
+		else:
+			var verdict := Loc.t("réussi") if Progress.last_success else Loc.t("échoué")
+			var reason := "" if Progress.last_reason == "" else " — " + Loc.t(Progress.last_reason)
+			challenge.text = Loc.t("Défi « %s » : %s%s") % [
+				Loc.t(Progress.last_name), verdict, reason
+			]
 		challenge.add_theme_font_size_override("font_size", 15)
 		challenge.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
 		challenge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

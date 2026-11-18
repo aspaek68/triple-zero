@@ -99,6 +99,9 @@ func _check_localisation() -> void:
 	_expect(Loc.t("ACTE ÉCHOUÉ") == "ACT FAILED", "EN label missing: ACTE ÉCHOUÉ")
 	_expect(Loc.t("Défi « %s » : %s%s") % ["Sans dégâts", Loc.t("échoué"), " — " + Loc.t("touché")] ==
 		"Challenge \"Sans dégâts\": failed — hit", "EN challenge template not translated")
+	_expect(Loc.t("Défi « %s » : non applicable (conduite)") % Loc.t("Tireur d'élite") ==
+		"Challenge \"Sharpshooter\": not applicable (driving)",
+		"EN skipped-challenge template not translated")
 	_expect(Loc.t("ÉDITEUR DE NIVEAU") == "LEVEL EDITOR",
 		"EN label missing: ÉDITEUR DE NIVEAU")
 	_expect(Loc.t("Tester l'acte 3") == "Test act 3", "EN label missing: Tester l'acte 3")
@@ -568,6 +571,22 @@ func _check_results_screen() -> void:
 	failed_menu.queue_free()
 	GameState.last_act_success = true
 	GameState.last_act_reason = ""
+
+	# "Sharpshooter" cannot be judged in the driving act: the results screen
+	# must say "not applicable" instead of a fake pass or an unavoidable fail.
+	var saved_challenge: String = Progress.selected_challenge
+	Progress.selected_challenge = "accuracy"
+	GameState.mode = GameState.Mode.DRIVE
+	Progress.begin()
+	Progress.evaluate()
+	var skipped_menu: Control = script.new()
+	GameState.show_results_on_load = true
+	add_child(skipped_menu)
+	_expect(_labels_contain(skipped_menu, "not applicable"),
+		"results screen does not mark an inapplicable challenge")
+	skipped_menu.queue_free()
+	Progress.selected_challenge = saved_challenge
+	GameState.mode = GameState.Mode.TPS
 	Loc.set_language(saved_lang)
 
 
@@ -685,6 +704,21 @@ func _check_challenges() -> void:
 	_expect(not rammed["success"], "no-damage challenge should fail after a ram")
 	_expect(rammed["reason"] == "percuté", "no-damage reason was not kept")
 	Score.reset()
+
+	# "Sharpshooter" needs shots, and the driving act fires none: it must be
+	# skipped there (no verdict), not failed for a reason the player cannot
+	# avoid, and it must not arm the HUD.
+	var saved_mode: GameState.Mode = GameState.mode
+	GameState.mode = GameState.Mode.DRIVE
+	Progress.selected_challenge = "accuracy"
+	Progress.begin()
+	_expect(Progress.is_skipped(), "accuracy challenge was not skipped in the driving act")
+	_expect(not Progress.is_active(), "a skipped challenge still armed the HUD")
+	var skipped := Progress.evaluate()
+	_expect(skipped["success"] and bool(skipped["skipped"]),
+		"skipped challenge should report a non-verdict, not a failure")
+	_expect(Progress.last_name == "Tireur d'élite", "skipped challenge lost its name")
+	GameState.mode = saved_mode
 
 	Progress.cleared_acts = [0, 1, 2]
 	_expect(Progress.all_acts_cleared(), "all_acts_cleared should be true with 3 acts")

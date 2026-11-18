@@ -245,6 +245,9 @@ d'élite, explorateur) se choisissent dans le menu. Le défi « Sans dégâts »
 réellement jouable dans les trois actes : il échoue si vous êtes touché
 (Acte 1), si vous touchez un civil (Acte 2) ou si une voiture rivale vous
 percute (Acte 3), et le HUD affiche alors **DÉFI ÉCHOUÉ** avec la raison.
+« Tireur d'élite » demande des tirs : il ne s'applique qu'aux Actes 1 et 2, et
+l'Acte 3 (qui ne tire pas) l'affiche comme **non applicable** au lieu de le
+faire échouer sans raison jouable.
 Chaque acte terminé débloque son premier **équipement** (le second emplacement
 est réservé à la Nouvelle Partie+) : ils changent l'approche sans augmenter la
 puissance brute. Un acte compté comme réussi le reste même si le défi choisi

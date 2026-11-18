@@ -157,6 +157,12 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   Acte 2 sur un civil touché (`rail.gd`, seul « dégât » possible), Acte 3 sur
   une voiture rivale qui percute (`drive.gd`). Sans ces appels le défi était
   un laissez-passer gratuit dans les actes 2 et 3.
+  « Tireur d'élite » exige des tirs : `Progress.challenge_applies(mode)` est
+  faux pour lui dans l'Acte 3 (aucun tir), `begin()` le met alors de côté
+  (`_skipped`, `is_active()` faux donc le HUD ne l'annonce pas) et
+  `evaluate()` renvoie `{success: true, skipped: true}`. L'écran de résultats
+  affiche « Défi « Tireur d'élite » : non applicable (conduite) » au lieu d'un
+  échec inévitable.
 - **Score sans tir** : `Score.accuracy_ratio()` vaut 0 quand aucun coup n'est
   parti et `total()` n'ajoute le bonus de précision que si `shots_fired > 0`
   (l'Acte 3 offrait sinon 1000 points gratuits). HUD et écran de résultats
