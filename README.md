@@ -228,11 +228,13 @@ remplacer les fichiers **en place**, sans toucher au code.
 d'un acte, un rang **S/A/B/C** s'affiche sur l'écran de résultats.
 
 Les **défis rejouables** (partie libre, sans dégâts, contre-la-montre, tireur
-d'élite, explorateur) se choisissent dans le menu ; les **équipements**
-débloqués par acte changent l'approche sans augmenter la puissance brute.
-Terminer les trois actes débloque la **Nouvelle Partie+** (ennemis plus
-coriaces, ressources plus rares) ; le choix est **mémorisé** d'une session à
-l'autre.
+d'élite, explorateur) se choisissent dans le menu. Chaque acte terminé débloque
+son premier **équipement** (le second emplacement est réservé à la Nouvelle
+Partie+) : ils changent l'approche sans augmenter la puissance brute. Un acte
+compté comme réussi le reste même si le défi choisi échoue ; le verdict du défi
+s'affiche séparément. Terminer les trois actes débloque la **Nouvelle Partie+**
+(ennemis plus coriaces, ressources plus rares) ; le choix est **mémorisé** d'une
+session à l'autre.
 
 ## Menu pause et résultats
 

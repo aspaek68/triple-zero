@@ -146,7 +146,9 @@ func _modifier_row() -> VBoxContainer:
 		locked.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		row.add_child(locked)
 
-	## Equipment unlock row: one slot per act, each changes the approach.
+	## Equipment status: clearing an act earns its first perk, the second one
+	## is the New Game+ reward. Shown as read-only rows so progression stays
+	## earned instead of being unlocked from the menu.
 	var equip_row := VBoxContainer.new()
 	equip_row.add_theme_constant_override("separation", 4)
 	var names := [
@@ -155,19 +157,28 @@ func _modifier_row() -> VBoxContainer:
 		Loc.t(GameState.info(GameState.Mode.DRIVE)["short"]),
 	]
 	for mode in 3:
-		var b := Button.new()
-		var state := Loc.t("débloqué") if Progress.has_equipment(mode, 0) else Loc.t("verrouillé")
-		b.text = Loc.t("Équipement %s : %s — %s") % [names[mode], state, Loc.t(Progress.equipment_description(mode, 0))]
-		b.custom_minimum_size = Vector2(0, 30)
-		b.pressed.connect(_unlock_equipment.bind(mode, 0))
-		equip_row.add_child(b)
+		for slot in Progress.EQUIP_SLOTS:
+			var state := Loc.t("débloqué") if Progress.has_equipment(mode, slot) else Loc.t("verrouillé")
+			var lbl := Label.new()
+			lbl.text = Loc.t("Équipement %s : %s — %s") % [
+				"%s %d" % [names[mode], slot + 1], state,
+				Loc.t(Progress.equipment_description(mode, slot))]
+			lbl.add_theme_font_size_override("font_size", 12)
+			lbl.add_theme_color_override("font_color",
+				Color(0.6, 0.85, 0.65) if Progress.has_equipment(mode, slot)
+				else Color(0.55, 0.6, 0.7))
+			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			equip_row.add_child(lbl)
 	row.add_child(equip_row)
 
+	var unlock_hint := Label.new()
+	unlock_hint.text = Loc.t("Débloqué en terminant l'acte — 2e emplacement en Nouvelle Partie+")
+	unlock_hint.add_theme_font_size_override("font_size", 11)
+	unlock_hint.add_theme_color_override("font_color", Color(0.45, 0.5, 0.6))
+	unlock_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row.add_child(unlock_hint)
+
 	return row
-
-
-func _unlock_equipment(mode: int, slot: int) -> void:
-	Progress.unlock_equipment(mode, slot)
 	_build()
 
 

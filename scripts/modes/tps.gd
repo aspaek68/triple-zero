@@ -1005,9 +1005,10 @@ func _finish() -> void:
 	GameState.last_act_success = true
 	Score.time_bonus += 3000
 	Progress.record_run(GameState.Mode.TPS, Score.total(), Score.rank())
-	var challenge := Progress.evaluate()
-	if challenge["success"]:
-		Progress.mark_act_cleared(GameState.Mode.TPS)
+	Progress.evaluate()
+	# Completing the act is what clears it; the armed challenge is an optional
+	# extra goal and its verdict is shown separately on the results screen.
+	Progress.mark_act_cleared(GameState.Mode.TPS)
 	if _hud:
 		_hud.set_secondary_objectives(Score.civilians_saved, Score.equipment_recovered, Score.comm_restored)
 	Audio.stop_music()

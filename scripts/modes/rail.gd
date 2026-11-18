@@ -658,9 +658,9 @@ func _finish() -> void:
 		return
 	_ended = true
 	GameState.last_act_success = true
-	var challenge := Progress.evaluate()
-	if challenge["success"]:
-		Progress.mark_act_cleared(GameState.Mode.RAIL)
+	Progress.evaluate()
+	# The act is cleared by finishing it; the challenge is a separate verdict.
+	Progress.mark_act_cleared(GameState.Mode.RAIL)
 	for t in _targets:
 		if t.alive and not t.hostile:
 			Score.register_civilian(true)

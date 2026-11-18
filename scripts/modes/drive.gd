@@ -784,10 +784,10 @@ func _finish(success: bool) -> void:
 	# real reason instead of a verdict that contradicts "ACTE ÉCHOUÉ".
 	if not success:
 		Progress.fail("temps écoulé")
-	var challenge := Progress.evaluate()
-	if success and challenge["success"]:
-		Progress.mark_act_cleared(GameState.Mode.DRIVE)
+	Progress.evaluate()
 	if success:
+		# Finishing the act clears it even when the optional challenge failed.
+		Progress.mark_act_cleared(GameState.Mode.DRIVE)
 		Score.time_bonus += int(maxf(_time, 0.0) * 100.0)
 		Progress.record_run(GameState.Mode.DRIVE, Score.total(), Score.rank())
 	Audio.stop_music()

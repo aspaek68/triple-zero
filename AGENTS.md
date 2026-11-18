@@ -140,7 +140,11 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   `has_equipment()` dans `rail.gd`/`drive.gd` et la ligne du menu. Les perks
   avaient été inversés entre les actes 2 et 3 ; `_verify` compare désormais la
   description du rail (`Deux projectiles en jeu`) et de la conduite
-  (`Adhérence routière +15 %`) à ces index.
+  (`Adhérence routière +15 %`) à ces index. `mark_act_cleared()` débloque le
+  **premier** emplacement de l'acte (le second seulement si
+  `GameState.ng_plus`), et `_reconcile_equipment()` répare les sauvegardes
+  anciennes au chargement. Le menu affiche les six lignes en lecture seule :
+  l'équipement se gagne en jouant, plus en cliquant.
 - **Viseur** : `Hud` possède un `Reticle` interne (Control dessiné, en espace
   écran) partagé par les deux modes de tir. `set_reticle_visible()` l'affiche à
   la fin de l'intro ; par défaut il **suit le centre du viewport** (Acte 1), et

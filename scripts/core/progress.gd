@@ -61,6 +61,14 @@ func load_from_disk() -> void:
 	equipment_unlocked = cfg.get_value("progress", "equipment_unlocked", equipment_unlocked)
 	best_score = cfg.get_value("progress", "best_score", best_score)
 	best_rank = cfg.get_value("progress", "best_rank", best_rank)
+	_reconcile_equipment()
+
+
+## Older saves could mark an act cleared without unlocking its first equipment
+## slot (the menu used to do it by hand). Repair that on load without writing.
+func _reconcile_equipment() -> void:
+	for mode in cleared_acts:
+		equipment_unlocked |= _equip_bit(int(mode), 0)
 
 
 func save_to_disk() -> void:
@@ -89,11 +97,17 @@ func select_challenge(id: String) -> void:
 
 
 ## Records that an act was completed; unlocks NG+ once all three are done.
+## Clearing an act also earns its first equipment slot, independently of the
+## optional challenge; the second slot is the New Game+ reward.
 func mark_act_cleared(mode: int) -> void:
-	if not cleared_acts.has(mode):
+	var first_time := not cleared_acts.has(mode)
+	if first_time:
 		cleared_acts.append(mode)
 		save_to_disk()
 		changed.emit()
+	unlock_equipment(mode, 0)
+	if GameState.ng_plus:
+		unlock_equipment(mode, 1)
 	if cleared_acts.size() >= 3:
 		unlock_ng_plus()
 

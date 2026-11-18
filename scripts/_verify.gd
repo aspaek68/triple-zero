@@ -391,6 +391,9 @@ func _check_challenges() -> void:
 
 func _check_equipment() -> void:
 	var saved_equip: int = Progress.equipment_unlocked
+	var saved_acts: Array = Progress.cleared_acts
+	var saved_unlocked: bool = Progress.ng_plus_unlocked
+	var saved_game_ng: bool = GameState.ng_plus
 
 	Progress.equipment_unlocked = 0
 	_expect(not Progress.has_equipment(1, 1), "equipment bit should start clear")
@@ -410,4 +413,23 @@ func _check_equipment() -> void:
 	_expect(GameState.info(GameState.Mode.DRIVE)["short"] == "Conduite",
 		"drive act short name is wrong")
 
+	# Clearing an act earns slot 1 even without a challenge; slot 2 is the NG+
+	# reward. Both used to be unreachable (slot 2 had no unlock path at all).
+	Progress.cleared_acts = []
+	Progress.equipment_unlocked = 0
+	GameState.ng_plus = false
+	Progress.mark_act_cleared(GameState.Mode.RAIL)
+	_expect(Progress.cleared_acts.has(GameState.Mode.RAIL), "act clear was not recorded")
+	_expect(Progress.has_equipment(GameState.Mode.RAIL, 0),
+		"act clear did not unlock the first equipment slot")
+	_expect(not Progress.has_equipment(GameState.Mode.RAIL, 1),
+		"second equipment slot unlocked without New Game+")
+	GameState.ng_plus = true
+	Progress.mark_act_cleared(GameState.Mode.DRIVE)
+	_expect(Progress.has_equipment(GameState.Mode.DRIVE, 1),
+		"New Game+ act clear did not unlock the second equipment slot")
+	GameState.ng_plus = saved_game_ng
 	Progress.equipment_unlocked = saved_equip
+	Progress.cleared_acts = saved_acts
+	Progress.ng_plus_unlocked = saved_unlocked
+	Progress.save_to_disk()
