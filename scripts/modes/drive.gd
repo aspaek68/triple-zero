@@ -614,8 +614,10 @@ func _update_chasers(delta: float) -> void:
 		var flat := Vector3(to_player.x, 0, to_player.z)
 		var dist := flat.length()
 		var forward := -body.global_transform.basis.z
-		var angle := forward.signed_angle_to(flat.normalized(), Vector3.UP)
-		body.steering = clampf(angle * 1.4, -0.6, 0.6)
+		# A chaser sitting exactly on the player would normalise a zero vector.
+		if dist > 0.01:
+			var angle := forward.signed_angle_to(flat.normalized(), Vector3.UP)
+			body.steering = clampf(angle * 1.4, -0.6, 0.6)
 		body.engine_force = ACCEL * body.mass * 0.7
 		# Ramming the player costs the player speed and rattles the camera.
 		if dist < 3.4 and c["cooldown"] <= 0.0:

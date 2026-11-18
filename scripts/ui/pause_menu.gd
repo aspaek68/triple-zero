@@ -163,6 +163,7 @@ func _clear_options_closing() -> void:
 func _restart() -> void:
 	_resume_before_scene_change()
 	GameState.last_act_success = true
+	GameState.last_act_reason = ""
 	Score.reset()
 	Progress.begin()
 	GameState.show_results_on_load = false
