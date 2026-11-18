@@ -79,7 +79,7 @@ func register_damage(amount: int) -> void:
 
 func accuracy_ratio() -> float:
 	if shots_fired == 0:
-		return 1.0
+		return 0.0
 	return clampf(float(shots_hit) / float(shots_fired), 0.0, 1.0)
 
 
@@ -91,7 +91,10 @@ func total() -> int:
 	base += comm_restored * 350
 	base += takedowns * 150
 	base += time_bonus
-	base += int(accuracy_ratio() * 1000.0)
+	# Only a shooting act earns the accuracy bonus; the driving act would
+	# otherwise start with a free 1000 points for "missing nothing".
+	if shots_fired > 0:
+		base += int(accuracy_ratio() * 1000.0)
 	base -= damage_taken * 50
 	if damage_taken == 0:
 		base = int(base * 1.5)

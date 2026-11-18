@@ -152,6 +152,11 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   Acte 2 sur un civil touché (`rail.gd`, seul « dégât » possible), Acte 3 sur
   une voiture rivale qui percute (`drive.gd`). Sans ces appels le défi était
   un laissez-passer gratuit dans les actes 2 et 3.
+- **Score sans tir** : `Score.accuracy_ratio()` vaut 0 quand aucun coup n'est
+  parti et `total()` n'ajoute le bonus de précision que si `shots_fired > 0`
+  (l'Acte 3 offrait sinon 1000 points gratuits). HUD et écran de résultats
+  masquent la ligne « Précision » dans ce cas ; un impact de voiture rivale
+  appelle `Score.register_damage(1)` pour couper le multiplicateur ×1.5.
 - **Viseur** : `Hud` possède un `Reticle` interne (Control dessiné, en espace
   écran) partagé par les deux modes de tir. `set_reticle_visible()` l'affiche à
   la fin de l'intro ; par défaut il **suit le centre du viewport** (Acte 1), et

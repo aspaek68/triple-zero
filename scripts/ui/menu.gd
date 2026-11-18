@@ -223,12 +223,18 @@ func _results_panel() -> VBoxContainer:
 	panel.add_child(outcome)
 
 	var lines := Label.new()
-	lines.text = Loc.t("Score total : %d\nPrécision : %d%%\nCivils sauvés : %d   perdus : %d\nMatériel récupéré : %d   comms rétablies : %d\nItinéraires alternatifs : %d\nRang : %s") % [
-		Score.total(), int(Score.accuracy_ratio() * 100.0),
-		Score.civilians_saved, Score.civilians_lost,
-		Score.equipment_recovered, Score.comm_restored,
-		Score.alternate_paths, Score.rank()
-	]
+	var rows: Array = [Loc.t("Score total : %d") % Score.total()]
+	# The driving act has no shooting: showing "Accuracy: 0%" there would be
+	# meaningless, so the line only appears when shots were actually fired.
+	if Score.shots_fired > 0:
+		rows.append(Loc.t("Précision : %d%%") % int(Score.accuracy_ratio() * 100.0))
+	rows.append(Loc.t("Civils sauvés : %d   perdus : %d") % [
+		Score.civilians_saved, Score.civilians_lost])
+	rows.append(Loc.t("Matériel récupéré : %d   comms rétablies : %d") % [
+		Score.equipment_recovered, Score.comm_restored])
+	rows.append(Loc.t("Itinéraires alternatifs : %d") % Score.alternate_paths)
+	rows.append(Loc.t("Rang : %s") % Score.rank())
+	lines.text = "\n".join(rows)
 	lines.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	panel.add_child(lines)
 

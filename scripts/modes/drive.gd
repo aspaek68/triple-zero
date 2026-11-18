@@ -621,8 +621,9 @@ func _update_chasers(delta: float) -> void:
 			c["cooldown"] = 1.2
 			_car.linear_velocity *= 0.8
 			# Being rammed is the driving act's "took a hit": it breaks the
-			# no-damage challenge, which used to be a free pass here.
+			# no-damage challenge and costs the score's no-damage multiplier.
 			Progress.fail("percuté")
+			Score.register_damage(1)
 			Audio.crash()
 			Options.rumble(0.6, 0.3, 0.3)
 		# A boost is enough to wreck a chaser on contact.

@@ -411,9 +411,16 @@ func _refresh(_device: String = "") -> void:
 			extra += Loc.t(" • Défi : %s") % Loc.t(ch["name"])
 			if ch["id"] == "time":
 				extra += Loc.t(" (%d s)") % int(maxf(Progress.time_left(), 0.0))
-		_score.text = Loc.t("Score %d • Précision %d%% • Rang %s%s") % [
-			Score.total(), int(Score.accuracy_ratio() * 100.0), Score.rank(), extra
-		]
+		if Score.shots_fired > 0:
+			_score.text = Loc.t("Score %d • Précision %d%% • Rang %s%s") % [
+				Score.total(), int(Score.accuracy_ratio() * 100.0), Score.rank(), extra
+			]
+		else:
+			# The driving act never fires a shot: a 0% or 100% "accuracy" would
+			# be noise, so the line only shows the score and the rank.
+			_score.text = Loc.t("Score %d • Rang %s%s") % [
+				Score.total(), Score.rank(), extra
+			]
 
 
 ## Re-applies every static HUD line after a language change (pause → options →

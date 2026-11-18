@@ -237,8 +237,14 @@ const EN_TEMPLATES := {
 	"Équipement %s : %s — %s": "Equipment %s: %s — %s",
 	"Débloqué en terminant l'acte — 2e emplacement en Nouvelle Partie+":
 		"Unlocked by clearing the act — 2nd slot in New Game+",
-	"Score total : %d\nPrécision : %d%%\nCivils sauvés : %d   perdus : %d\nMatériel récupéré : %d   comms rétablies : %d\nItinéraires alternatifs : %d\nRang : %s":
-		"Total score: %d\nAccuracy: %d%%\nCivilians saved: %d   lost: %d\nEquipment recovered: %d   comms restored: %d\nAlternate routes: %d\nRank: %s",
+	"Score total : %d": "Total score: %d",
+	"Précision : %d%%": "Accuracy: %d%%",
+	"Civils sauvés : %d   perdus : %d": "Civilians saved: %d   lost: %d",
+	"Matériel récupéré : %d   comms rétablies : %d":
+		"Equipment recovered: %d   comms restored: %d",
+	"Itinéraires alternatifs : %d": "Alternate routes: %d",
+	"Rang : %s": "Rank: %s",
+	"Score %d • Rang %s%s": "Score %d • Rank %s%s",
 	"Meilleur : %d (%s)%s": "Best: %d (%s)%s",
 	"Défi « %s » : %s%s": "Challenge \"%s\": %s%s",
 	"Actes terminés : %d / 3%s\nChoisissez un acte pour rejouer":

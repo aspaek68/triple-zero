@@ -235,7 +235,10 @@ remplacer les fichiers **en place**, sans toucher au code.
 
 `Score` (autoload) récompense **précision**, **rapidité**, **exploration** et
 **protection des civils** ; multiplicateur ×1.5 si aucun dégât subi. À la fin
-d'un acte, un rang **S/A/B/C** s'affiche sur l'écran de résultats.
+d'un acte, un rang **S/A/B/C** s'affiche sur l'écran de résultats. L'Acte 3 ne
+tire aucun coup : sa ligne de précision (et le bonus de 1000 points associé)
+est donc masquée, et une voiture rivale qui vous percute compte comme un dégât
+subi.
 
 Les **défis rejouables** (partie libre, sans dégâts, contre-la-montre, tireur
 d'élite, explorateur) se choisissent dans le menu. Le défi « Sans dégâts » est

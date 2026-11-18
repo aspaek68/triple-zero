@@ -40,6 +40,15 @@ func _expect(cond: bool, message: String) -> void:
 		_failures.append(message)
 
 
+## True when any Label under `root` contains `needle` (used to prove a line is
+## hidden or shown without depending on the exact layout).
+func _labels_contain(root: Node, needle: String) -> bool:
+	for node in root.find_children("*", "Label", true, false):
+		if (node as Label).text.contains(needle):
+			return true
+	return false
+
+
 func _check_autoloads() -> void:
 	_expect(GameState != null, "GameState autoload missing")
 	_expect(Score != null, "Score autoload missing")
@@ -222,6 +231,20 @@ func _check_hud() -> void:
 	_expect(hud._status.text == "DÉFI ÉCHOUÉ — touché",
 		"challenge failure notice did not retranslate")
 	Loc.set_language(saved_lang)
+	# No shots fired (driving act): the score line must not claim an accuracy,
+	# and a shooting act must still show it.
+	Score.reset()
+	hud._refresh()
+	_expect(not hud._score.text.contains("Précision") and
+		not hud._score.text.contains("Accuracy"),
+		"HUD shows an accuracy line with no shots fired")
+	Score.register_shot(true)
+	hud._refresh()
+	_expect(hud._score.text.contains("Précision") or
+		hud._score.text.contains("Accuracy"),
+		"HUD hides accuracy when shots were fired")
+	Score.reset()
+	hud._refresh()
 	hud.queue_free()
 
 
@@ -342,6 +365,31 @@ func _check_results_screen() -> void:
 	failed.queue_free()
 	GameState.last_act_success = true
 
+	# The driving act fires no shots: its results screen must not print an
+	# "Accuracy" line, while a shooting act must keep it.
+	var saved_lang: String = Options.language
+	Loc.set_language("en")
+	Score.reset()
+	var drive_menu: Control = script.new()
+	GameState.show_results_on_load = true
+	GameState.last_act_success = true
+	GameState.mode = GameState.Mode.DRIVE
+	add_child(drive_menu)
+	_expect(not _labels_contain(drive_menu, "Accuracy:"),
+		"results screen shows accuracy with no shots fired")
+	drive_menu.queue_free()
+
+	Score.register_shot(true)
+	var tps_menu: Control = script.new()
+	GameState.show_results_on_load = true
+	GameState.mode = GameState.Mode.TPS
+	add_child(tps_menu)
+	_expect(_labels_contain(tps_menu, "Accuracy:"),
+		"results screen hides accuracy when shots were fired")
+	tps_menu.queue_free()
+	Score.reset()
+	Loc.set_language(saved_lang)
+
 
 ## Shot feedback: tracers and impact sparks appear, self-free, and ignore
 ## zero-length shots (muzzle already past the impact point).
@@ -403,6 +451,17 @@ func _check_score() -> void:
 	_expect(Score.comm_restored == 0, "Score.reset leaves comm_restored")
 	_expect(Score.takedowns == 0, "Score.reset leaves takedowns")
 	_expect(Score.rank() != "", "Score.rank returned empty")
+
+	# No shots fired (the driving act): no accuracy to report, and no free
+	# 1000-point accuracy bonus either.
+	_expect(Score.accuracy_ratio() == 0.0,
+		"accuracy_ratio should be 0 with no shots")
+	var no_shots := Score.total()
+	Score.register_shot(true)
+	Score.register_shot(false)
+	var with_shots := Score.total()
+	_expect(with_shots > no_shots, "firing shots should score above the empty run")
+	Score.reset()
 
 
 func _check_challenges() -> void:
