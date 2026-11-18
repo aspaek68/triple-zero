@@ -632,6 +632,14 @@ func _update_music() -> void:
 
 func _update_enemies(delta: float) -> void:
 	for e in _enemies:
+		if not is_instance_valid(e) or e._dying:
+			continue
+		# Advance toward the player until in engagement range.
+		var to_p: Vector3 = _player.global_position - e.global_position
+		var dist := to_p.length()
+		if dist > 20.0:
+			var step := to_p.normalized() * (2.8 if e.heavy else 3.6) * delta
+			e.position += Vector3(step.x, 0.0, step.z)
 		e.cooldown -= delta
 		if e.cooldown <= 0.0:
 			e.cooldown = randf_range(1.6, 3.0) if not e.heavy else randf_range(1.2, 2.0)
