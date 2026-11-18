@@ -286,7 +286,8 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   mode le crée via `Director.spawn_weather(mode, focus, hud)` ; il cherche le
   `WorldEnvironment` et le `Sun` **chez son parent** (pas sous lui-même), d'où
   le `get_parent()` dans `_find_environment()`/`_find_sun()`. `set_preset(i, t)`
-  glisse vers le preset en `t` secondes ; `wetness()` (0..1) sert à réduire
+  glisse vers le preset en `t` secondes (`_blend_time`, utilisé par
+  `_process`) ; `wetness()` (0..1) sert à réduire
   l'adhérence (`drive._apply_grip()` règle `wheel_friction_slip`). Presets :
   0 clair, 1 pluie, 2 orage, 3 brouillard. `changed` met à jour le HUD.
   Le ciel peut être **procédural** ou **HDRI** : `_find_sky_material()` renvoie
@@ -305,6 +306,11 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   fin). Un acteur en cours de partie peut disparaître : on garde sa dernière
   transform valide dans `_last`. La légende du ralenti passe par `Loc.t()`
   (`● RALENTI — R pour passer`, ou `RALENTI` si les sous-titres sont coupés).
+  L'entrée est **armée une image après `play()`** (`_input_armed`,
+  `set_process_unhandled_input(false)` puis `call_deferred`) : l'acte démarre le
+  ralenti depuis `_input`, et la même touche poursuivait sa route jusqu'à
+  `_unhandled_input` — le nœud tourne en `PROCESS_MODE_ALWAYS`, donc il
+  recevait l'événement et terminait la lecture dans l'image même.
 - **Director** (`scripts/core/director.gd`, `extends Object`) : câblage commun
   aux trois actes — `spawn_weather`, `spawn_replay`, `start_replay`,
   `cycle_weather`. Les modes ne font que décrire quoi filmer et où est la
@@ -336,6 +342,11 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   avaient oubliées, donc elles revenaient au défaut à chaque lancement.
   `_verify._check_options_persistence()` fait un aller-retour réel sur le
   fichier puis restaure les réglages du joueur.
+- **Premier lancement** : sans `options.cfg`, `Options.load_from_disk()`
+  applique quand même les défauts (`_apply_deadzones()`, `_apply_buses()`,
+  `apply_keybinds()`) avant de rendre la main. Le `return` sec laissait la zone
+  morte des sticks à 0,5 (valeur Godot) et les bus à 0 dB au lieu des valeurs
+  déclarées en tête de `options.gd`.
 
 ## Sauvegardes (robustesse)
 

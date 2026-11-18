@@ -88,6 +88,9 @@ var _pano: PanoramaSkyMaterial
 var _sun: DirectionalLight3D
 var _rain: GPUParticles3D
 var _blend := 1.0
+## Duration of the current transition, in seconds (`set_preset()` used to accept
+## one and always ease over 1.5 s).
+var _blend_time := 1.5
 var _from: Dictionary = {}
 var _to: Dictionary = {}
 var _flash := 0.0
@@ -116,6 +119,7 @@ func set_preset(p: int, duration := 1.5) -> void:
 	preset = clampi(p, 0, ORDER.size() - 1)
 	_from = _capture()
 	_to = PRESETS[preset]
+	_blend_time = maxf(duration, 0.001)
 	_blend = 0.0 if duration > 0.0 else 1.0
 	changed.emit(PRESETS[preset]["name"])
 
@@ -136,7 +140,7 @@ func wetness() -> float:
 
 func _process(delta: float) -> void:
 	if _blend < 1.0:
-		_blend = minf(_blend + delta / 1.5, 1.0)
+		_blend = minf(_blend + delta / _blend_time, 1.0)
 		_apply(smoothstep(0.0, 1.0, _blend))
 	if _rain and follow:
 		_rain.global_position = follow.global_position + Vector3(0, 12, 0)

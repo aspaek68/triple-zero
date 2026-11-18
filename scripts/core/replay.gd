@@ -22,6 +22,11 @@ var _columns := 0            # widest snapshot recorded so far
 var _last: Array = []       # last valid transform per actor
 var _tick := 0
 var _playing := false
+## Input is armed one idle frame after `play()`. The key press that starts the
+## replay is still travelling through the input phases, and this node runs with
+## PROCESS_MODE_ALWAYS (the act is paused): it used to receive that very event
+## in `_unhandled_input` and skip the playback on its first frame.
+var _input_armed := false
 var _play_head := 0.0
 var _ghosts: Array = []
 var _camera: Camera3D
@@ -93,15 +98,24 @@ func play(parent: Node) -> bool:
 	if _playing or not has_footage():
 		return false
 	_playing = true
+	_input_armed = false
+	set_process_unhandled_input(false)
+	call_deferred("_arm_input")
 	_play_head = 0.0
 	_build_overlay(parent)
 	_build_ghosts(parent)
 	return true
 
 
+func _arm_input() -> void:
+	_input_armed = true
+	if _playing:
+		set_process_unhandled_input(true)
+
+
 ## Playback owns the screen while the act is frozen; let the player skip it.
 func _unhandled_input(event: InputEvent) -> void:
-	if not _playing:
+	if not _playing or not _input_armed:
 		return
 	if event.is_action_pressed("replay") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()

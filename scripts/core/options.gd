@@ -38,6 +38,13 @@ var _default_keys: Dictionary = {}
 func load_from_disk() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) != OK:
+		# First launch (no save yet): the defaults declared above still have to
+		# reach the engine. Returning here left the stick deadzone at Godot's
+		# 0.5 and the audio buses at full volume instead of the values set in
+		# this file, until the player happened to open the options screen.
+		_apply_deadzones()
+		_apply_buses()
+		apply_keybinds()
 		return
 	# `options.cfg` is hand-editable (and can be left half-written): every value
 	# is validated, because a bad type would crash the typed assignment here and

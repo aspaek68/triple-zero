@@ -22,6 +22,7 @@ func _ready() -> void:
 	_check_results_screen()
 	await _check_vfx()
 	_check_director()
+	await _check_replay()
 	_check_score()
 	_check_challenges()
 	_check_death_is_failure()
@@ -240,6 +241,19 @@ func _check_save_robustness() -> void:
 	Options.language = saved_lang
 	Progress.load_from_disk()
 	GameState.ng_plus = saved_game_ng
+
+	# First launch: no save file at all. The declared defaults must still reach
+	# the engine, or the stick keeps Godot's 0.5 deadzone and the buses stay at
+	# full volume while `options.gd` claims otherwise.
+	var saved_deadzone: float = Options.gamepad_deadzone
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(Options.PATH))
+	Options.gamepad_deadzone = 0.37
+	Options.load_from_disk()
+	_expect(is_equal_approx(InputMap.action_get_deadzone("move_forward"), 0.37),
+		"default options are not applied when no save file exists")
+	Options.gamepad_deadzone = saved_deadzone
+	_restore_save(Options.PATH, options_bytes)
+	Options.load_from_disk()
 
 
 func _restore_save(path: String, bytes: PackedByteArray) -> void:
@@ -669,8 +683,42 @@ func _check_director() -> void:
 		weather.cycle()
 		_expect(weather.preset != before, "Weather.cycle did not change the preset")
 		_expect(hud.extra_text() != "", "weather change did not reach the HUD")
+		# The transition duration is part of the API (the TPS act asks for 2 s
+		# of fog): it used to always ease over 1.5 s.
+		weather.set_preset(1, 4.0)
+		weather._process(0.5)
+		_expect(weather._blend < 0.2, "weather ignores the requested transition duration")
 		weather.queue_free()
 	hud.queue_free()
+	stage.queue_free()
+
+
+## A mid-run replay is started from `_input`; the same key press keeps
+## travelling to `_unhandled_input` while the replay node runs with
+## PROCESS_MODE_ALWAYS, so it used to skip the playback on its first frame.
+func _check_replay() -> void:
+	var stage := Node3D.new()
+	add_child(stage)
+	var actor := Node3D.new()
+	stage.add_child(actor)
+	var rec := Replay.new()
+	stage.add_child(rec)
+	rec.track(actor, Color(1.0, 0.8, 0.3))
+	for i in 60:
+		actor.position.x = float(i) * 0.1
+		rec.sample()
+	_expect(rec.play(stage), "replay refuses to play recorded footage")
+	_expect(not rec._input_armed,
+		"the replay accepts input before the starting event has finished")
+	var ev := InputEventAction.new()
+	ev.action = "replay"
+	ev.pressed = true
+	rec._unhandled_input(ev)
+	_expect(rec._playing, "the starting key press skipped the replay")
+	await get_tree().process_frame
+	_expect(rec._input_armed, "the replay never arms its skip key")
+	rec._unhandled_input(ev)
+	_expect(not rec._playing, "the skip key no longer stops the replay")
 	stage.queue_free()
 
 
