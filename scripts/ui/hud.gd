@@ -68,6 +68,9 @@ var _status: Label
 var _score: Label
 var _extra: Label
 var _secondary: Label
+var _boss_root: Control
+var _boss_label: Label
+var _boss_bar: ProgressBar
 var _refresh_accum := 0.0
 
 
@@ -253,6 +256,68 @@ func set_secondary_objectives(civilians: int, equipment: int, comms: int) -> voi
 	var text := "" if parts.is_empty() else "Secondaires : %s" % " • ".join(parts)
 	if _secondary.text != text:
 		_secondary.text = text
+
+
+# ---------------------------------------------------------------- boss bar
+
+## Top-centre boss bar, built on first use. `frac` is 0..1.
+func set_boss_health(title: String, frac: float) -> void:
+	if _boss_root == null:
+		_build_boss_bar()
+	if _boss_root == null:
+		return
+	_boss_root.visible = true
+	if _boss_label:
+		_boss_label.text = title
+	if _boss_bar:
+		_boss_bar.value = clampf(frac, 0.0, 1.0)
+
+
+func hide_boss() -> void:
+	if _boss_root:
+		_boss_root.visible = false
+
+
+func _build_boss_bar() -> void:
+	_boss_root = Control.new()
+	_boss_root.name = "BossBar"
+	_boss_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_boss_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_boss_root)
+
+	var column := VBoxContainer.new()
+	column.anchor_left = 0.5
+	column.anchor_right = 0.5
+	column.anchor_top = 0.0
+	column.anchor_bottom = 0.0
+	column.offset_left = -260.0
+	column.offset_right = 260.0
+	column.offset_top = 20.0
+	column.offset_bottom = 72.0
+	column.add_theme_constant_override("separation", 4)
+	_boss_root.add_child(column)
+
+	_boss_label = _label(19, Color(1.0, 0.72, 0.62))
+	_boss_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(_boss_label)
+
+	_boss_bar = ProgressBar.new()
+	_boss_bar.custom_minimum_size = Vector2(520, 16)
+	_boss_bar.show_percentage = false
+	_boss_bar.max_value = 1.0
+	_boss_bar.step = 0.0
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.05, 0.03, 0.03, 0.75)
+	bg.border_color = Color(0.9, 0.35, 0.25, 0.8)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(3)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.78, 0.16, 0.12)
+	fill.set_corner_radius_all(3)
+	_boss_bar.add_theme_stylebox_override("background", bg)
+	_boss_bar.add_theme_stylebox_override("fill", fill)
+	column.add_child(_boss_bar)
+	_boss_root.visible = false
 
 
 func _process(delta: float) -> void:

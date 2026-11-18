@@ -37,6 +37,10 @@ var _tutorial_step := 0
 var _tutorial_timer := 0.0
 var _tutorial_done := false
 var _zone := 1
+var _boss: Enemy
+var _boss_defeated := false
+var _boss_charge := 0.0
+var _boss_charge_cd := 5.0
 var _extraction := Vector3.ZERO
 var _extraction_open := false
 var _in_cover := false
@@ -350,6 +354,11 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		_maybe_drop_pickup(enemy)
 		# Secondary objective: equipment recovery from enemies
 		Score.register_equipment_recovered()
+	if enemy == _boss:
+		_boss_defeated = true
+		if _hud:
+			_hud.hide_boss()
+			_hud.set_status("SENTINELLE NEUTRALISEE")
 	if _replay:
 		_replay.event("explosion", enemy.global_position)
 	if _enemies.is_empty():
@@ -436,6 +445,20 @@ func _physics_process(delta: float) -> void:
 	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
 	_invuln = maxf(_invuln - delta, 0.0)
 	_damage_flash = maxf(_damage_flash - delta, 0.0)
+
+	# Boss: telegraph, charge window, and the top-screen health bar.
+	if _boss and is_instance_valid(_boss) and not _boss._dying:
+		_boss_charge_cd = maxf(_boss_charge_cd - delta, 0.0)
+		if _boss_charge_cd <= 0.0:
+			_boss_charge = 0.9
+			_boss_charge_cd = 6.5
+			_shake = 0.25
+			if _hud:
+				_hud.set_status("SENTINELLE : CHARGE")
+		_boss_charge = maxf(_boss_charge - delta, 0.0)
+		if _hud:
+			_hud.set_boss_health("SENTINELLE LOURDE",
+				float(_boss.hp) / float(maxi(_boss.hp_max, 1)))
 
 	_pad_look(delta)
 	_update_reticle_scan(delta)
@@ -637,8 +660,13 @@ func _update_enemies(delta: float) -> void:
 		# Advance toward the player until in engagement range.
 		var to_p: Vector3 = _player.global_position - e.global_position
 		var dist := to_p.length()
-		if dist > 20.0:
-			var step := to_p.normalized() * (2.8 if e.heavy else 3.6) * delta
+		var speed := 2.8 if e.heavy else 3.6
+		var stop_at := 20.0
+		if e == _boss:
+			stop_at = 3.5 if _boss_charge > 0.0 else 14.0
+			speed = 7.0 if _boss_charge > 0.0 else 3.4
+		if dist > stop_at:
+			var step := to_p.normalized() * speed * delta
 			e.position += Vector3(step.x, 0.0, step.z)
 		e.cooldown -= delta
 		if e.cooldown <= 0.0:
@@ -648,6 +676,8 @@ func _update_enemies(delta: float) -> void:
 				if to_player.length() > 0.05:
 					e.look_at(_player.global_position, Vector3.UP)
 				var base := 12 if e.heavy else 8
+				if e == _boss:
+					base = 20
 				_take_damage(int(base * Options.incoming_damage_scale()))
 
 
@@ -858,13 +888,36 @@ func _advance_wave() -> void:
 	_lose_unsaved_civilians(_zone)
 	_wave_index += 1
 	if _wave_index >= _waves.size():
+		# Final encounter: the armoured sentinel guards the extraction.
+		if not _boss_defeated and _boss == null:
+			_spawn_boss()
+			return
 		_open_extraction()
 		return
 	Audio.hit_confirm()
 	_start_wave()
 
 
+## Boss encounter: a single elite unit with a telegraphed charge, its own
+## health bar, and a bigger silhouette.
+func _spawn_boss() -> void:
+	Audio.explosion()
+	_boss = Enemy.make(Vector3(0, 5.2, -74), true, true)
+	_boss.died.connect(_on_enemy_died)
+	add_child(_boss)
+	_enemies.append(_boss)
+	if _replay:
+		_replay.track(_boss, Color(1.0, 0.25, 0.2), Vector3(1.2, 2.4, 1.2))
+	_boss_charge_cd = 5.0
+	if _hud:
+		_hud.set_objective("SENTINELLE LOURDE - survivez et neutralisez-la")
+		_hud.set_boss_health("SENTINELLE LOURDE", 1.0)
+		_hud.set_status("CHARGE IMMINENTE")
+
+
 func _open_extraction() -> void:
+	if _extraction_open:
+		return
 	_extraction_open = true
 	if _hud:
 		_hud.set_objective("Zones sécurisées — rejoignez le point d'extraction (balise verte)")

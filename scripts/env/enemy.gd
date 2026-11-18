@@ -7,8 +7,10 @@ extends CharacterBody3D
 signal died(enemy: Enemy)
 
 var hp := 3
+var hp_max := 3
 var heavy := false
 var variant := "rifleman"
+var boss := false
 var cooldown := 2.0
 var _mesh: MeshInstance3D
 var _character: Character
@@ -16,7 +18,7 @@ var _speed01 := 0.0
 var _dying := false
 
 
-static func make(pos: Vector3, is_heavy: bool) -> Enemy:
+static func make(pos: Vector3, is_heavy: bool, is_boss := false) -> Enemy:
 	var e := Enemy.new()
 	e.position = pos
 	e.heavy = is_heavy
@@ -26,6 +28,14 @@ static func make(pos: Vector3, is_heavy: bool) -> Enemy:
 		e.hp += 3 if is_heavy else 2
 	e.cooldown = randf_range(1.0, 2.5)
 	e.variant = _pick_variant(is_heavy)
+	if is_boss:
+		e.boss = true
+		e.heavy = true
+		e.variant = Character.VARIANT_ELITE
+		e.hp = 34 + (16 if GameState.ng_plus else 0)
+		e.cooldown = 1.2
+		e.scale = Vector3.ONE * 1.35
+	e.hp_max = e.hp
 	e.add_to_group("enemy")
 	e._build()
 	return e
