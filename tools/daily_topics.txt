@@ -1,0 +1,16 @@
+Godot 4 GDScript best practices
+Godot 4 particle systems VFX
+Godot 4 shader programming
+Godot 4 performance optimization
+Godot 4 3D lighting and environment
+Godot 4 physics and collision
+Godot 4 audio and music
+Godot 4 UI and controls
+Godot 4 animation and skeletons
+Godot 4 networking multiplayer
+Python async and concurrency
+Python data structures algorithms
+Web development CSS layout
+Machine learning fundamentals
+Computer graphics rendering pipeline
+Pathfinding algorithms A* Dijkstra

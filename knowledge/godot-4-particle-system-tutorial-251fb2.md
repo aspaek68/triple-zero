@@ -1,77 +1,88 @@
 # Godot 4 particle system tutorial
 
 - **Source**: https://docs.godotengine.org/en/4.0/tutorials/3d/particles/creating_a_3d_particle_system.html
-- **Fetched**: 2026-11-17T20:55:29
+- **Fetched**: 2026-11-18T18:17:23
 
-**Godot 4 Particle System Tutorial**
+# Godot 4 Particle System Tutorial
 =====================================
 
-**Overview**
-------------
+## Overview
 
-This tutorial guides you through creating a 3D particle system in Godot Engine 4.0. It covers the basics of particle systems, process materials, and draw passes.
+This tutorial covers the basics of creating a 3D particle system in Godot 4.0. It provides a step-by-step guide on setting up a particle system, including the process material and draw passes.
 
-**Required Node Properties**
-----------------------------
+## Required Particle Node Properties
 
-* `GPUParticles3D` node
-* `Process Material` set to a `ParticleProcessMaterial`
-* At least one `Draw Pass` defined
+To get started, add a `GPUParticles3D` node to the scene and set up the following properties:
 
-**Process Material**
-------------------
+*   `Process Material`
+*   `Draw Passes` (at least one)
 
-* To add a process material, go to `Process Material` in the inspector panel and select `New ParticleProcessMaterial`
-* This material is used to update particle data and behavior on the GPU instead of the CPU
-* Properties can be set to control each particle's behavior
+## Process Material
 
-**Draw Passes**
-----------------
+*   To add a process material, go to `Process Material` in the inspector panel and click on the box next to it.
+*   Select `New ParticleProcessMaterial` from the dropdown menu.
+*   This material is used to update particle data and behavior on the GPU, providing a massive performance boost.
 
-* At least one draw pass is required
-* To define a draw pass, go to `Draw Passes` in the inspector panel and select `New QuadMesh`
-* Set the mesh size to 0.1 for both x and y to make it easier to distinguish individual particle meshes
-* Multiple draw passes can be used to render different meshes with unique materials
-* Each pass uses the data computed by the process material
+## Draw Passes
 
-**Example: Using Multiple Draw Passes**
---------------------------------------
+*   At least one draw pass is required to render particles.
+*   To create a draw pass, go to `Draw Passes` in the inspector panel and click on the box next to `Pass 1`.
+*   Select `New QuadMesh` from the dropdown menu.
+*   Set the mesh's `Size` to 0.1 for both `x` and `y` to make it easier to tell individual particle meshes apart.
 
-* Create a particle system with multiple draw passes
-* Use the `Process Material` to control particle behavior
-* Use the `Draw Passes` to render different meshes with unique materials
+## Using Multiple Draw Passes
 
-**Particle Conversion**
-----------------------
+*   Each draw pass can render a different mesh with its own unique material.
+*   Up to 4 draw passes can be used per particle system.
+*   Each pass uses the data computed by the process material, making it an efficient method for composing complex effects.
 
-* Convert GPU particles to CPU particles at any time using the entry in the viewport menu
-* Note that not every feature of GPU particles is available for CPU particles
-* Conversion may be necessary when releasing a game on older devices that don't support modern graphics APIs
+### Example: Using Multiple Draw Passes
 
-**APIs and Functions**
-----------------------
+```markdown
+# Using multiple draw passes
 
-* `GPUParticles3D`
-* `Process Material`
-* `Draw Passes`
-* `ParticleProcessMaterial`
-* `QuadMesh`
+## Step 1: Create a new draw pass
 
-**Code Example**
-----------------
+*   Go to `Draw Passes` in the inspector panel and click on the box next to `Pass 2`.
+*   Select `New QuadMesh` from the dropdown menu.
+*   Set the mesh's `Size` to 0.1 for both `x` and `y`.
 
-```gdscript
-extends GPUParticles3D
+## Step 2: Assign a material to the new draw pass
 
-func _ready():
-    # Set up process material
-    process_material = ParticleProcessMaterial.new()
-    add_process_material(process_material)
+*   Right-click on the new draw pass and select `Assign Material`.
+*   Select a material for the new draw pass, such as a yellow rectangle material.
 
-    # Set up draw pass
-    var quad_mesh = Mesh.new()
-    quad_mesh.set_size(Vector2(0.1, 0.1))
-    add_draw_pass(quad_mesh)
+## Step 3: Render the particle system with multiple draw passes
+
+*   Go to `Draw Passes` in the inspector panel and click on the box next to `Pass 1`.
+*   Select the original quadmesh.
+*   Go to `Process Material` in the inspector panel and select the process material.
+*   Press the play button to render the particle system with multiple draw passes.
 ```
 
-This code sets up a `GPUParticles3D` node with a `ParticleProcessMaterial` and a `QuadMesh` for the draw pass.
+## Particle Conversion
+
+*   You can convert GPU particles to CPU particles at any time using the entry in the viewport menu.
+*   Note that some features of GPU particles may not be available for CPU particles, affecting the resulting particle system.
+
+### Example: Converting GPU Particles to CPU Particles
+
+```markdown
+# Converting GPU particles to CPU particles
+
+## Step 1: Convert the particle system
+
+*   Go to the viewport menu and select `Convert to CPU`.
+*   Confirm that you want to convert the particle system to CPU.
+
+## Step 2: Update the particle system
+
+*   Go to `Draw Passes` in the inspector panel and click on the box next to `Pass 1`.
+*   Select the original quadmesh.
+*   Go to `Process Material` in the inspector panel and select the process material.
+*   Press the play button to render the particle system.
+
+## Note
+
+*   Some features of GPU particles, such as turbulence, sub-emitters, trails, and attractors, may not be available for CPU particles.
+*   Converting to CPU particles may be necessary when releasing a game on older devices that don't support modern graphics APIs.

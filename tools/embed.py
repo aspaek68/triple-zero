@@ -58,12 +58,15 @@ def main() -> int:
     for fn in sorted(os.listdir(KNOW)):
         if not fn.endswith(".md") or fn == "vectors.json":
             continue
+        # Skip duplicate-hash variants (keep canonical names).
+        if re.search(r"-[0-9a-f]{6}\.md$", fn):
+            continue
         path = os.path.join(KNOW, fn)
         with open(path, "r", encoding="utf-8", errors="replace") as fh:
             text = fh.read()
         # Cap very large articles to keep indexing tractable.
-        if len(text) > 20000:
-            text = text[:20000] + "\n\n[... truncated ...]"
+        if len(text) > 5000:
+            text = text[:5000] + "\n\n[... truncated ...]"
         chunks = chunk(text)
         print("Indexing %s (%d chunks)..." % (fn, len(chunks)), flush=True)
         for ci, c in enumerate(chunks):

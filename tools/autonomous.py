@@ -19,23 +19,11 @@ import time
 
 import requests
 
-SEEN = os.path.join(KNOW, ".seen_urls")
-
-
-def load_seen() -> set:
-    if os.path.exists(SEEN):
-        with open(SEEN, "r", encoding="utf-8") as fh:
-            return set(ln.strip() for ln in fh if ln.strip())
-    return set()
-
-
-def save_seen(seen: set) -> None:
-    with open(SEEN, "w", encoding="utf-8") as fh:
-        for u in sorted(seen):
-            fh.write(u + "\n")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PYTHON = sys.executable
 OLLAMA = "http://localhost:11434"
 MODEL = "llama3.2"
+SEEN = os.path.join(ROOT, "knowledge", ".seen_urls")
 
 
 def ollama(prompt: str, json_mode: bool = False, timeout: int = 120) -> str:
@@ -51,67 +39,33 @@ def ollama(prompt: str, json_mode: bool = False, timeout: int = 120) -> str:
         return ""
 
 
-def _safe_json(raw: str):
-    try:
-        return json.loads(raw)
-    except Exception:
-        m = re.search(r"\[.*\]", raw, re.S)
-        if m:
-            try:
-                return json.loads(m.group(0))
-            except Exception:
-                pass
-        return None
-
-
-def _find_string_list(obj) -> list[str]:
-    if isinstance(obj, list):
-        if obj and all(isinstance(x, str) for x in obj):
-            return [str(x) for x in obj]
-        for item in obj:
-            r = _find_string_list(item)
-            if r:
-                return r
-    if isinstance(obj, dict):
-        for v in obj.values():
-            r = _find_string_list(v)
-            if r:
-                return r
-    return []
+def clean_query(q: str) -> str:
+    q = q.strip().strip("- ").strip("*").strip('"').strip("'").strip()
+    q = re.sub(r"^\d+[\.\)]\s*", "", q)
+    return q
 
 
 def plan(goal: str, existing: list[str]) -> list[str]:
-    prompt = ("You are a research planner. Goal: %s\n"
-              "Already covered topics: %s\n"
-              "Return a JSON array of 3 to 5 concise search query strings. "
-              "Output ONLY the JSON array, nothing else."
-              % (goal, ", ".join(existing[:20]) or "none"))
-    raw = ollama(prompt, json_mode=True)
-    qs = _find_string_list(_safe_json(raw))
-    if qs:
-        return qs[:5]
+    prompt = ("List 4 short search queries (3-6 words each) to learn about: %s\n"
+              "Already covered: %s\n"
+              "Output one query per line, no numbers, no extra text."
+              % (goal, ", ".join(existing[:10]) or "none"))
+    raw = ollama(prompt, json_mode=False)
     out = []
     for ln in raw.splitlines():
-        ln = ln.strip().strip("- ").strip('"').strip("'")
-        if ln and len(ln) < 80:
+        ln = clean_query(ln)
+        if ln and len(ln) < 80 and " " in ln:
             out.append(ln)
-    return out[:5] if out else [goal]
-
-
-def search_wikipedia(query: str, limit: int) -> list[str]:
-    urls = []
-    try:
-        r = requests.get("https://en.wikipedia.org/w/api.php",
-                         params={"action": "opensearch", "search": query, "limit": limit, "namespace": 0, "format": "json"},
-                         headers={"User-Agent": "learn-bot/1.0"}, timeout=20)
-        data = r.json()
-        if isinstance(data, list) and len(data) >= 4:
-            for u in data[3]:
-                if u not in urls:
-                    urls.append(u)
-    except Exception:
-        pass
-    return urls[:limit]
+    # Deduplicate while preserving order.
+    seen_q = set()
+    uniq = []
+    for q in out:
+        if q.lower() not in seen_q:
+            seen_q.add(q.lower())
+            uniq.append(q)
+    if uniq:
+        return uniq[:5]
+    return [goal]
 
 
 def search_ddg(query: str, limit: int) -> list[str]:
@@ -133,11 +87,40 @@ def search_ddg(query: str, limit: int) -> list[str]:
     return urls
 
 
+def search_wikipedia(query: str, limit: int) -> list[str]:
+    urls = []
+    try:
+        r = requests.get("https://en.wikipedia.org/w/api.php",
+                         params={"action": "opensearch", "search": query, "limit": limit, "namespace": 0, "format": "json"},
+                         headers={"User-Agent": "learn-bot/1.0"}, timeout=20)
+        data = r.json()
+        if isinstance(data, list) and len(data) >= 4:
+            for u in data[3]:
+                if u not in urls:
+                    urls.append(u)
+    except Exception:
+        pass
+    return urls[:limit]
+
+
 def search(query: str, limit: int) -> list[str]:
-    urls = search_wikipedia(query, limit)
+    urls = search_ddg(query, limit)
     if not urls:
-        urls = search_ddg(query, limit)
+        urls = search_wikipedia(query, limit)
     return urls
+
+
+def load_seen() -> set:
+    if os.path.exists(SEEN):
+        with open(SEEN, "r", encoding="utf-8") as fh:
+            return set(ln.strip() for ln in fh if ln.strip())
+    return set()
+
+
+def save_seen(seen: set) -> None:
+    with open(SEEN, "w", encoding="utf-8") as fh:
+        for u in sorted(seen):
+            fh.write(u + "\n")
 
 
 def run_learn(url: str, topic: str) -> bool:
@@ -160,19 +143,11 @@ def count_chunks() -> int:
 
 def reflect(goal: str, learned: list[str]) -> tuple[bool, list[str]]:
     prompt = ("Goal: %s\nNewly learned sources: %s\n"
-              "Is the goal sufficiently covered? Reply JSON with keys "
-              "'done' (bool) and 'next_queries' (array of 0-3 strings)."
+              "Is the goal sufficiently covered? Reply with YES or NO only."
               % (goal, "; ".join(learned) or "none"))
-    raw = ollama(prompt, json_mode=True)
-    try:
-        data = json.loads(raw)
-        done = bool(data.get("done", False))
-        nq = data.get("next_queries", [])
-        if not isinstance(nq, list):
-            nq = []
-        return done, [str(x) for x in nq]
-    except Exception:
-        return False, []
+    raw = ollama(prompt, json_mode=False).upper()
+    done = "YES" in raw
+    return done, []
 
 
 def main() -> int:
@@ -180,6 +155,7 @@ def main() -> int:
     ap.add_argument("goal")
     ap.add_argument("--iterations", type=int, default=2)
     ap.add_argument("--per-iter", type=int, default=2)
+    ap.add_argument("--max-sources", type=int, default=6)
     args = ap.parse_args()
 
     existing = []
@@ -195,6 +171,9 @@ def main() -> int:
     all_learned = []
 
     for it in range(1, args.iterations + 1):
+        if len(all_learned) >= args.max_sources:
+            print("Reached max sources (%d). Stopping." % args.max_sources)
+            break
         print("\n=== Iteration %d/%d ===" % (it, args.iterations))
         queries = plan(args.goal, existing)
         print("Plan:", queries)
@@ -204,10 +183,14 @@ def main() -> int:
 
         learned_this = []
         for q in queries:
+            if len(all_learned) >= args.max_sources:
+                break
             print("\n-- Searching:", q)
             urls = search(q, args.per_iter)
             print("   urls:", len(urls))
             for u in urls:
+                if len(all_learned) >= args.max_sources:
+                    break
                 if u in seen:
                     print("   skip (seen):", u)
                     continue
@@ -216,13 +199,13 @@ def main() -> int:
                     learned_this.append(u)
                     all_learned.append(u)
                     seen.add(u)
+                    save_seen(seen)
                     time.sleep(1)
 
-        save_seen(seen)
         existing = [f.replace(".md", "") for f in os.listdir(os.path.join(ROOT, "knowledge")) if f.endswith(".md")]
 
-        done, nq = reflect(args.goal, learned_this)
-        print("Reflect: done=%s, next=%s" % (done, nq))
+        done, _ = reflect(args.goal, learned_this)
+        print("Reflect: done=%s" % done)
         if done:
             print("Goal covered. Stopping.")
             break
