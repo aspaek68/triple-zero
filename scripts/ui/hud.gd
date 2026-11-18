@@ -384,16 +384,19 @@ func _build_boss_bar() -> void:
 
 
 func _process(delta: float) -> void:
+	# These two follow the options live, so changing them from the pause menu
+	# applies as soon as the game resumes — even with no challenge armed (the
+	# early return below used to skip them).
+	if _post_fx and _post_fx.material:
+		(_post_fx.material as ShaderMaterial).set_shader_parameter("intensity", Options.post_fx)
+	if _motion_blur and _motion_blur.material:
+		(_motion_blur.material as ShaderMaterial).set_shader_parameter("intensity", Options.motion_blur)
 	if not Progress.is_active():
 		return
 	_refresh_accum += delta
 	if _refresh_accum >= 0.2:
 		_refresh_accum = 0.0
 		_refresh()
-	if _post_fx and _post_fx.material:
-		(_post_fx.material as ShaderMaterial).set_shader_parameter("intensity", Options.post_fx)
-	if _motion_blur and _motion_blur.material:
-		(_motion_blur.material as ShaderMaterial).set_shader_parameter("intensity", Options.motion_blur)
 
 
 ## Refreshes the dynamic HUD texts. `device_changed` emits the new device name,
