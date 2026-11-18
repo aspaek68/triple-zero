@@ -60,6 +60,7 @@ class Reticle extends Control:
 
 var _reticle: Reticle
 var _post_fx: ColorRect
+var _motion_blur: ColorRect
 var _title: Label
 var _objective: Label
 var _controls: Label
@@ -115,6 +116,7 @@ func build(title: String, objective: String, keyboard_hint: String, gamepad_hint
 	_objective.text = objective
 	_build_reticle()
 	_build_post_fx()
+	_build_motion_blur()
 	Score.changed.connect(_refresh)
 	GameState.device_changed.connect(_refresh)
 	_refresh()
@@ -147,6 +149,25 @@ func _build_post_fx() -> void:
 		mat.set_shader_parameter("grain", 0.12)
 		_post_fx.material = mat
 	add_child(_post_fx)
+
+
+## Simple screen-space motion blur overlay (radial), driven by Options.motion_blur.
+func _build_motion_blur() -> void:
+	var back_buffer := BackBufferCopy.new()
+	back_buffer.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	add_child(back_buffer)
+	_motion_blur = ColorRect.new()
+	_motion_blur.name = "MotionBlur"
+	_motion_blur.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_motion_blur.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_motion_blur.color = Color(1, 1, 1, 1)
+	var shader := load("res://shaders/motion_blur.gdshader")
+	if shader:
+		var mat := ShaderMaterial.new()
+		mat.shader = shader
+		mat.set_shader_parameter("intensity", Options.motion_blur)
+		_motion_blur.material = mat
+	add_child(_motion_blur)
 
 
 func set_reticle_visible(on: bool) -> void:
@@ -243,6 +264,8 @@ func _process(delta: float) -> void:
 		_refresh()
 	if _post_fx and _post_fx.material:
 		(_post_fx.material as ShaderMaterial).set_shader_parameter("intensity", Options.post_fx)
+	if _motion_blur and _motion_blur.material:
+		(_motion_blur.material as ShaderMaterial).set_shader_parameter("intensity", Options.motion_blur)
 
 
 ## Refreshes the dynamic HUD texts. `device_changed` emits the new device name,

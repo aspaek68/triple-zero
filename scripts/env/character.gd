@@ -72,6 +72,13 @@ func _build(clothes: Color, accent: Color, heavy: bool, variant: String) -> void
 	_material = StandardMaterial3D.new()
 	_material.vertex_color_use_as_albedo = true
 	_material.roughness = 0.72
+	# Subsurface scattering: skin reads as organic rather than plastic (Forward+).
+	_material.subsurf_scatter_enabled = true
+	_material.subsurf_scatter_strength = 0.4
+	_material.subsurf_scatter_skin_mode = true
+	_material.subsurf_scatter_transmittance_enabled = true
+	_material.subsurf_scatter_transmittance_color = Color(0.85, 0.35, 0.25)
+	_material.subsurf_scatter_transmittance_depth = 0.6
 	# Woven micro-detail (if the generated texture exists): breaks up the flat
 	# plastic look of the blockout body without recolouring it.
 	var fabric := EnvBuilder.load_texture("res://assets/textures/fabric.png")

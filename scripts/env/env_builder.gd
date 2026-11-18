@@ -404,7 +404,10 @@ const MODEL_SIZE := {
 static func load_model_scene(model_name: String) -> Node3D:
 	if _scene_cache.has(model_name):
 		var cached: PackedScene = _scene_cache[model_name]
-		return cached.instantiate() as Node3D if cached != null else null
+		var inst := cached.instantiate() as Node3D if cached != null else null
+		if inst != null:
+			_apply_lod(inst)
+		return inst
 	var cc0 := _cc0_model_path(model_name)
 	var path := cc0 if cc0 != "" else "res://assets/models/%s.glb" % model_name
 	var packed := _load_packed(path)
@@ -412,9 +415,12 @@ static func load_model_scene(model_name: String) -> Node3D:
 	if packed == null:
 		return null
 	var scene := packed.instantiate() as Node3D
-	if scene != null and cc0 != "":
+	if scene == null:
+		return null
+	if cc0 != "":
 		_prune_model(scene, model_name)
 		_normalize_model(scene, model_name)
+	_apply_lod(scene)
 	return scene
 
 
@@ -483,6 +489,16 @@ static func _normalize_model(scene: Node3D, model_name: String) -> void:
 	var center := box.get_center()
 	scene.position = Vector3(-center.x * scale_factor, -box.position.y * scale_factor,
 		-center.z * scale_factor)
+
+
+## Aggressive LOD bias + culling margins for runtime-loaded props.
+static func _apply_lod(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		mi.lod_bias = 0.6
+		mi.extra_cull_margin = 0.5
+	for child in node.get_children():
+		_apply_lod(child)
 
 
 static func _scene_aabb(node: Node3D, xform: Transform3D) -> AABB:
