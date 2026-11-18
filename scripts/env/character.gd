@@ -18,8 +18,33 @@ const VARIANT_SCOUT := "scout"
 const VARIANT_ELITE := "elite"
 const VARIANT_CIVILIAN := "civilian"
 
+## Physics ragdoll: one capsule/box per bone, jointed along the hierarchy. Built
+## lazily on the first death so live actors cost nothing. `len` is the distance
+## to the child bone (the capsule is offset down by half of it), `box` overrides
+## the shape for the pelvis and the feet.
+const RAGDOLL_BONES := {
+	"hips": {"box": Vector3(0.30, 0.22, 0.26), "mass": 10.0, "offset": Vector3(0, -0.02, 0)},
+	"spine": {"r": 0.15, "len": 0.30, "mass": 9.0},
+	"chest": {"r": 0.18, "len": 0.24, "mass": 12.0},
+	"head": {"r": 0.11, "len": 0.22, "mass": 5.0},
+	"arm_l": {"r": 0.07, "len": 0.30, "mass": 3.0},
+	"arm_r": {"r": 0.07, "len": 0.30, "mass": 3.0},
+	"forearm_l": {"r": 0.055, "len": 0.26, "mass": 2.0},
+	"forearm_r": {"r": 0.055, "len": 0.26, "mass": 2.0},
+	"hand_l": {"r": 0.05, "len": 0.10, "mass": 1.0},
+	"hand_r": {"r": 0.05, "len": 0.10, "mass": 1.0},
+	"leg_l": {"r": 0.085, "len": 0.42, "mass": 7.0},
+	"leg_r": {"r": 0.085, "len": 0.42, "mass": 7.0},
+	"shin_l": {"r": 0.065, "len": 0.38, "mass": 5.0},
+	"shin_r": {"r": 0.065, "len": 0.38, "mass": 5.0},
+	"foot_l": {"box": Vector3(0.11, 0.08, 0.24), "mass": 2.0, "offset": Vector3(0, -0.02, -0.06)},
+	"foot_r": {"box": Vector3(0.11, 0.08, 0.24), "mass": 2.0, "offset": Vector3(0, -0.02, -0.06)},
+}
+
 var _skeleton: Skeleton3D
 var _anim: AnimationPlayer
+var _ragdoll: PhysicalBoneSimulator3D
+var _ragdoll_built := false
 var _material: StandardMaterial3D
 var _weapon_mount: BoneAttachment3D
 var _bones: Dictionary = {}
@@ -502,6 +527,77 @@ func _build_animations() -> void:
 	_anim.add_animation_library("", lib)
 
 
+# ------------------------------------------------------------------- ragdoll
+
+## Builds the physics rig once: one PhysicalBone3D per skeleton bone, shapes
+## sized from RAGDOLL_BONES. Joints are created by the simulator from the bone
+## hierarchy.
+func _build_ragdoll() -> void:
+	if _ragdoll_built:
+		return
+	_ragdoll_built = true
+	_ragdoll = PhysicalBoneSimulator3D.new()
+	_ragdoll.name = "Ragdoll"
+	_skeleton.add_child(_ragdoll)
+	for bone_name in RAGDOLL_BONES:
+		var cfg: Dictionary = RAGDOLL_BONES[bone_name]
+		var pb := PhysicalBone3D.new()
+		pb.name = "PB_" + String(bone_name)
+		pb.bone_name = StringName(bone_name)
+		pb.mass = float(cfg.get("mass", 4.0))
+		pb.friction = 0.9
+		pb.bounce = 0.0
+		pb.linear_damp = 0.15
+		pb.angular_damp = 0.5
+		pb.gravity_scale = 1.2
+		# Dead bodies settle on the world (mask 1) but no longer block shots or
+		# shove living actors (own layer 0).
+		pb.collision_layer = 0
+		pb.collision_mask = 1
+		var cs := CollisionShape3D.new()
+		var offset: Vector3 = cfg.get("offset", Vector3.ZERO)
+		if cfg.has("box"):
+			var box := BoxShape3D.new()
+			box.size = cfg["box"]
+			cs.shape = box
+			if not cfg.has("offset"):
+				offset = Vector3(0, -box.size.y * 0.5, 0)
+		else:
+			var r: float = float(cfg.get("r", 0.1))
+			var length: float = float(cfg.get("len", 0.2))
+			var cap := CapsuleShape3D.new()
+			cap.radius = r
+			cap.height = maxf(length + r * 2.0, r * 2.0 + 0.001)
+			cs.shape = cap
+			if not cfg.has("offset"):
+				offset = Vector3(0, -length * 0.5, 0)
+		cs.position = offset
+		pb.add_child(cs)
+		_ragdoll.add_child(pb)
+
+
+## Hands the body over to physics. `push` is an optional impulse (m/s) applied
+## to every bone, e.g. the direction the killing shot came from.
+func _start_ragdoll(push := Vector3.ZERO) -> void:
+	if _ragdoll == null:
+		_build_ragdoll()
+	if _anim:
+		_anim.stop()
+	if _ragdoll == null:
+		return
+	_ragdoll.physical_bones_start_simulation()
+	if push.length_squared() > 0.0001:
+		for child in _ragdoll.get_children():
+			var pb := child as PhysicalBone3D
+			if pb:
+				pb.linear_velocity = push
+
+
+## True once the body is simulated by physics (used by tests/diagnostics).
+func is_ragdoll_active() -> bool:
+	return _ragdoll != null and _ragdoll.is_simulating_physics()
+
+
 ## Locomotion cycle: legs and arms swing with `amount`; `aiming` raises the arms.
 func _loco_anim(length: float, amount: float, aiming: bool) -> Animation:
 	var anim := Animation.new()
@@ -602,6 +698,14 @@ func die() -> void:
 	if _anim and _anim.has_animation("death"):
 		_anim.speed_scale = 1.0
 		_anim.play("death", 0.1)
+	# The animation plays for a beat, then physics takes over so the body lands
+	# on the geometry instead of sinking through it.
+	var push := global_transform.basis.z * 0.8
+	var timer := get_tree().create_timer(0.35) if is_inside_tree() else null
+	if timer:
+		timer.timeout.connect(func() -> void:
+			if is_instance_valid(self) and _dead:
+				_start_ragdoll(push))
 
 
 ## Plays a hit stagger once (blends back to locomotion afterwards).

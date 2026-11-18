@@ -111,8 +111,12 @@ func die() -> void:
 		return
 	_dying = true
 	remove_from_group("enemy")
+	# Stop blocking shots: the ragdoll parts take over the visual, the capsule
+	# would otherwise stay standing in the world.
+	collision_layer = 0
+	collision_mask = 0
 	if _character:
 		_character.die()
 	died.emit(self)
-	# Let the fall animation play before the body disappears.
-	get_tree().create_timer(1.4).timeout.connect(queue_free)
+	# Let the fall and the ragdoll settle before the body disappears.
+	get_tree().create_timer(2.4).timeout.connect(queue_free)
