@@ -91,8 +91,8 @@ static func _build_environment() -> WorldEnvironment:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_sky_contribution = 1.0
-	env.ambient_light_energy = 1.1
+	env.ambient_light_sky_contribution = 0.55
+	env.ambient_light_energy = 0.65
 	if pano:
 		# Spin the panorama so its baked sun shares the light's azimuth.
 		env.sky_rotation = Vector3(0, _hdri_yaw_offset(), 0)
@@ -100,29 +100,29 @@ static func _build_environment() -> WorldEnvironment:
 	# Cinematic tonemapping (AgX keeps highlights and skin tones natural) plus
 	# a light colour grade.
 	env.tonemap_mode = Environment.TONE_MAPPER_AGX
-	env.tonemap_white = 6.0
+	env.tonemap_white = 3.0
 	env.adjustment_enabled = true
 	env.adjustment_brightness = 1.0
-	env.adjustment_contrast = 1.08
-	env.adjustment_saturation = 1.1
+	env.adjustment_contrast = 1.12
+	env.adjustment_saturation = 1.15
 
 	# Bloom: strong enough to sell the muzzle flashes and neon, blended in HDR.
 	env.glow_enabled = true
-	env.glow_intensity = 0.6
-	env.glow_strength = 1.15
-	env.glow_bloom = 0.12
-	env.glow_hdr_threshold = 0.9
+	env.glow_intensity = 0.45
+	env.glow_strength = 0.9
+	env.glow_bloom = 0.05
+	env.glow_hdr_threshold = 1.1
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
 
 	# Aerial perspective: hazes distant geometry without darkening the scene.
 	env.fog_enabled = true
 	env.fog_light_color = FOG_COLOR
-	env.fog_light_energy = 1.0
-	env.fog_density = 0.0016
-	env.fog_aerial_perspective = 0.6
+	env.fog_light_energy = 0.85
+	env.fog_density = 0.0008
+	env.fog_aerial_perspective = 0.4
 	env.fog_sky_affect = 0.3
 	env.fog_height = 20.0
-	env.fog_height_density = 0.02
+	env.fog_height_density = 0.0015
 
 	_apply_advanced_lighting(env)
 
@@ -213,10 +213,10 @@ static func _apply_advanced_lighting(env: Environment) -> void:
 
 	# Soft volumetric fog for god rays and depth.
 	env.volumetric_fog_enabled = true
-	env.volumetric_fog_density = 0.012
+	env.volumetric_fog_density = 0.0025
 	env.volumetric_fog_albedo = FOG_COLOR
-	env.volumetric_fog_length = 90.0
-	env.volumetric_fog_gi_inject = 0.6
+	env.volumetric_fog_length = 120.0
+	env.volumetric_fog_gi_inject = 0.3
 
 
 static func _build_sun(degrees: float) -> DirectionalLight3D:
@@ -224,7 +224,7 @@ static func _build_sun(degrees: float) -> DirectionalLight3D:
 	sun.name = "Sun"
 	sun.rotation_degrees = Vector3(degrees, SUN_YAW, 0.0)
 	sun.light_color = SUN_COLOR
-	sun.light_energy = 1.25
+	sun.light_energy = 1.4
 	sun.light_angular_distance = 0.6
 	sun.light_volumetric_fog_energy = 1.4
 	sun.shadow_enabled = true

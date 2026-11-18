@@ -146,19 +146,31 @@ func _bone(bone_name: String, offset: Vector3, parent: String) -> void:
 # ------------------------------------------------------------------------ mesh
 
 func _build_body(a: Dictionary, clothes: Color, accent: Color, skin: Color, kind: String) -> void:
-	_part(a, Vector3(0, 0.95, 0), Vector3(0.36, 0.24, 0.26), "hips", clothes)
-	_part(a, Vector3(0, 1.16, 0), Vector3(0.40, 0.30, 0.27), "spine", clothes)
-	_part(a, Vector3(0, 1.40, 0), Vector3(0.46, 0.34, 0.30), "chest", clothes)
-	_part(a, Vector3(0, 1.36, 0), Vector3(0.50, 0.30, 0.34), "chest", accent)
-	_part(a, Vector3(0, 1.70, 0), Vector3(0.24, 0.26, 0.24), "head", skin)
-	_part(a, Vector3(0, 1.83, 0), Vector3(0.27, 0.12, 0.27), "head", accent)
+	# Smooth lofted volumes (superellipse cross-sections, rounded caps) instead of
+	# flat-shaded boxes: the silhouette reads as a body, not as a blockout.
+	_loft(a, Vector3(0, 0.95, 0), Vector3(0.36, 0.26, 0.26), "hips", clothes,
+		[0.80, 0.94, 1.0, 0.98, 0.88], 14, 0.55, 2.6)
+	_loft(a, Vector3(0, 1.17, 0), Vector3(0.39, 0.30, 0.27), "spine", clothes,
+		[0.90, 0.86, 0.90, 0.99, 1.0], 14, 0.45, 2.9)
+	_loft(a, Vector3(0, 1.40, 0), Vector3(0.46, 0.36, 0.30), "chest", clothes,
+		[0.84, 0.94, 1.0, 1.0, 0.90], 16, 0.40, 3.1)
+	# Chest rig / plate carrier, slightly wider than the chest itself.
+	_loft(a, Vector3(0, 1.40, 0), Vector3(0.49, 0.28, 0.33), "chest", accent,
+		[0.90, 0.98, 1.0, 0.98, 0.90], 16, 0.30, 3.4)
+	_loft(a, Vector3(0, 1.70, 0), Vector3(0.235, 0.28, 0.235), "head", skin,
+		[0.60, 0.82, 0.97, 1.0, 0.86], 14, 0.85, 2.4)
 	for side in ["l", "r"]:
 		var s := 1.0 if side == "l" else -1.0
-		_part(a, Vector3(0.24 * s, 1.30, 0), Vector3(0.13, 0.32, 0.14), "arm_" + side, clothes, 0.85)
-		_part(a, Vector3(0.24 * s, 1.02, 0), Vector3(0.11, 0.28, 0.12), "forearm_" + side, clothes, 0.9)
-		_part(a, Vector3(0.24 * s, 0.87, 0), Vector3(0.10, 0.10, 0.10), "hand_" + side, skin)
-		_part(a, Vector3(0.11 * s, 0.70, 0), Vector3(0.15, 0.42, 0.16), "leg_" + side, clothes, 0.8)
-		_part(a, Vector3(0.11 * s, 0.29, 0), Vector3(0.13, 0.40, 0.14), "shin_" + side, clothes, 0.85)
+		_loft(a, Vector3(0.24 * s, 1.30, 0), Vector3(0.135, 0.32, 0.145), "arm_" + side, clothes,
+			[0.70, 0.90, 1.0, 0.94, 0.80], 12, 0.75, 2.2)
+		_loft(a, Vector3(0.24 * s, 1.02, 0), Vector3(0.115, 0.28, 0.125), "forearm_" + side, clothes,
+			[0.76, 0.94, 1.0, 0.90, 0.74], 12, 0.70, 2.2)
+		_loft(a, Vector3(0.24 * s, 0.87, 0), Vector3(0.10, 0.12, 0.105), "hand_" + side, skin,
+			[0.80, 1.0, 0.94, 0.74], 10, 0.65, 2.8)
+		_loft(a, Vector3(0.11 * s, 0.70, 0), Vector3(0.155, 0.42, 0.165), "leg_" + side, clothes,
+			[0.86, 1.0, 1.0, 0.86, 0.74], 14, 0.50, 2.4)
+		_loft(a, Vector3(0.11 * s, 0.29, 0), Vector3(0.135, 0.40, 0.145), "shin_" + side, clothes,
+			[0.74, 0.90, 1.0, 0.90, 0.78], 12, 0.45, 2.4)
 		_part(a, Vector3(0.11 * s, 0.06, -0.04), Vector3(0.14, 0.12, 0.24), "foot_" + side, accent)
 	_add_gear(a, kind, accent)
 
@@ -223,6 +235,124 @@ func _add_visor(color: Color) -> void:
 	mat.emission_energy_multiplier = 1.8
 	mi.material_override = mat
 	mount.add_child(mi)
+
+
+## Smooth lofted volume: an elliptical tube along Y whose radius follows
+## `profile` (multipliers, bottom to top) with hemispherical caps. `squareness`
+## 2.0 gives a circle, higher values approach a rounded rectangle (torsos).
+func _loft(a: Dictionary, center: Vector3, size: Vector3, bone: String, color: Color,
+		profile: Array, sides: int, roundness: float, squareness: float) -> void:
+	if not _bones.has(bone):
+		return
+	var bi: int = _bones[bone]
+	var rings: int = profile.size()
+	if rings < 2:
+		return
+	var verts := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var idx := PackedInt32Array()
+	var half_y := size.y * 0.5
+	var end_rx := size.x * 0.5 * float(profile[rings - 1])
+	var end_rz := size.z * 0.5 * float(profile[rings - 1])
+	var cap_h := minf(end_rx, end_rz) * roundness
+	var expo := 2.0 / squareness
+
+	for i in rings:
+		var t := float(i) / float(rings - 1)
+		var mult: float = float(profile[i])
+		var y := lerpf(-half_y, half_y, t)
+		for s in sides:
+			var ang := TAU * float(s) / float(sides)
+			var ca := cos(ang)
+			var sa := sin(ang)
+			var sx := signf(ca) * pow(absf(ca), expo)
+			var sz := signf(sa) * pow(absf(sa), expo)
+			verts.append(center + Vector3(sx * size.x * 0.5 * mult, y, sz * size.z * 0.5 * mult))
+			uvs.append(Vector2(float(s) / float(sides), t))
+
+	# Hemispherical caps (cap_steps-1 rings + a pole each): domed, not cut flat.
+	var cap_steps := 3
+	for cap in [1.0, -1.0]:
+		var first_ring := verts.size()
+		for k in range(1, cap_steps):
+			var theta := (PI * 0.5) * float(k) / float(cap_steps)
+			var rs := cos(theta)
+			var y: float = cap * (half_y + cap_h * sin(theta))
+			for s in sides:
+				var ang := TAU * float(s) / float(sides)
+				var ca := cos(ang)
+				var sa := sin(ang)
+				var sx := signf(ca) * pow(absf(ca), expo)
+				var sz := signf(sa) * pow(absf(sa), expo)
+				verts.append(center + Vector3(sx * end_rx * rs, y, sz * end_rz * rs))
+				uvs.append(Vector2(float(s) / float(sides), 0.0 if cap < 0.0 else 1.0))
+		var pole := verts.size()
+		verts.append(center + Vector3(0, cap * (half_y + cap_h), 0))
+		uvs.append(Vector2(0.5, 0.0 if cap < 0.0 else 1.0))
+		# Bridge the body ring -> each cap ring -> pole.
+		var prev := 0 if cap < 0.0 else (rings - 1) * sides
+		for k in range(0, cap_steps - 1):
+			var ring := first_ring + k * sides
+			for s in sides:
+				var s2 := (s + 1) % sides
+				idx.append_array([prev + s, prev + s2, ring + s2, prev + s, ring + s2, ring + s])
+			prev = ring
+		for s in sides:
+			var s2 := (s + 1) % sides
+			idx.append_array([prev + s, prev + s2, pole])
+
+	# Side walls between the body rings.
+	for i in rings - 1:
+		for s in sides:
+			var s2 := (s + 1) % sides
+			var i0 := i * sides + s
+			var i1 := i * sides + s2
+			var i2 := (i + 1) * sides + s2
+			var i3 := (i + 1) * sides + s
+			idx.append_array([i0, i1, i2, i0, i2, i3])
+
+	# Make every triangle face outward (these volumes are star-shaped around
+	# `center`), which removes any winding mistake at the cap/body seams.
+	for i in range(0, idx.size(), 3):
+		var ia := idx[i]
+		var ib := idx[i + 1]
+		var ic := idx[i + 2]
+		var face := (verts[ib] - verts[ia]).cross(verts[ic] - verts[ia])
+		var centroid := (verts[ia] + verts[ib] + verts[ic]) / 3.0
+		if face.dot(centroid - center) < 0.0:
+			idx[i + 1] = ic
+			idx[i + 2] = ib
+	var normals := _compute_normals(verts, idx)
+
+	var base: int = a.vertex.size()
+	for i in verts.size():
+		a.vertex.append(verts[i])
+		a.normal.append(normals[i])
+		a.uv.append(uvs[i])
+		a.color.append(color)
+		a.bones.append_array([bi, 0, 0, 0])
+		a.weights.append_array([1.0, 0.0, 0.0, 0.0])
+	for i in idx.size():
+		a.index.append(base + idx[i])
+	_part_count += 1
+
+
+## Area-weighted smooth normals for an indexed triangle soup.
+func _compute_normals(verts: PackedVector3Array, idx: PackedInt32Array) -> PackedVector3Array:
+	var normals := PackedVector3Array()
+	normals.resize(verts.size())
+	for i in range(0, idx.size(), 3):
+		var ia := idx[i]
+		var ib := idx[i + 1]
+		var ic := idx[i + 2]
+		var face := (verts[ib] - verts[ia]).cross(verts[ic] - verts[ia])
+		normals[ia] = normals[ia] + face
+		normals[ib] = normals[ib] + face
+		normals[ic] = normals[ic] + face
+	for i in normals.size():
+		var l := normals[i].length()
+		normals[i] = normals[i] / l if l > 0.000001 else Vector3.UP
+	return normals
 
 
 ## Adds a (optionally tapered) box fully weighted to one bone.
