@@ -595,6 +595,10 @@ func die() -> void:
 	if _dead:
 		return
 	_dead = true
+	if is_inside_tree():
+		var p := get_parent() as Node3D
+		if p:
+			Vfx.blood_splat(p, global_position)
 	if _anim and _anim.has_animation("death"):
 		_anim.speed_scale = 1.0
 		_anim.play("death", 0.1)

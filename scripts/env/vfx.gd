@@ -126,7 +126,9 @@ static func smoke(parent: Node3D, point: Vector3,
 		tree.create_timer(2.0).timeout.connect(particles.queue_free)
 
 
-## A persistent dark mark where a shot hit a solid surface, using a native Decal
+## A blood splat decal at a death/impact point (red, fades over time).
+static func blood_splat(parent: Node3D, point: Vector3) -> void:
+	impact_mark(parent, point + Vector3(0, 0.02, 0), Vector3.UP, Color(0.55, 0.06, 0.06))
 ## that projects onto the geometry (no manual orientation / z-fighting).
 static func impact_mark(parent: Node3D, point: Vector3, normal: Vector3,
 		color := Color(0.08, 0.07, 0.06)) -> void:
