@@ -11,6 +11,13 @@ const JUMP := 6.5
 const PAD_LOOK_SPEED := 2.4
 const FIRE_COOLDOWN := 0.16
 
+const _TUTORIAL_HINTS := [
+	"ZQSD / WASD : se deplacer",
+	"Souris : viser    Clic gauche : tirer",
+	"R : recharger    Espace : sprinter",
+	"C : meteo    R : replay    Echap : menu",
+]
+
 var _player: CharacterBody3D
 var _yaw := 0.0
 var _pitch := -0.18
@@ -26,6 +33,9 @@ var _enemies: Array = []
 var _pickups: Array = []
 var _waves: Array = []
 var _wave_index := 0
+var _tutorial_step := 0
+var _tutorial_timer := 0.0
+var _tutorial_done := false
 var _zone := 1
 var _extraction := Vector3.ZERO
 var _extraction_open := false
@@ -77,6 +87,12 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_play_intro()
 	_start_wave()
+	if FileAccess.file_exists("user://tutorial_done"):
+		_tutorial_done = true
+	else:
+		_tutorial_step = 0
+		_tutorial_timer = 0.0
+		_hud.set_status(_TUTORIAL_HINTS[0])
 
 
 ## Short fly-in over the tower before control is handed over.
@@ -401,6 +417,19 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if _ended or _intro_locked():
 		return
+	# Tutorial hints (first run only).
+	if not _tutorial_done and not _intro_locked():
+		_tutorial_timer += delta
+		if _tutorial_timer >= 5.0:
+			_tutorial_timer = 0.0
+			_tutorial_step += 1
+			if _tutorial_step >= _TUTORIAL_HINTS.size():
+				_tutorial_done = true
+				var f := FileAccess.open("user://tutorial_done", FileAccess.WRITE)
+				if f:
+					f.close()
+			else:
+				_hud.set_status(_TUTORIAL_HINTS[_tutorial_step])
 	if _replay:
 		_replay.sample()
 	_in_cover = Input.is_action_pressed("cover")
