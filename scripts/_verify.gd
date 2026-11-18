@@ -9,6 +9,7 @@ var _failures: Array = []
 func _ready() -> void:
 	_check_autoloads()
 	_check_localisation()
+	_check_options_persistence()
 	_check_actors()
 	_check_materials()
 	_check_world()
@@ -108,6 +109,43 @@ func _check_localisation() -> void:
 		"3 nodes • 2 props\nTool: x\nClick: add/move • Right click: delete",
 		"EN editor status template not translated")
 	Loc.set_language(saved)
+
+
+## Weather/dynamic/replay were editable in the options screen but missing from
+## `Options.load_from_disk()`/`save_to_disk()`, so they reset on every launch.
+## Round-trip them through the real file, then restore the player's settings.
+func _check_options_persistence() -> void:
+	var saved_bytes := PackedByteArray()
+	if FileAccess.file_exists(Options.PATH):
+		saved_bytes = FileAccess.get_file_as_bytes(Options.PATH)
+	var saved_weather: int = Options.weather
+	var saved_dynamic: bool = Options.weather_dynamic
+	var saved_replay: bool = Options.replay_enabled
+
+	Options.weather = 3
+	Options.weather_dynamic = false
+	Options.replay_enabled = false
+	Options.save_to_disk()
+	Options.weather = 0
+	Options.weather_dynamic = true
+	Options.replay_enabled = true
+	Options.load_from_disk()
+	_expect(Options.weather == 3, "weather option was not persisted")
+	_expect(not Options.weather_dynamic, "dynamic weather option was not persisted")
+	_expect(not Options.replay_enabled, "replay option was not persisted")
+
+	# Put the player's file and in-memory settings back exactly as they were.
+	if saved_bytes.is_empty():
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(Options.PATH))
+	else:
+		var file := FileAccess.open(Options.PATH, FileAccess.WRITE)
+		if file:
+			file.store_buffer(saved_bytes)
+			file.close()
+	Options.weather = saved_weather
+	Options.weather_dynamic = saved_dynamic
+	Options.replay_enabled = saved_replay
+	Options.load_from_disk()
 
 
 func _check_actors() -> void:

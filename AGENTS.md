@@ -295,7 +295,11 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
 - **Entrées** : actions `weather` (C / Y) et `replay` (R / Back) déclarées dans
   `game_state.gd` (`_ensure_input_actions`). Options `weather`,
   `weather_dynamic`, `replay_enabled` dans `options.gd`, exposées dans
-  `options_menu.gd` (section « MISE EN SCÈNE »).
+  `options_menu.gd` (section « MISE EN SCÈNE »). Elles vivent sous la section
+  `[staging]` de `user://options.cfg` : `load_from_disk()`/`save_to_disk()` les
+  avaient oubliées, donc elles revenaient au défaut à chaque lancement.
+  `_verify._check_options_persistence()` fait un aller-retour réel sur le
+  fichier puis restaure les réglages du joueur.
 
 ## Localisation (FR/EN)
 
