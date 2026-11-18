@@ -115,6 +115,9 @@ func take_damage(amount: int) -> void:
 		die()
 	else:
 		_flash()
+		# Play the stagger clip too: the flash alone read as a visual glitch.
+		if _character:
+			_character.hit_react()
 
 
 func _flash() -> void:

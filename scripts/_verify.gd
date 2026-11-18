@@ -114,6 +114,9 @@ func _check_actors() -> void:
 	var character := Character.make(Color(0.3, 0.4, 0.3), Color(0.1, 0.1, 0.12))
 	_expect(character != null, "Character.make returned null")
 	if character:
+		_expect(character.body_part_count() > 0, "skinned body has no parts")
+		_expect(not character.is_dead(), "a fresh character is already dead")
+		_expect(not character.is_ragdoll_active(), "ragdoll active before death")
 		character.free()
 	for kind in [Character.VARIANT_SCOUT, Character.VARIANT_ELITE, Character.VARIANT_CIVILIAN]:
 		var variant := Character.make(Color(0.3, 0.4, 0.3), Color(0.1, 0.1, 0.12), false, kind)
@@ -127,7 +130,16 @@ func _check_actors() -> void:
 	_expect(enemy != null, "Enemy.make returned null")
 	if enemy:
 		_expect(enemy.variant != "", "Enemy has no visual variant")
-		enemy.free()
+		# A non-lethal hit must play the stagger, not just flash. The body has
+		# to be in the tree for the flash tween and the AnimationPlayer.
+		var host := Node3D.new()
+		add_child(host)
+		host.add_child(enemy)
+		enemy.take_damage(1)
+		_expect(enemy._character._one_shot, "enemy hit did not trigger a stagger")
+		_expect(enemy._character._anim.current_animation == "hit",
+			"enemy hit did not play the hit clip")
+		host.free()
 
 
 func _check_materials() -> void:

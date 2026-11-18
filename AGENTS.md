@@ -243,6 +243,10 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
 - **micro-détail** : `tools/gen_assets.py --only fabric` génère
   `fabric.png` + `_normal` + `_rough` + `_ao` (motif tissé) ; `character.gd`
   l'applique en albédo/normale légère si le fichier existe.
+- **réaction aux tirs** : `Character.hit_react()` joue le clip `hit` (bloquant
+  `animate_walk` via `_one_shot` jusqu'à `animation_finished`). `Enemy.take_damage()`
+  l'appelle sur un coup **non létal**, en plus du flash : sans cet appel le
+  stagger n'était jamais joué.
 
 ## Météo, replay, éditeur (P16)
 
