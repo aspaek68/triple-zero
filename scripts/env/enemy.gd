@@ -12,6 +12,10 @@ var heavy := false
 var variant := "rifleman"
 var boss := false
 var cooldown := 2.0
+## Flanking: which way this unit prefers to circle, and a phase so a squad
+## does not move in lockstep.
+var strafe := 1.0
+var phase := 0.0
 var _mesh: MeshInstance3D
 var _character: Character
 var _speed01 := 0.0
@@ -27,6 +31,8 @@ static func make(pos: Vector3, is_heavy: bool, is_boss := false) -> Enemy:
 	if GameState.ng_plus:
 		e.hp += 3 if is_heavy else 2
 	e.cooldown = randf_range(1.0, 2.5)
+	e.strafe = 1.0 if randf() < 0.5 else -1.0
+	e.phase = randf() * TAU
 	e.variant = _pick_variant(is_heavy)
 	if is_boss:
 		e.boss = true

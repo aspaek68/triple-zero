@@ -665,9 +665,27 @@ func _update_enemies(delta: float) -> void:
 		if e == _boss:
 			stop_at = 3.5 if _boss_charge > 0.0 else 14.0
 			speed = 7.0 if _boss_charge > 0.0 else 3.4
+		# Flanking: approach on an arc, keep squad spacing, strafe at range.
+		var side := Vector3(-to_p.z, 0.0, to_p.x)
+		if side.length_squared() > 0.001:
+			side = side.normalized() * e.strafe
+		var t := Time.get_ticks_msec() * 0.001
+		var move := to_p.normalized() + side * sin(t * 0.8 + e.phase) * 0.55
+		for other in _enemies:
+			if other == e or not is_instance_valid(other):
+				continue
+			var away: Vector3 = e.global_position - other.global_position
+			var gap := away.length()
+			if gap > 0.01 and gap < 2.6:
+				move += away.normalized() * (2.6 - gap) * 1.4
+		if move.length_squared() > 0.0001:
+			move = move.normalized()
 		if dist > stop_at:
-			var step := to_p.normalized() * speed * delta
+			var step := move * speed * delta
 			e.position += Vector3(step.x, 0.0, step.z)
+		elif e != _boss:
+			var strafe_step := side * sin(t * 1.1 + e.phase) * 1.6 * delta
+			e.position += Vector3(strafe_step.x, 0.0, strafe_step.z)
 		e.cooldown -= delta
 		if e.cooldown <= 0.0:
 			e.cooldown = randf_range(1.6, 3.0) if not e.heavy else randf_range(1.2, 2.0)
