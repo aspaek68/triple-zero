@@ -170,6 +170,12 @@ func _build_city() -> void:
 func _building(pos: Vector3, size: Vector3, angle: float, color: Color, glow: Material) -> void:
 	var body := _slab(pos + Vector3(0, size.y / 2.0, 0), size, color)
 	body.rotation.y = angle
+	# Occlusion culling: each building occludes what is behind it.
+	var occ := OccluderInstance3D.new()
+	var box_occ := BoxOccluder3D.new()
+	box_occ.size = size
+	occ.occluder = box_occ
+	body.add_child(occ)
 	var bands := clampi(int(size.y / 5.0), 1, 3)
 	for f in bands:
 		var strip := MeshInstance3D.new()
