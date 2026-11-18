@@ -267,7 +267,14 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
 - Deux tables : `EN` pour les chaînes fixes, `EN_TEMPLATES` pour les chaînes
   dynamiques (`%d`, `%s`, `%3d`, `%4.1f`, `%%`). `t()` accepte donc les deux
   usages : `Loc.t("MUNITIONS %d / %d") % [a, b]` (gabarit) et
-  `Loc.t("Zone 2 - 5 hostiles")` (texte déjà formaté, reconnu par motif).
+  `Loc.t("Zone 2 — 5 hostiles")` (texte déjà formaté, reconnu par motif).
+- **Ponctuation = clé** : une chaîne qui diffère d'un seul caractère n'est pas
+  traduite et retombe silencieusement en français. Les textes des modes
+  utilisent le **tiret cadratin** `—` (U+2014) dans leurs lignes (`CIVIL
+  SECOURU — %d/3`, `ALARME — …`, `Zone %d — %d hostiles`) ; les clés de
+  `loc.gd` doivent employer exactement le même caractère (pas `-`). Vérifier
+  avec `Loc.t("…") == "…"` dans `_verify.gd` plutôt qu'à l'œil : le rendu
+  PowerShell affiche les deux tirets de la même façon.
 - `Hud.set_title/set_objective/set_status/set_extra/set_boss_health` passent
   déjà par `Loc.t()` : les modes continuent d'écrire leurs chaînes françaises.
   Les valeurs imbriquées dans un `%s` (nom de défi, météo, `PRÊT`) sont

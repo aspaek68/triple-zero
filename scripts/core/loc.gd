@@ -2,7 +2,7 @@ extends Node
 ## Autoload: tiny FR/EN localisation layer.
 ##
 ## The French string is the key, so a missing entry falls back to the original
-## text instead of showing a raw identifier. Dynamic strings ("Zone %d - %d
+## text instead of showing a raw identifier. Dynamic strings ("Zone %d — %d
 ## hostiles") are translated by pattern, which lets the modes keep formatting
 ## their own text and still be localised.
 ##
@@ -173,27 +173,27 @@ const EN := {
 	"C : meteo    R : replay    Echap : menu": "C: weather    R: replay    Esc: menu",
 
 	# ------------------------------------------------------------ act 1 text
-	"CIVIL PERDU - la zone a été abandonnée":
-		"CIVILIAN LOST - the area was abandoned",
+	"CIVIL PERDU — la zone a été abandonnée":
+		"CIVILIAN LOST — the area was abandoned",
 	"SENTINELLE NEUTRALISEE": "SENTINEL NEUTRALISED",
 	"SENTINELLE : CHARGE": "SENTINEL: CHARGING",
 	"SENTINELLE LOURDE": "HEAVY SENTINEL",
 	"SENTINELLE LOURDE - survivez et neutralisez-la":
 		"HEAVY SENTINEL - survive and neutralise it",
-	"ALARME - tous les ennemis sont maintenant en alerte":
-		"ALARM - all enemies are now alert",
-	"SIRÈNE active - renforts imminents":
-		"SIREN active - reinforcements imminent",
-	"COUPURE DE COURANT - visibilité réduite":
-		"POWER CUT - reduced visibility",
-	"ASCENSEUR BLOQUÉ - passage coupé": "ELEVATOR BLOCKED - route cut",
-	"FUMÉE - visibilité réduite": "SMOKE - reduced visibility",
-	"EFFONDREMENT - planquez-vous !": "COLLAPSE - take cover!",
-	"EMBUSCADE - hostiles sur le flanc !": "AMBUSH - hostiles on the flank!",
+	"ALARME — tous les ennemis sont maintenant en alerte":
+		"ALARM — all enemies are now alert",
+	"SIRÈNE active — renforts imminents":
+		"SIREN active — reinforcements imminent",
+	"COUPURE DE COURANT — visibilité réduite":
+		"POWER CUT — reduced visibility",
+	"ASCENSEUR BLOQUÉ — passage coupé": "ELEVATOR BLOCKED — route cut",
+	"FUMÉE — visibilité réduite": "SMOKE — reduced visibility",
+	"EFFONDREMENT — planquez-vous !": "COLLAPSE — take cover!",
+	"EMBUSCADE — hostiles sur le flanc !": "AMBUSH — hostiles on the flank!",
 	"RECHARGEMENT...": "RELOADING...",
 	"CHARGE IMMINENTE": "CHARGE IMMINENT",
-	"Zones sécurisées - rejoignez le point d'extraction (balise verte)":
-		"Zones secured - reach the extraction point (green beacon)",
+	"Zones sécurisées — rejoignez le point d'extraction (balise verte)":
+		"Zones secured — reach the extraction point (green beacon)",
 	"EXTRACTION OUVERTE": "EXTRACTION OPEN",
 	"ITINÉRAIRE ALTERNATIF — coursive ouest — bonus":
 		"ALTERNATE ROUTE — west catwalk — bonus",
@@ -243,10 +243,10 @@ const EN_TEMPLATES := {
 	" • Défi : %s": " • Challenge: %s",
 	" (%d s)": " (%d s)",
 	"Météo : %s%s": "Weather: %s%s",
-	"CIVIL SECOURU - %d/3": "CIVILIAN RESCUED - %d/3",
-	"Zone %d - %d hostiles": "Zone %d - %d hostiles",
-	"RENFORTS - %d hostiles supplémentaires":
-		"REINFORCEMENTS - %d extra hostiles",
+	"CIVIL SECOURU — %d/3": "CIVILIAN RESCUED — %d/3",
+	"Zone %d — %d hostiles": "Zone %d — %d hostiles",
+	"RENFORTS — %d hostiles supplémentaires":
+		"REINFORCEMENTS — %d extra hostiles",
 	"INTÉGRITÉ %d%%": "INTEGRITY %d%%",
 	"Secteur %s — protégez les civils": "Sector %s — protect the civilians",
 	"Secteur RUE — protégez les civils": "Sector STREET — protect the civilians",

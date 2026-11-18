@@ -60,8 +60,15 @@ func _check_localisation() -> void:
 	_expect(Loc.t("Partie libre") == "Free run", "EN label missing: challenge name")
 	_expect(Loc.t("MUNITIONS %d / %d") % [12, 30] == "AMMO 12 / 30",
 		"EN ammo template not translated")
-	_expect(Loc.t("Zone 2 - 5 hostiles") == "Zone 2 - 5 hostiles",
+	# The modes use an em dash (U+2014) in these lines; the template keys must
+	# match it exactly or the translation silently falls back to French.
+	_expect(Loc.t("Zone 2 — 5 hostiles") == "Zone 2 — 5 hostiles",
 		"EN dynamic template not matched")
+	_expect(Loc.t("CIVIL SECOURU — 2/3") == "CIVILIAN RESCUED — 2/3",
+		"EN em-dash template not matched")
+	_expect(Loc.t("RENFORTS — 3 hostiles supplémentaires") ==
+		"REINFORCEMENTS — 3 extra hostiles",
+		"EN em-dash reinforcement template not matched")
 	_expect(Loc.t("INTÉGRITÉ 75%") == "INTEGRITY 75%",
 		"EN percent template not matched")
 	_expect(Loc.t("REPRENDRE") == "RESUME", "EN label missing: REPRENDRE")
