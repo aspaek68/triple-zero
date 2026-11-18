@@ -498,6 +498,7 @@ func _build_animations() -> void:
 	lib.add_animation("aim_walk", _loco_anim(1.0, 1.0, true))
 	lib.add_animation("aim_run", _loco_anim(0.66, 1.7, true))
 	lib.add_animation("death", _death_anim())
+	lib.add_animation("hit", _hit_anim())
 	_anim.add_animation_library("", lib)
 
 
@@ -575,6 +576,20 @@ func aim(_pitch: float) -> void:
 	_aiming = true
 
 
+func _hit_anim() -> Animation:
+	var anim := Animation.new()
+	anim.length = 0.45
+	anim.loop_mode = Animation.LOOP_NONE
+	_rot(anim, "hips", [[0.0, 0.0], [0.1, -0.4], [0.45, 0.0]])
+	_rot(anim, "spine", [[0.0, 0.0], [0.1, 0.6], [0.45, 0.0]])
+	_rot(anim, "chest", [[0.0, 0.0], [0.1, 0.3], [0.45, 0.0]])
+	_rot(anim, "arm_l", [[0.0, 0.0], [0.1, 0.8], [0.45, 0.0]])
+	_rot(anim, "arm_r", [[0.0, 0.0], [0.1, 0.8], [0.45, 0.0]])
+	_rot(anim, "head", [[0.0, 0.0], [0.1, -0.3], [0.45, 0.0]])
+	return anim
+
+
+## Plays a hit stagger once.
 ## Plays the death fall once; the actor keeps the final pose.
 func die() -> void:
 	if _dead:
@@ -583,6 +598,14 @@ func die() -> void:
 	if _anim and _anim.has_animation("death"):
 		_anim.speed_scale = 1.0
 		_anim.play("death", 0.1)
+
+
+## Plays a hit stagger once (blends back to locomotion afterwards).
+func hit_react() -> void:
+	if _dead or _anim == null:
+		return
+	if _anim.has_animation("hit"):
+		_anim.play("hit", 0.05)
 
 
 ## Briefly flashes the body white to signal a hit.
