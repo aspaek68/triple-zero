@@ -1,50 +1,80 @@
 # Animation — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/animation/index.html
-- **Fetched**: 2026-11-18T03:05:08
+- **Fetched**: 2026-11-18T14:21:54
 
 # Animation in Godot Engine
-================================
+=====================================
 
-## Introduction
+## Overview
+------------
 
-The Godot Engine provides a powerful animation system, allowing for the creation of complex animations and interactions. This section covers the basics of using the animation features in Godot.
-
-## Animation Nodes and Editors
-
-Godot provides two animation nodes:
-
-*   **AnimationTree**: A node that contains a tree-like structure of animations, allowing for complex state transitions and animation combinations.
-*   **AnimationPlayer**: A node that plays and controls animations.
-
-The animation editor is used to create and edit animations. It provides a visual interface for designing and fine-tuning animations.
+This section of the Godot Engine documentation covers the basics of animation, including animation track types, cutout animation, 2D skeletons, and more.
 
 ## Animation Track Types
+-------------------------
 
-Godot supports several animation track types, including:
+*   **Cutout Animation**: A type of animation where the object is replaced with a new texture frame for each animation frame.
+*   **2D Skeletons**: Used for 2D animations, allowing for more complex movements and interactions.
 
-*   **Cutout Animation**: An animation that is stored as a series of predefined keyframes.
-*   **2D Skeletons**: A 2D representation of a character's skeletal structure, used for animations.
+## Using AnimationTree
+---------------------
 
-## Playing Videos and Creating Movies
+*   The AnimationTree is a visual representation of the animation.
+*   It allows for easy creation and editing of animations.
 
-Godot provides features for playing videos and creating movies. This includes:
+## Playing Videos
+-----------------
 
-*   **Video Player**: A node that plays videos.
-*   **Movie Exporter**: A feature that allows for the export of animations as movies.
+*   Godot supports playing videos as animations.
+*   This can be used for creating movie-like animations.
 
-## API Documentation
+## Creating Movies
+-----------------
 
-For more information on the animation features and APIs, please see the following:
+*   Godot's animation system allows for creating movies.
+*   This can be useful for creating complex animations or for using the animations in other projects.
 
-*   [AnimationTree](https://docs.godotengine.org/en/stable/animation/animationtree.html)
-*   [AnimationPlayer](https://docs.godotengine.org/en/stable/animation/animationplayer.html)
-*   [Importing 3D Scenes](https://docs.godotengine.org/en/stable/animation/importing_3d_scenes.html)
+## Importing 3D Scenes
+----------------------
 
-## Example Use Cases
+*   For information on importing animations from a 3D model, please see the [Importing 3D Scenes](https://docs.godotengine.org/en/stable/tutorials/animation/3d_animation.html) tutorial.
 
-*   Create a cutout animation using the AnimationEditor.
-*   Use the AnimationTree to combine multiple animations and create complex state transitions.
-*   Play a video using the Video Player node.
+## APIs
+-----
 
-By following this guide, you can get started with creating animations and interactions in Godot Engine.
+*   `AnimationTree`: The AnimationTree API allows for creating and editing animations programmatically.
+*   `Animation`: The Animation API allows for playing and controlling animations.
+
+## Examples
+-----------
+
+### Example 1: Creating a Cutout Animation
+
+```gdscript
+var animation = Animation.new()
+animation.add_animation("animation", 0, 1, Vector2(10, 10), Vector2(20, 20))
+animation.add_animation("animation", 1, 2, Vector2(10, 20), Vector2(20, 30))
+animation.add_animation("animation", 2, 3, Vector2(10, 30), Vector2(20, 40))
+```
+
+### Example 2: Playing a Video
+
+```gdscript
+var video = VideoPlayer.new()
+video.play("path/to/video")
+```
+
+### Example 3: Creating a Movie
+
+```gdscript
+var animation = Animation.new()
+animation.add_animation("animation", 0, 1, Vector2(10, 10), Vector2(20, 20))
+animation.add_animation("animation", 1, 2, Vector2(10, 20), Vector2(20, 30))
+animation.add_animation("animation", 2, 3, Vector2(10, 30), Vector2(20, 40))
+var movie = MoviePlayer.new()
+movie.add_animation("animation")
+movie.play("path/to/movie")
+```
+
+Note: The code examples provided are in GDScript, the primary scripting language used in Godot Engine.

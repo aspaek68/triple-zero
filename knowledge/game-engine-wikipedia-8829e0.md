@@ -1,57 +1,42 @@
 # Game engine - Wikipedia
 
 - **Source**: https://en.wikipedia.org/wiki/Game_engine
-- **Fetched**: 2026-11-18T03:10:33
+- **Fetched**: 2026-11-18T14:26:30
 
 **Game Engine**
 ================
 
-A game engine is a software framework primarily designed for the development of video games, and generally includes relevant libraries and support programs.
+A game engine is a software framework primarily designed for the development of video games, including relevant libraries and support programs.
 
-**Key Facts**
+**Key Facts:**
 
 * Game engines provide a suite of visual development tools and features for developing video games.
-* They offer core functionalities such as:
-	+ 2D or 3D rendering
-	+ Physics engine
-	+ Audio engine
-	+ Scripting
-	+ Animation
-	+ Artificial intelligence
-	+ Networking
-	+ Streaming
-	+ Memory management
-	+ Threads
-	+ Localization support
-	+ Scene graph
-	+ Cinematics
-* Game engines allow for rapid development of games in a data-driven manner.
+* They cover core functionalities such as 2D/3D rendering, physics, audio, scripting, animation, AI, networking, streaming, memory management, threads, localization support, and scene graphs.
+* Game engines are often used to create and publish video games across platforms, including desktops, mobile devices, video game consoles, and other types of computers.
 
-**APIs and Examples**
+**APIs and Examples:**
 
-* Some popular game engines include:
+* **Game Engine APIs:**
+	+ Godot Engine API
+	+ Unity Engine API
+	+ Unreal Engine API
+	+ CryEngine API
+* **Examples of Game Engines:**
 	+ Unity
 	+ Unreal Engine
 	+ Godot
 	+ CryEngine
-* APIs for game engines can vary, but common ones include:
-	+ C++ and C# for Unity
-	+ C++ and Blueprints for Unreal Engine
-	+ C and Python for Godot
-	+ C and C++ for CryEngine
+	+ Construct 3
 
-**Features and Benefits**
+**Purpose:**
 
-* Game engines provide a flexible and reusable software platform that provides all the core functionality needed to develop a game application.
-* They offer platform abstraction, allowing the same game to run on various platforms with few, if any, changes made to the game source code.
-* Game engines can reduce costs, complexities, and time-to-market, making them critical for the competitive video game industry.
+* Game engines provide a suite of visual development tools and reusable software components to ease game development and reduce costs, complexities, and time-to-market.
+* They offer platform abstraction, allowing the same game to run on various platforms with few changes to the source code.
+* Game engines are designed to be flexible and extensible, allowing developers to customize and extend the engine with more specialized components.
 
-**Types of Game Engines**
+**Key Features:**
 
-* Middleware: a flexible and reusable software platform that provides all the core functionality needed to develop a game application.
-* Component-based architecture: allows specific systems in the engine to be replaced or extended with more specialized game-middleware components.
-
-**Industry and Research**
-
-* Game engines are used in the development of video games across platforms, including desktops, mobile devices, video game consoles, and other types of computers.
-* Game engines are often used in computer science research platforms.
+* **Robust Software Suites:** Many game engines provide facilities that ease development, such as graphics, sound, physics, and AI functions.
+* **Platform Abstraction:** Game engines allow the same game to run on various platforms with few, if any, changes to the source code.
+* **Component-Based Architecture:** Some game engines are designed with a component-based architecture that allows specific systems to be replaced or extended with more specialized components.
+* **Extensibility:** Game engines often provide extensibility, allowing developers to customize and extend the engine with more specialized components.

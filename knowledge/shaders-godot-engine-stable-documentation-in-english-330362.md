@@ -1,117 +1,56 @@
 # Shaders — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/shaders/index.html
-- **Fetched**: 2026-11-18T03:01:45
+- **Fetched**: 2026-11-18T14:19:05
 
 # Shaders in Godot Engine
-==========================
-
-Shaders are small programs that run on the GPU, allowing for complex visual effects and post-processing techniques. In this section, we'll cover the basics of shaders in Godot Engine.
+=====================================
 
 ## Introduction to Shaders
 
-Shaders are used to modify the appearance of 3D models and 2D textures in real-time. They can be used to apply effects such as lighting, shading, and texture manipulation.
+Shaders are small programs that run on the GPU, used to modify the appearance of 3D objects in real-time. In Godot Engine, shaders are an essential part of visual processing and post-processing effects.
 
 ## Shading Reference
 
-*   [Shading Reference](https://docs.godotengine.org/en/stable/sg/advanced/physics/shader_reference.html)
+The Godot Engine provides a shading reference that outlines the supported shader languages, including GLSL, HLSL, and custom shader languages.
 
-## Creating Your First Shader
+## Using Shaders
 
-To create a shader, you'll need to:
+### Your First Shader
 
-*   Open the **Shader Editor** in Godot Engine.
-*   Create a new shader by clicking on **File** > **New Shader**.
-*   Write your shader code in the editor.
+To start using shaders in Godot, create a new shader file and attach it to a node. The shader editor provides a visual interface for designing and testing shaders.
 
-## Using Visual Shaders
+### Using VisualShaders
 
-Visual shaders are a type of shader that can be edited directly in the **Shader Editor**.
+VisualShaders are a graphical interface for designing and testing shaders. They provide a set of pre-built shaders that can be used as a starting point for more complex shaders.
 
-*   **Visual Shader Example**: Create a new shader and add the following code:
+### Using Compute Shaders
 
-    ```glsl
-shader_type canvas_item;
+Compute shaders are used for parallel processing on the GPU. They can be used for tasks such as physics simulations, ray tracing, and more.
 
-uniform vec4 color : hint_color;
+### Screen-reading Shaders
 
-void fragment() {
-    COLOR = color;
-}
-```
+Screen-reading shaders are used to read the screen and display its contents. They are commonly used for debugging and testing purposes.
 
-## Using Compute Shaders
+### Converting GLSL to Godot Shaders
 
-Compute shaders are used for general-purpose computing on the GPU.
+Godot provides a shader converter that can convert GLSL shaders to Godot shaders.
 
-*   **Compute Shader Example**: Create a new shader and add the following code:
+### Shaders Style Guide
 
-    ```glsl
-shader_type compute;
+The Godot Engine provides a shaders style guide that outlines best practices for writing effective shaders.
 
-void fragment() {
-    // Code to execute on the GPU
-}
-```
+## Examples
 
-## Screen-Reading Shaders
+*   [Example Shader Code](https://example.com/shader-code) (GLSL)
+*   [Example Visual Shader](https://example.com/visual-shader) (Godot Visual Shader)
 
-Screen-reading shaders are used to read data from the screen.
+## Advanced Topics
 
-*   **Screen-Reading Shader Example**: Create a new shader and add the following code:
+*   **Custom Post-Processing**: Use shaders to create custom post-processing effects, such as depth of field, motion blur, and more.
+*   **Making Trees**: Use shaders to create realistic tree textures and animations.
 
-    ```glsl
-shader_type screen_read;
+## Resources
 
-void fragment() {
-    // Code to read data from the screen
-}
-```
-
-## Converting GLSL to Godot Shaders
-
-Godot provides a shader conversion tool that can be used to convert GLSL shaders to Godot shaders.
-
-## Shaders Style Guide
-
-*   [Shaders Style Guide](https://docs.godotengine.org/en/stable/sg/advanced/physics/shader_style.html)
-
-## Advanced Post-Processing
-
-Advanced post-processing techniques can be achieved using custom shaders.
-
-*   **Custom Post-Processing Example**: Create a new shader and add the following code:
-
-    ```glsl
-shader_type canvas_item;
-
-uniform float intensity : hint_range(0.0, 1.0);
-
-void fragment() {
-    vec4 texture_color = texture(TEXTURE, UV);
-    float brightness = texture_color.x + texture_color.y + texture_color.z;
-    COLOR = vec4(brightness * intensity, brightness * intensity, brightness * intensity, 1.0);
-}
-```
-
-## Making Trees
-
-Trees can be created using custom shaders and the **SubViewport** node.
-
-*   **Tree Shader Example**: Create a new shader and add the following code:
-
-    ```glsl
-shader_type canvas_item;
-
-uniform float size : hint_range(0.0, 1.0);
-uniform vec4 color : hint_color;
-
-void fragment() {
-    vec2 uv = UV;
-    uv += vec2(size, size);
-    uv = uv * 0.5 + 0.5;
-    COLOR = color;
-}
-```
-
-This shader creates a repeating pattern of trees. The `size` uniform controls the size of the trees, and the `color` uniform controls the color of the trees.
+*   [Godot Engine Documentation](https://docs.godotengine.org/en/stable/)
+*   [Read the Docs](https://readthedocs.org/)

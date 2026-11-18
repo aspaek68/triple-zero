@@ -1,121 +1,71 @@
 # The Python Tutorial — Python 3.15.2 documentation
 
 - **Source**: https://docs.python.org/3/tutorial/index.html
-- **Fetched**: 2026-11-18T03:09:28
+- **Fetched**: 2026-11-18T14:25:22
 
 **Python Tutorial**
 ================
 
-Table of Contents
------------------
-
-1. [Whetting Your Appetite](#whetting-your-appetite)
-2. [Using the Python Interpreter](#using-the-python-interpreter)
-3. [An Informal Introduction to Python](#an-informal-introduction-to-python)
-4. [Control Flow Tools](#control-flow-tools)
-5. [Functions and Modules](#functions-and-modules)
-6. [Data Structures](#data-structures)
-7. [Modules](#modules)
-8. [Input and Output](#input-and-output)
-9. [Errors and Exceptions](#errors-and-exceptions)
-10. [Classes](#classes)
-11. [Brief Tour of the Standard Library](#brief-tour-of-the-standard-library)
-
-**Whetting Your Appetite**
--------------------------
-
-The Python Tutorial is designed for programmers new to the Python language, not beginners who are new to programming. Python is an easy-to-learn, powerful programming language with efficient high-level data structures and a simple approach to object-oriented programming.
-
-**Using the Python Interpreter**
--------------------------------
-
-### Invoking the Interpreter
-
-*   The Python interpreter can be invoked from the command line or terminal.
-*   Argument passing and interactive mode can be used to customize the interpreter experience.
-*   The interpreter's environment can be understood by examining the source code encoding.
-
-**An Informal Introduction to Python**
-------------------------------------
-
-### Using Python as a Calculator
-
-*   Python can be used as a calculator to evaluate mathematical expressions.
-*   Basic data types such as numbers and text can be used in calculations.
-*   Lists can be used to store and manipulate data.
-
-### First Steps Towards Programming
-
-*   Python provides basic control flow tools such as `if` and `for` statements.
-*   The `range()` function can be used to generate sequences.
-*   `break` and `continue` statements can be used to control loop iterations.
-
-**Functions and Modules**
--------------------------
-
-*   Functions can be defined using the `def` statement.
-*   Functions can take arguments using default values and keyword arguments.
-*   Modules can be imported using the `import` statement.
-*   Modules can be executed as scripts using the `exec()` function.
-
-**Data Structures**
------------------
-
-*   Lists can be used to store and manipulate data.
-*   Tuples can be used to store immutable data.
-*   Sets can be used to store unique data.
-*   Dictionaries can be used to store key-value pairs.
-
-**Modules**
+**Overview**
 ------------
 
-*   Modules can be imported using the `import` statement.
-*   Modules can be executed as scripts using the `exec()` function.
-*   The `dir()` function can be used to list module members.
+This tutorial is designed for programmers new to the Python language. It provides an informal introduction to the basic concepts and features of Python, including its syntax, data structures, and modules. The tutorial is not comprehensive, but it will give you a good idea of the language's flavor and style.
 
-**Input and Output**
-------------------
+**Installing Python**
+--------------------
 
-*   Fancier output formatting can be achieved using formatted string literals and the `format()` method.
-*   Manual string formatting can be achieved using the `%` operator.
-*   Old string formatting can be achieved using the `str.format()` method.
-*   Reading and writing files can be achieved using the `open()` function and file objects.
+The Python interpreter and standard library are freely available in source or binary form for all major platforms from the Python website: https://www.python.org/. You can also find distributions of and pointers to many free third-party Python modules, programs, and tools.
 
-**Errors and Exceptions**
--------------------------
+**Tutorial Structure**
+--------------------
 
-*   Syntax errors can be handled using try-except blocks.
-*   Exceptions can be raised and handled using the `raise` and `try`-`except` statements.
-*   Exception chaining can be used to handle multiple exceptions.
-*   User-defined exceptions can be created using the `Exception` class.
-*   Defining clean-up actions can be achieved using the `try`-`except` block.
+The tutorial is divided into several sections:
 
-**Classes**
-------------
+1. **Whetting Your Appetite**: Introduction to Python and its features.
+2. **Using the Python Interpreter**: Invoking the interpreter, argument passing, and interactive mode.
+3. **An Informal Introduction to Python**: Using Python as a calculator, first steps towards programming, and control flow tools.
+4. **Data Structures**: Lists, tuples, sets, dictionaries, and loop techniques.
+5. **Modules**: Executing modules as scripts, standard modules, and packages.
+6. **Input and Output**: Fancier output formatting, reading and writing files, and input and output operations.
+7. **Errors and Exceptions**: Handling syntax errors, exceptions, and user-defined exceptions.
+8. **Classes**: Defining classes, inheritance, and private variables.
+9. **Brief Tours of the Standard Library**: Introduction to the standard library, including operating system interface, file wildcards, and more.
 
-*   Classes can be defined using the `class` statement.
-*   Class objects can be created using the `()` operator.
-*   Instance objects can be created using the `()` operator.
-*   Method objects can be created using the `()` operator.
-*   Class and instance variables can be defined using the `self` parameter.
+**Key APIs and Concepts**
+------------------------
 
-**Brief Tour of the Standard Library**
------------------------------------------
+* `dir()`: Returns a list of valid attributes for an object.
+* `exec()`: Executes a Python expression.
+* `input()`: Reads user input.
+* `print()`: Prints output.
+* `try`-`except`: Handles exceptions.
+* `class`: Defines a class.
+* `def`: Defines a function.
+* `lambda`: Defines a small anonymous function.
 
-*   The standard library provides a wide range of modules and functions for various tasks.
-*   Modules can be imported using the `import` statement.
-*   Functions can be called using the `()` operator.
-*   Modules can be used to interact with the operating system, file system, and internet.
+**Example Code**
+---------------
 
-**Virtual Environments and Packages**
-----------------------------------------
+```python
+# Basic print statement
+print("Hello, World!")
 
-*   Virtual environments can be created using the `venv` module.
-*   Packages can be managed using the `pip` module.
+# Variable assignment
+x = 5
 
-**What Now?**
-----------------
+# Conditional statement
+if x > 10:
+    print("x is greater than 10")
+else:
+    print("x is less than or equal to 10")
 
-*   The Python Tutorial provides a comprehensive introduction to the Python language and standard library.
-*   The tutorial covers basic concepts, data structures, modules, and control flow tools.
-*   The tutorial provides examples and exercises to help readers practice and apply their knowledge.
+# List comprehension
+numbers = [1, 2, 3, 4, 5]
+squared_numbers = [n**2 for n in numbers]
+print(squared_numbers)
+```
+
+**Next Steps**
+--------------
+
+After completing this tutorial, you will be able to read and write Python modules and programs. You will also be ready to learn more about the various Python library modules described in the Python standard library.

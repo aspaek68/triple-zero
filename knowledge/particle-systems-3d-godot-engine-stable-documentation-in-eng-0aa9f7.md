@@ -1,88 +1,67 @@
 # Particle systems (3D) — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/3d/particles/index.html
-- **Fetched**: 2026-11-18T03:01:12
+- **Fetched**: 2026-11-18T14:18:40
 
-**Particle Systems (3D) in Godot Engine**
-=====================================
+# Particle Systems (3D) in Godot Engine
+=====================================================
 
-**Introduction**
+Godot Engine provides a powerful tool for simulating complex physical effects using particle systems. This documentation covers the basics of 3D particle systems, including their usage, properties, and advanced features.
+
+## Introduction
+
+Particle systems are ideal for creating dynamic and organic behavior, adding "life" to your scenes. They consist of two main parts: particles and emitters. Particles are the visible part of the system, and emitters are responsible for creating and controlling the particles.
+
+## Types of Particle Systems
+
+Godot Engine provides two types of 3D particle systems:
+
+*   `GPUParticles3D`: Processed on the GPU, these systems are more flexible and performant, but less compatible with older hardware.
+*   `CPUParticles3D`: Processed on the CPU, these systems are less flexible and performant, but provide better support for older devices and mobile phones.
+
+## Particle Attractors
+
+Particle attractors apply forces to particles and control their movement. The following nodes are available:
+
+*   `GPUParticlesAttractorBox3D`: Attracts particles to a box-shaped area.
+*   `GPUParticlesAttractorSphere3D`: Attracts particles to a sphere-shaped area.
+*   `GPUParticlesAttractorVectorField3D`: Attracts particles to a vector field.
+
+## Particle Collisions
+
+Particle collisions allow particles to interact with the environment. The following nodes are available:
+
+*   `GPUParticlesCollisionBox3D`: Simulates collisions with a box-shaped area.
+*   `GPUParticlesCollisionSphere3D`: Simulates collisions with a sphere-shaped area.
+*   `GPUParticlesCollisionSDF3D`: Simulates collisions with a signed distance field (SDF).
+*   `GPUParticlesCollisionHeightField3D`: Simulates collisions with a heightmap.
+
+## Basic Usage
+
+To create a 3D particle system, follow these steps:
+
+1.  Create a new particle system node.
+2.  Set the particle flags, spawn rate, and acceleration.
+3.  Add emitters to the system.
+4.  Customize the process material.
+5.  Add particle attractors and collisions as needed.
+
+## Advanced Topics
+
+*   **Particle Sub-Emitters**: Use sub-emitters to create multiple particles from a single emitter.
+*   **3D Particle Trails**: Create trails for particles using the `GPUParticlesTrail3D` node.
+*   **Particle Turbulence**: Add turbulence to particles using the `GPUParticlesTurbulence3D` node.
+*   **3D Particle Attractors**: Use attractors to control particle movement.
+*   **3D Particle Collisions**: Use collisions to simulate particle interactions with the environment.
+
+Example Use Case
 ---------------
 
-Particle systems are a powerful tool in Godot Engine for simulating complex physical effects, adding dynamic and organic behavior to scenes, and creating realistic simulations of fire, sparks, smoke, and magical effects.
+Create a fire effect using particle systems:
 
-**Overview**
-------------
-
-A particle system consists of two main parts: particles and emitters. Particles are the visible part of the system, while emitters are responsible for creating the particles.
-
-**Types of Particle Systems**
------------------------------
-
-*   **GPUParticles3D**: GPU-accelerated particle systems that run on the GPU, providing high performance and flexibility.
-*   **CPUParticles3D**: CPU-based particle systems that are less flexible but work on a wider range of hardware.
-
-**Particle Properties and Behavior**
---------------------------------------
-
-*   **Particles**: Can be randomized to create organic behavior, with attributes such as size, speed, movement direction, and color.
-*   **Emitters**: Can have a shape, controlling where and how particles are spawned.
-*   **Attractors**: Nodes that apply a force to particles, pulling them closer or pushing them away.
-*   **Collision Nodes**: Nodes that create complex collision behavior, such as collision with boxes, spheres, or heightmaps.
-
-**Basic Usage**
-----------------
-
-*   Creating a 3D particle system
-*   Setting properties, such as spawn interval, acceleration, display, and collision
-*   Customizing the process material and particle flags
-
-**Advanced Topics**
--------------------
-
-*   **Particle Sub-Emitters**: Creating sub-emitters to control the behavior of particles
-*   **3D Particle Trails**: Creating trails of particles for a more realistic effect
-*   **Particle Turbulence**: Adding randomization to particle behavior for a more organic effect
-*   **3D Particle Attractors**: Using attractor nodes to create complex particle behavior
-*   **3D Particle Collisions**: Using collision nodes to create complex collision behavior
-*   **Complex Emission Shapes**: Creating complex emission shapes using custom shaders and material properties.
-
-**APIs and Examples**
-----------------------
-
-*   `GPUParticles3D`
-*   `CPUParticles3D`
-*   `GPUParticlesAttractorBox3D`
-*   `GPUParticlesAttractorSphere3D`
-*   `GPUParticlesAttractorVectorField3D`
-*   `GPUParticlesCollisionBox3D`
-*   `GPUParticlesCollisionSphere3D`
-*   `GPUParticlesCollisionSDF3D`
-*   `GPUParticlesCollisionHeightField3D`
-*   Custom shaders and material properties for advanced usage.
-
-**Example Use Case**
---------------------
-
-```gdscript
-# Create a GPUParticles3D system
-var particles = GPUParticles3D.new()
-
-# Set properties
-particles.set_spawn_interval(1.0)
-particles.set_acceleration(Vector3(0, 0, 1))
-particles.set_display(true)
-particles.set_collision(true)
-
-# Add emitters
-var emitter = Node3D.new()
-emitter.add_child(particles)
-
-# Create a custom shader for the particles
-var shader = ShaderMaterial.new()
-shader.set_shader_type(ShaderType.ShaderMaterial)
-shader.set_shader_code(code)
-
-# Set the shader as the material for the particles
-particles.set_material(shader)
-```
+*   Create a new particle system node.
+*   Add an emitter node with a box-shaped area to simulate the fire's base.
+*   Add a `GPUParticlesAttractorSphere3D` node to attract particles to the center of the fire.
+*   Add a `GPUParticlesCollisionBox3D` node to simulate collisions with the surrounding environment.
+*   Customize the process material to control the particle's size, speed, and color.
+*   Use particle turbulence and trails to create a realistic effect.

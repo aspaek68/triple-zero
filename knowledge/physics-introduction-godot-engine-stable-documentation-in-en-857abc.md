@@ -1,77 +1,47 @@
 # Physics introduction — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/physics/physics_introduction.html
-- **Fetched**: 2026-11-18T03:04:23
+- **Fetched**: 2026-11-18T14:21:03
 
-# Physics Introduction in Godot Engine
-=====================================
+Physics Introduction
+=====================
 
-Godot Engine provides a robust physics system for 2D and 3D game development. This guide introduces the four collision object types, physics material, collision shapes, and collision layers and masks.
+Godot Engine provides a powerful physics system to simulate collisions between objects in your game. In this guide, we will explore the four collision object types, how they work, and when to choose one over another.
 
-## Collision Object Types
-------------------------
+### Collision Object Types
 
-Godot offers four collision object types that extend `CollisionObject2D`:
+Godot offers four types of collision objects:
 
-### Area2D
+1. **Area2D**: Provides detection and influence. Can detect when objects overlap and emit signals when bodies enter or exit. Can also override physics properties, such as gravity or damping, in a defined area.
+2. **StaticBody2D**: A static body that participates in collision detection but does not move in response to the collision. Often used for objects that are part of the environment or that do not need dynamic behavior.
+3. **RigidBody2D**: Implements simulated 2D physics. You apply forces to it (gravity, impulses, etc.) and the physics engine calculates the resulting movement.
+4. **CharacterBody2D**: A body that provides collision detection but no physics. All movement and collision response must be implemented in code.
 
-* Provides detection and influence
-* Can detect when objects overlap and emit signals when bodies enter or exit
-* Can override physics properties, such as gravity or damping, in a defined area
+### Physics Material
 
-### StaticBody2D
+Static bodies and rigid bodies can be configured to use a `PhysicsMaterial`, which allows adjusting the friction and bounce of an object and setting whether it's absorbent and/or rough.
 
-* A static body that participates in collision detection but does not move in response to collisions
-* Most often used for objects that are part of the environment or that do not need dynamic behavior
+### Collision Shapes
 
-### RigidBody2D
+A physics body can hold multiple `Shape2D` objects as children, which are used to define the object's collision bounds and detect contact with other objects.
 
-* Implements simulated 2D physics
-* You do not control a `RigidBody2D` directly, but instead apply forces (gravity, impulses, etc.) and let the physics engine calculate the resulting movement
+### Physics Process Callback
 
-### CharacterBody2D
+The physics engine runs at a fixed rate (default 60 iterations per second). To ensure physics-related code runs at this rate, use the `Node._physics_process()` callback. This method is called before each physics step and passes a `delta` parameter, which is the time passed in seconds since the last step.
 
-* A body that provides collision detection but no physics
-* All movement and collision response must be implemented in code
+### Collision Layers and Masks
 
-## Physics Material
-------------------
+The collision layer system allows you to build complex interactions between objects. Each collision object has 32 different physics layers it can interact with. Use `collision_layer` and `collision_mask` properties to configure layer interactions.
 
-Static bodies and rigid bodies can be configured to use a `PhysicsMaterial`. This allows adjusting the friction and bounce of an object, as well as setting if it's absorbent and/or rough.
+Example Use Case
+---------------
 
-## Collision Shapes
------------------
+```gdscript
+extends Area2D
 
-A physics body can hold any number of `Shape2D` objects as children. These shapes are used to define the object's collision bounds and detect contact with other objects.
+func _process(delta):
+    if get_overlapping_bodies() != []:
+        print("Collision detected!")
+```
 
-* The most common way to assign a shape is by adding a `CollisionShape2D` or `CollisionPolygon2D` as a child of the object
-* Be careful to never scale your collision shapes in the editor; instead, use the size handles to change the size of the collision shape
-
-## Physics Process Callback
--------------------------
-
-The physics engine runs at a fixed rate (a default of 60 iterations per second). It is essential that all physics-related code runs at this fixed rate.
-
-* Godot differentiates between physics and idle processing
-* Code that runs each frame is called idle processing, while code that runs on each physics tick is called physics processing
-* Godot provides two different callbacks: `Node._physics_process()` for physics processing and `Node._process()` for idle processing
-
-## Collision Layers and Masks
----------------------------
-
-One of the most powerful, but frequently misunderstood, collision features is the collision layer system.
-
-* Each `CollisionObject2D` has 32 different physics layers it can interact with
-* The `collision_layer` property describes the layers that the object appears in, while the `collision_mask` property describes what layers the body will scan for collisions
-* These properties can be configured via code or by editing them in the Inspector
-* Keeping track of what you're using each layer for can be difficult, so it's recommended to assign names to the layers you're using
-
-## Example
----------
-
-Create a simple game with four node types: Walls, Player, Enemy, and Coin. Use collision layers and masks to control the interactions between these objects.
-
-* Name layers 1-4 "walls", "player", "enemies", and "coins" in the Project Settings > Layer Names > 2D Physics
-* Place each node type in its respective layer using the "Layer" property
-* Set the `collision_mask` property to allow collisions between Player and Walls, and Enemy and Walls
-* Set the `collision_layer` property to allow collisions between Player and Enemy
+In this example, the `Area2D` node detects collisions with other bodies on the same layer (default layer 1).

@@ -1,85 +1,63 @@
 # CSS: Cascading Style Sheets | MDN
 
 - **Source**: https://developer.mozilla.org/en-US/docs/Web/CSS
-- **Fetched**: 2026-11-18T03:10:02
+- **Fetched**: 2026-11-18T14:25:53
 
-**CSS: Cascading Style Sheets | MDN**
-=====================================
+# CSS: Cascading Style Sheets | MDN
 
-**What is CSS?**
-----------------
+## Introduction
 
-CSS (Cascading Style Sheets) is a stylesheet language used to describe the presentation of a document written in HTML or XML. It defines how elements should be rendered on screen, on paper, in speech, or on other media.
+CSS (Cascading Style Sheets) is a stylesheet language used to describe the presentation of a document written in HTML or XML, including XML dialects such as SVG, MathML, or XHTML. It describes how elements should be rendered on screen, on paper, in speech, or on other media.
 
-**Key Facts**
--------------
+## Key Facts
 
-* CSS is a standardized language across web browsers, as specified by W3C.
-* The development of CSS has been divided into separate modules, with each module having its own version number (e.g. CSS Color Module Level 5).
-* CSS is among the core languages of the open web.
+* CSS is among the core languages of the open web and is standardized across web browsers according to W3C specifications.
+* The development of CSS has increased significantly, and it is now released in individual modules with version numbers.
+* CSS modules have separate version numbers, such as CSS Color Module Level 5.
 
-**CSS Basics**
--------------
+## Beginner's Tutorials
 
-### Syntax
+* **Your first website: Styling the content**: A brief tour of what CSS is and how to use it.
+* **CSS styling basics**: Covers CSS fundamentals, including syntax, features, and techniques.
+* **CSS text styling**: Examines setting font, boldness, italics, line and letter spacing, and drop shadows.
+* **CSS layout**: Covers floats, positioning, modern layout tools, and building responsive designs.
 
-* CSS syntax consists of declarations and rulesets.
-* Properties can be used to set values for elements.
+## Guides
 
-### Features
+* **CSS syntax**: Includes declarations and rulesets, specificity, inheritance, and cascade.
+* **Specificity**: Explains how CSS selectors are evaluated.
+* **Media**: Covers media queries and container queries.
+* **Numeric**: Examines numeric data types and formatting.
+* **Textual**: Examines textual data types and formatting.
+* **Box model**: Explains the box model and margin collapse.
+* **Containing block**: Covers containing blocks and stacking.
+* **Property value processing**: Explains how CSS property values are processed.
+* **Shorthand properties**: Covers flexible box, multi-column, and grid layouts.
+* **Animations**: Covers animations, transitions, and transforms.
 
-* CSS includes features such as text styling, layout, and animations.
-* CSS also includes shorthand properties and flexible box layouts.
+## Tools
 
-### Examples
+* **Border-image generator**: Generates CSS border-image values.
+* **Border-radius generator**: Generates CSS border-radius effects.
+* **Box-shadow generator**: Adds box-shadow effects to CSS objects.
+* **Color format converter**: Converts colors in any CSS color format.
+* **Color mixer**: Mixes two colors in any color space using the color-mix() function.
+* **Shape generator**: Defines coordinates and syntax for basic shapes.
 
-* Basic text styling: `p { font-size: 16px; }`
-* Basic layout: `div { float: left; width: 50%; }`
+## Resources
 
-### Resources
+* **W3C CSS Validation Service**: Checks if CSS is valid.
+* **Firefox Developer Tools**: Views and edits live CSS via the Inspector and Style Editor tools.
+* **Web Developer extension**: Tracks and edits live CSS on websites in Firefox.
+* **CSS reference**: References all CSS properties.
+* **CSS selectors**: References CSS selectors, combinators, pseudo-classes, and pseudo-elements.
+* **CSS at-rules**: References CSS at-rules, including media queries.
+* **CSS values**: References CSS keywords, data types, and functions.
 
-* W3C CSS Validation Service: Check if your CSS is valid.
-* Firefox Developer Tools: View and edit a page's live CSS via the Inspector and Style Editor tools.
-* Web Developer extension: Track and edit live CSS on websites in Firefox.
+## Related Web Languages
 
-**CSS Modules**
-----------------
-
-* CSS modules have version numbers, such as CSS Color Module Level 5.
-* Each module has its own versioning and updates.
-
-**CSS Guides**
---------------
-
-* Guides are organized by modules and cover topics such as CSS syntax, specificity, and media queries.
-
-**CSS Properties**
------------------
-
-* Reference for all CSS properties.
-* Includes keywords, data types, and functions.
-
-**CSS Selectors**
-----------------
-
-* Reference for CSS selectors, combinatorators, pseudo-classes, and pseudo-elements.
-
-**CSS at-Rules**
-----------------
-
-* Reference for CSS at-rules, including media queries.
-
-**Stack Overflow Questions about CSS**
---------------------------------------
-
-* Help improve MDN by contributing to the community.
-
-**Tools**
----------
-
-* Border-image generator: Generate CSS border-image values.
-* Border-radius generator: Generate CSS border-radius effects.
-* Box-shadow generator: Add box-shadow effects to your CSS objects.
-* Color format converter: Convert colors between different formats.
-* Color mixer: Mix two colors in any color space using the `color-mix()` function.
-* Shape generator: Define coordinates and syntax for basic shapes.
+* HTML
+* SVG
+* MathML
+* XHTML
+* XML

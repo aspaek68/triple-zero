@@ -1,147 +1,49 @@
 # Performance — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/performance/index.html
-- **Fetched**: 2026-11-18T03:03:06
+- **Fetched**: 2026-11-18T14:19:50
 
-**Performance Optimization in Godot Engine**
-=============================================
+**Godot Engine Performance Optimization**
+=====================================
 
 **Introduction**
 ---------------
 
-Godot Engine follows a balanced performance philosophy, where tradeoffs are made between speed, usability, and flexibility. This documentation will guide you on how to get the maximum performance out of Godot Engine.
+Godot Engine follows a balanced performance philosophy, which means there are tradeoffs between speed, usability, and flexibility. This documentation provides general optimization tips and guides on how to achieve maximum performance in Godot.
 
 **General Optimization Tips**
 ---------------------------
 
-### Optimization using Servers
+*   Read the tutorials in any order, but start with [General Optimization Tips](#general-optimization-tips).
+*   Use servers for optimization, as described in [Optimization using Servers](#optimization-using-servers).
 
-*   Use a server for rendering large scenes or objects to reduce the load on the client's machine.
+### General Optimization Tips
+
+*   Use multi-meshes to reduce stutter from shader (pipeline) compilations.
+*   Optimize 3D performance by animating thousands of objects.
 
 ### CPU Optimization
 
-*   Optimize CPU performance by:
-    *   Minimizing unnecessary computations
-    *   Using multi-threading to take advantage of multiple CPU cores
-    *   Using thread-safe APIs
+*   Use multiple threads to improve performance.
 
 ### GPU Optimization
 
-*   Optimize GPU performance by:
-    *   Minimizing unnecessary GPU computations
-    *   Using multi-threading to take advantage of multiple GPU cores
-    *   Using GPU-specific features like multi-threading and multi-threading
+*   Use multiple threads to improve performance.
 
 ### Optimization using MultiMeshes
 
-*   Reduce stutter from shader (pipeline) compilations by:
-    *   Batching multiple objects together
-    *   Reducing the number of shader changes
+*   Reducing stutter from shader (pipeline) compilations.
 
-### 3D Performance Optimization
+### 3D Optimization
 
-*   Optimize 3D performance by:
-    *   Minimizing unnecessary 3D computations
-    *   Using multi-threading to take advantage of multiple CPU cores
-    *   Reducing the number of physics objects
+*   Animating thousands of objects.
 
-### Animating Thousands of Objects
+### Threads
 
-*   Optimize animating thousands of objects by:
-    *   Using multi-threading to take advantage of multiple CPU cores
-    *   Reducing the number of animation objects
+*   Using multiple threads for improved performance.
 
-### Using Multiple Threads
+### Thread-safe APIs
 
-*   Use multiple threads to:
-    *   Take advantage of multiple CPU cores
-    *   Improve performance in CPU-bound tasks
+*   Use thread-safe APIs to ensure safe and efficient multithreading.
 
-### Thread-Safe APIs
-
-*   Use thread-safe APIs to:
-    *   Ensure safe access to shared resources
-    *   Improve performance in multi-threaded applications
-
-**APIs and Examples**
---------------------
-
-### CPU Optimization APIs
-
-*   `Thread` API: Used to create and manage threads.
-*   `Task` API: Used to schedule tasks for execution.
-
-### GPU Optimization APIs
-
-*   `Mesh` API: Used to create and manage meshes.
-*   `Shader` API: Used to create and manage shaders.
-
-### MultiMesh Optimization APIs
-
-*   `MultiMesh` API: Used to create and manage multi-meshes.
-
-### 3D Physics Optimization APIs
-
-*   `Physics` API: Used to create and manage physics objects.
-
-### Animating Thousands of Objects APIs
-
-*   `AnimationPlayer` API: Used to create and manage animation players.
-
-### Using Multiple Threads APIs
-
-*   `Thread` API: Used to create and manage threads.
-*   `Task` API: Used to schedule tasks for execution.
-
-**Example Code**
--------------
-
-```gdscript
-// CPU Optimization Example
-func _process(delta):
-    for i in range(10000):
-        # Perform CPU-intensive computation
-        pass
-
-// GPU Optimization Example
-func _process(delta):
-    var mesh = Mesh.new()
-    mesh.add_vertex(Vector3(0, 0, 0))
-    mesh.add_vertex(Vector3(1, 0, 0))
-
-    # Use GPU-specific features
-    var shader = Shader.new()
-    shader.compile()
-
-    # Use multi-threading to take advantage of multiple GPU cores
-    var thread = Thread.new()
-    thread.call_func(self, "_gpu_thread", [mesh, shader])
-
-func _gpu_thread(mesh, shader):
-    # Perform GPU-intensive computation
-    pass
-
-// MultiMesh Optimization Example
-func _process(delta):
-    var multi_mesh = MultiMesh.new()
-    multi_mesh.add_mesh(Mesh.new())
-    multi_mesh.add_mesh(Mesh.new())
-
-    # Batching multiple objects together
-    multi_mesh.add_vertex(Vector3(0, 0, 0))
-    multi_mesh.add_vertex(Vector3(1, 0, 0))
-
-    # Reducing stutter from shader (pipeline) compilations
-    var shader = Shader.new()
-    shader.compile()
-
-    # Using multi-threading to take advantage of multiple GPU cores
-    var thread = Thread.new()
-    thread.call_func(self, "_gpu_thread", [multi_mesh, shader])
-
-func _gpu_thread(multi_mesh, shader):
-    # Perform GPU-intensive computation
-    pass
-```
-
-Note: This is a summary of the provided text and may not cover all the topics and examples.
+This documentation provides a starting point for optimizing performance in Godot. By following these guidelines and tutorials, you can achieve better performance and create a more seamless gaming experience.

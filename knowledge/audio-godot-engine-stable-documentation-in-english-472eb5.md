@@ -1,72 +1,76 @@
 # Audio — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/audio/index.html
-- **Fetched**: 2026-11-18T03:04:48
+- **Fetched**: 2026-11-18T14:21:25
 
-**Audio in Godot Engine**
-========================
+# Audio in Godot Engine
+=====================================
 
-**Overview**
-------------
-
-The Audio section in Godot Engine provides functionality for handling audio in the game. This includes audio buses, effects, streams, and more.
-
-**Audio Buses**
+## Audio Buses
 ---------------
 
-*   An audio bus is a group of audio streams that can be edited and processed together.
-*   You can create multiple audio buses in the Project Settings > Audio > Audio Buses section.
-*   Each bus can have multiple streams added to it, allowing for complex audio routing.
+*   Audio buses are used to route audio signals between nodes in a scene.
+*   Each audio bus has a source node that defines the audio signal.
 
-**Audio Effects**
+## Audio Effects
+----------------
+
+*   Audio effects are used to modify the audio signal in a node.
+*   Examples of audio effects include volume, pitch, and reverb.
+
+## Audio Streams
+----------------
+
+*   Audio streams are used to play and control audio files.
+*   Examples of audio streams include WAV and MP3 files.
+
+## Synchronizing Audio and Gameplay
+------------------------------------
+
+*   To synchronize audio and gameplay, use the `play_audio()` function to play audio files at specific times.
+*   Use the `get_duration()` function to get the duration of an audio stream.
+
+## Recording with Microphone
+---------------------------
+
+*   To record with a microphone, use the `AudioRecorder` node.
+*   Configure the `AudioRecorder` node to record audio from the correct device.
+
+## Text-to-Speech
 -----------------
 
-*   Audio effects are plugins that can be applied to audio streams to modify their behavior.
-*   Examples of audio effects include reverb, echo, and distortion.
-*   Effects can be created using the Audio Effects node in the Scene Hierarchy or by importing custom effects from external plugins.
+*   To use text-to-speech, use the `TextToSpeech` node.
+*   Configure the `TextToSpeech` node to play the text.
 
-**Audio Streams**
------------------
+## API Examples
+----------------
 
-*   An audio stream is a single audio source that can be played back in the game.
-*   You can create multiple audio streams using the AudioStreamPlayer node or by loading audio files using the Load() function.
-*   Streams can be added to audio buses for further processing and routing.
-
-**Syncing Gameplay with Audio and Music**
------------------------------------------
-
-*   To sync gameplay with audio and music, use the BeatSynchronizer node.
-*   This node can be used to synchronize the audio playback with the game's music and sound effects.
-
-**Recording with Microphone**
------------------------------
-
-*   To record audio with the microphone, use the AudioRecorder node.
-*   This node allows you to record audio from the microphone and save it to a file.
-
-**Text to Speech**
------------------
-
-*   To use text-to-speech functionality, use the SpeechSynthesis node.
-*   This node allows you to convert text to speech and play it back in the game.
-
-**API Documentation**
----------------------
-
-For more information on the audio API in Godot Engine, see the official documentation: [Audio API Documentation](https://docs.godotengine.org/en/stable/appendix/audio/index.html)
-
-**Example Use Case**
---------------------
-
-Here's an example of how to create an audio bus and add an audio stream to it:
+### Audio Bus API
 
 ```gdscript
 var audio_bus = AudioBus.new()
 add_child(audio_bus)
 
-var audio_stream = AudioStreamPlayer.new()
-audio_stream.stream = load("res://example.mp3")
-audio_bus.add_stream(audio_stream)
+audio_bus.set_source(Node.get_node("MySourceNode"))
 ```
 
-This code creates a new audio bus, adds an audio stream to it, and loads an audio file from the `res://` directory.
+### Audio Effect API
+
+```gdscript
+var audio_effect = AudioEffect.new()
+add_child(audio_effect)
+
+audio_effect.set_value(1.5)  # Set volume to 1.5
+```
+
+### Audio Stream API
+
+```gdscript
+var audio_stream = AudioStream.new()
+audio_stream.load("res://my_audio_file.wav")
+
+var player = Node.get_node("MyPlayerNode")
+player.play_audio(audio_stream)
+```
+
+Note: These examples are just a starting point and can be modified to fit your specific use case.

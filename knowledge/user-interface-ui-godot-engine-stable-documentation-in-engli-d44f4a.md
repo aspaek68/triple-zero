@@ -1,56 +1,50 @@
 # User interface (UI) — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/ui/index.html
-- **Fetched**: 2026-11-18T03:07:40
+- **Fetched**: 2026-11-18T14:24:06
 
-# User Interface (UI) in Godot Engine
-=====================================================
+**User Interface (UI) in Godot Engine**
+=====================================
 
-## Overview
+### Introduction
 
-The user interface (UI) in Godot Engine is built using nodes, specifically `Control` nodes. These controls can be grouped into two categories: content and layout.
+In Godot Engine, the user interface (UI) is built using nodes, specifically Control nodes. This section explains the basics of creating a graphical user interface (GUI) in Godot.
 
-## Content Controls
+### UI Building Blocks
 
-Content controls are used to display user input or data. The most common types of content controls are:
+*   **Content Controls**: buttons, labels, lineEdits, textEdits
+*   **Layout Controls**: boxContainers, marginContainers, scrollContainers, tabContainers, popups
 
-*   `Button`
-*   `Label`
-*   `LineEdit`
-*   `TextEdit`
+### Size and Anchors
 
-## Layout Controls
+*   Use anchors to position controls within a container
 
-Layout controls are used to manage the arrangement of content controls. Common layout controls include:
+### Using Containers
 
-*   `BoxContainer`
-*   `MarginContainer`
-*   `ScrollContainer`
-*   `TabContainer`
-*   `Popup`
+*   Learn how to use containers to manage layout and positioning
 
-## Key Concepts
+### Custom GUI Controls
 
-*   **Size and Anchors**: Setting the size and anchors of a control to achieve the desired layout.
-*   **Custom GUI Controls**: Creating custom GUI controls using scripts.
-*   **Keyboard/Controller Navigation and Focus**: Controlling navigation and focus using keyboard and controller inputs.
+*   Learn how to create custom GUI controls
 
-## Skinning and Themes
+### Keyboard/Controller Navigation and Focus
 
-Godot features an in-depth skinning/theming system for control nodes. This system allows you to customize the appearance of your UI. Key concepts include:
+*   Learn how to navigate and focus controls using keyboards and controllers
 
-*   **Introduction to GUI Skinning**: Setting up the skinning system in your project.
-*   **Using the Theme Editor**: Customizing theme settings using the theme editor.
-*   **Theme Type Variations**: Creating custom theme variations.
-*   **Using Fonts**: Applying custom fonts to your UI.
+### Control Node Gallery
 
-## Tutorials and Resources
+*   View a gallery of available control nodes
 
-*   `Control node gallery`: A comprehensive collection of control node tutorials.
-*   `GUI skinning and themes`: In-depth tutorials on skinning and themes.
-*   `BBCode in RichTextLabel`: Using BBCode in RichTextLabel.
-*   `Control node tutorials`: Specific tutorials on using particular control nodes.
+### GUI Skinning and Themes
 
-## Creating Applications
+*   **Introduction to GUI Skinning**: learn about the benefits and setup of the skinning/theming system
+*   **Using the Theme Editor**: learn how to use the theme editor to customize your UI
+*   **Theme Type Variations**: learn about different theme types
+*   **Using Fonts**: learn how to use fonts in your UI
+*   **Control Node Tutorials**: view specific tutorials for using particular control nodes
 
-Godot can also be used to create applications, not just games. For more information on creating applications, please refer to the [Creating Applications](https://docs.godotengine.org/en/stable/getting_started/creating Applications.html) page.
+### Creating Applications
+
+*   Learn how Godot can be used to create applications (rather than games)
+
+This section provides a comprehensive overview of creating a user interface in Godot Engine. By following these guidelines, you can create a well-structured and visually appealing UI for your project.

@@ -1,101 +1,142 @@
 # Navigation — Godot Engine (stable) documentation in English
 
 - **Source**: https://docs.godotengine.org/en/stable/tutorials/navigation/index.html
-- **Fetched**: 2026-11-18T03:03:36
+- **Fetched**: 2026-11-18T14:20:35
 
 Navigation in Godot Engine
-==========================
+===========================
 
-Navigation is a crucial feature in Godot Engine that enables characters and agents to navigate through the game world. It provides a flexible and extensible way to manage navigation, allowing developers to create complex and realistic navigation systems.
+Overview
+--------
 
-### Navigation Overviews
+Godot Engine provides a robust navigation system for 2D and 3D environments, enabling efficient pathfinding and obstacle avoidance. This document covers the various aspects of navigation in Godot, including the different types of navigation, APIs, and best practices.
 
-*   **2D Navigation**: Used for 2D games and projects that require navigation in a flat plane.
-*   **3D Navigation**: Used for 3D games and projects that require navigation in a three-dimensional space.
+2D Navigation Overview
+---------------------
 
-### Navigation Components
+Godot provides a 2D navigation system that allows for efficient pathfinding and obstacle avoidance. The 2D navigation system is designed to handle large numbers of actors and obstacles.
 
-#### NavigationServer
+3D Navigation Overview
+---------------------
 
-A top-level node that manages navigation for all navigation regions in a node tree.
+Godot also provides a 3D navigation system that allows for efficient pathfinding and obstacle avoidance in 3D environments. The 3D navigation system is designed to handle complex 3D scenes with multiple actors and obstacles.
 
-#### NavigationMaps
+Using NavigationServer
+---------------------
 
-Represents a map that contains navigation data, such as obstacles and regions.
+The `NavigationServer` is a high-level API for navigation that allows for easy integration with other Godot features, such as `NavigationMaps`, `NavigationRegions`, and `NavigationAgents`.
 
-#### NavigationRegions
+Using NavigationMaps
+--------------------
 
-A region that contains navigation data, such as obstacles and points of interest.
+A `NavigationMap` is a 2D or 3D map that defines the layout of an environment. Navigation maps can be used to optimize navigation performance and reduce the number of collisions.
 
-#### NavigationMeshes
+Using NavigationRegions
+----------------------
 
-A collection of navigation data points that form a mesh, used to define the navigation space.
+A `NavigationRegion` is a region of a navigation map that defines a specific area of interest. Navigation regions can be used to optimize navigation performance and reduce the number of collisions.
 
-#### NavigationPaths
+Using NavigationMeshes
+---------------------
 
-A path that connects two navigation data points, used to define a route between two points.
+A `NavigationMesh` is a 3D mesh that defines the layout of an environment. Navigation meshes can be used to optimize navigation performance and reduce the number of collisions.
 
-#### NavigationPathQueryObjects
+Using NavigationPaths
+---------------------
 
-Used to query navigation data, such as finding the shortest path between two points.
+A `NavigationPath` is a path that defines a specific route or route segment. Navigation paths can be used to optimize navigation performance and reduce the number of collisions.
 
-#### NavigationAgents
+Using NavigationPathQueryObjects
+---------------------------------
 
-Represents an agent that uses navigation to move around the game world.
+A `NavigationPathQueryObject` is an object that is used to query the navigation system for the shortest path between two points.
 
-#### NavigationObstacles
+Using NavigationAgents
+----------------------
 
-Represents an obstacle that blocks the navigation path.
+A `NavigationAgent` is an agent that is used to navigate the environment. Navigation agents can be used to optimize navigation performance and reduce the number of collisions.
 
-#### NavigationLinks
+Using NavigationObstacles
+------------------------
 
-Represents a link between two navigation data points, used to define a connection between two points.
+A `NavigationObstacle` is an obstacle that is used to block navigation. Navigation obstacles can be used to optimize navigation performance and reduce the number of collisions.
 
-#### NavigationLayers
+Using NavigationLinks
+---------------------
 
-A layer that contains navigation data, such as obstacles and regions.
+A `NavigationLink` is a link that is used to connect two navigation regions. Navigation links can be used to optimize navigation performance and reduce the number of collisions.
 
-### Navigation Debug Tools
+Using NavigationLayers
+---------------------
+
+A `NavigationLayer` is a layer that is used to manage navigation data. Navigation layers can be used to optimize navigation performance and reduce the number of collisions.
+
+Navigation Debug Tools
+---------------------
 
 Godot provides several debug tools for navigation, including:
 
-*   **Navigation debug visualizer**: A visual tool that displays navigation data in the scene tree.
-*   **Navigation debug map**: A tool that displays navigation data on a map.
+*   `NavigationDebugNode`: a node that displays the navigation mesh.
+*   `NavigationDebugPath`: a path that displays the shortest path between two points.
 
-### Best Practices
+Connecting Navigation Meshes
+---------------------------
 
-#### Connecting Navigation Meshes
+Connecting navigation meshes can be done using the `NavigationMesh::connect` method.
 
-To connect navigation meshes, use the `connect` function on the `NavigationMesh` node.
+Supporting Different Actor Types
+------------------------------
 
-#### Supporting Different Actor Types
+Godot provides several APIs for supporting different actor types, including:
 
-Use the `set_affected_types` function on the `Navigation` node to support different actor types.
+*   `NavigationAgent::add_actor`: a method that adds an actor to the navigation system.
+*   `NavigationAgent::remove_actor`: a method that removes an actor from the navigation system.
 
-#### Supporting Different Actor Locomotion
+Supporting Different Actor Locomotion
+-----------------------------------
 
-Use the `set_locomotion` function on the `Navigation` node to support different actor locomotion.
+Godot provides several APIs for supporting different actor locomotion, including:
 
-#### Optimizing Navigation Performance
+*   `NavigationAgent::set_locomotion`: a method that sets the locomotion of an actor.
+*   `NavigationAgent::get_locomotion`: a method that gets the locomotion of an actor.
 
-Use the following tips to optimize navigation performance:
+Supporting Different Actor Area Access
+-------------------------------------
 
-*   Use caching to reduce the number of calculations.
-*   Use spatial partitioning to reduce the number of queries.
-*   Use optimization techniques, such as raycasting, to reduce the number of calculations.
+Godot provides several APIs for supporting different actor area access, including:
+
+*   `NavigationAgent::set_area_access`: a method that sets the area access of an actor.
+*   `NavigationAgent::get_area_access`: a method that gets the area access of an actor.
+
+Optimizing Navigation Performance
+----------------------------------
+
+Godot provides several APIs for optimizing navigation performance, including:
+
+*   `NavigationServer::optimize`: a method that optimizes the navigation system.
+*   `NavigationAgent::optimize`: a method that optimizes the navigation agent.
 
 Example Code
 ------------
 
-```gdscript
+Here is an example of how to use the `NavigationServer` API:
+```gd
 extends NavigationServer
 
 func _ready():
-    # Create a new navigation map
-    var navigation_map = NavigationMap.new()
-    navigation_map.add_obstacle(Vector2(0, 0), Vector2(0, 1))
-    navigation_map.add_region(Vector2(0, 1), Vector2(1, 1))
-    add_map(navigation_map)
-```
+    # Create a navigation map
+    var map = NavigationMap.new()
+    map.create_map()
 
-This code creates a new navigation map and adds an obstacle and a region to it. The `add_map` function is then called to add the map to the navigation server.
+    # Create a navigation server
+    var server = NavigationServer.new()
+    server.add_map(map)
+
+    # Create a navigation agent
+    var agent = NavigationAgent.new()
+    agent.add_actor(map)
+
+    # Optimize the navigation system
+    server.optimize()
+```
+This code creates a navigation map, navigation server, and navigation agent, and then optimizes the navigation system.

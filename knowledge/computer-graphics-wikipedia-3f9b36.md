@@ -1,66 +1,59 @@
 # Computer graphics - Wikipedia
 
 - **Source**: https://en.wikipedia.org/wiki/Computer_graphics
-- **Fetched**: 2026-11-18T03:11:50
+- **Fetched**: 2026-11-18T14:27:47
 
-**Computer Graphics**
-=====================
+# Computer Graphics
 
-**Overview**
-------------
+## Overview
 
-Computer graphics is the art of generating images and art with the aid of computers. It is a core technology in digital photography, film, video games, digital art, cell phone and computer displays, and many specialized applications.
+Computer graphics is a core technology in digital photography, film, video games, digital art, cell phone and computer displays, and many specialized applications. It deals with generating images and art with the aid of computers.
 
-**Definition and History**
--------------------------
+### Key Facts
 
-The term "computer graphics" was coined in 1960 by computer graphics researchers Verne Hudson and William Fetter of Boeing. It refers to the representation and manipulation of image data by a computer, as well as the technologies used to create and manipulate images.
+* Coined in 1960 by computer graphics researchers Verne Hudson and William Fetter of Boeing
+* Often abbreviated as CG or CGI (computer-generated imagery) in the context of film
+* Responsible for displaying art and image data effectively and meaningfully to the consumer
+* Used for processing image data received from the physical world, such as photo and video content
 
-**Types of Computer Graphics**
-------------------------------
+## Types of Computer Graphics
 
-*   **2D Computer Graphics**: Two-dimensional images created using computer graphics.
-*   **3D Computer Graphics**: Three-dimensional images created using computer graphics.
-*   **Animated Graphics**: Images that can be animated using computer graphics.
+* 2D computer graphics
+* 3D computer graphics
+* Animated graphics
 
-**Applications of Computer Graphics**
---------------------------------------
+### Examples
 
-*   **Digital Photography**: Computer graphics is used in digital photography to enhance and manipulate images.
-*   **Film and Video**: Computer graphics is used in film and video production to create special effects and animations.
-*   **Video Games**: Computer graphics is used in video games to create realistic graphics and animations.
-*   **Cell Phone and Computer Displays**: Computer graphics is used in cell phone and computer displays to create visually appealing images and animations.
+* Film and video games
+* Digital art and photography
+* Television and newspapers
+* Medical investigations and surgical procedures
 
-**History of Computer Graphics**
-------------------------------
+## History
 
-*   **1950s**: The precursor sciences to computer graphics, such as electrical engineering and electronics, emerged.
-*   **1958**: The first interactive video game, "Tennis for Two," was created by William Higinbotham.
-*   **1959**: Douglas T. Ross created a display scope image of a Disney cartoon character, and Hewlett-Packard went public.
+* Precursor sciences: electrical engineering, electronics, and television
+* Emergence of computer graphics in the 1950s and 1960s
+* Development of computer graphics hardware and interactive computer graphics
 
-**Software and Hardware**
--------------------------
+### Key Milestones
 
-*   **Blender**: A free and open-source 3D creation software.
-*   **CGI**: Computer-generated imagery, a type of computer graphics used in film and video production.
-*   **Computer Graphics Hardware**: Specialized hardware used to create and manipulate images.
+* 1895: Lumiere brothers use mattes to create special effects for films
+* 1897: Braun tube invented, allowing for cathode ray tube displays
+* 1950s: SAGE Projects introduce CRT as a viable display and interaction interface
+* 1958: William Higinbotham creates Tennis for Two, one of the first interactive video games
+* 1959: Douglas T. Ross creates a display scope image of a Disney cartoon character
 
-**APIs and Tools**
-------------------
+## APIs and Tools
 
-*   **APIs**: Application Programming Interfaces used to create and manipulate images.
-*   **Software Tools**: Various software tools used to create and manipulate images, such as Blender and Adobe Photoshop.
+* Various APIs and tools have been developed for computer graphics, including:
+	+ Blender
+	+ Adobe After Effects
+	+ Unity
+	+ Unreal Engine
 
-**Examples and Use Cases**
--------------------------
+## Specialized Fields
 
-*   **Simulated Car Accident Collision**: A computer graphics simulation of a car accident.
-*   **Medical Investigations and Surgical Procedures**: Computer graphics used in medical investigations and surgical procedures.
-*   **Information Visualization**: Computer graphics used to visualize complex data.
-
-**Related Fields**
------------------
-
-*   **Computer Science**: The study of computer graphics and its applications.
-*   **Information Visualization**: The study of visualizing complex data.
-*   **Scientific Visualization**: The study of visualizing complex data in scientific fields.
+* Information visualization
+* Scientific visualization
+* Animation
+* Video games
