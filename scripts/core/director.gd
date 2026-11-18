@@ -13,15 +13,25 @@ static func spawn_weather(mode: Node3D, focus: Node3D, hud: Hud) -> Weather:
 	weather.follow = focus
 	weather.preset = clampi(Options.weather, 0, Weather.ORDER.size() - 1)
 	mode.add_child(weather)
-	weather.changed.connect(func(n): _show_weather(hud, n, weather.wetness()))
+	weather.changed.connect(_on_weather_changed.bind(hud, weather))
 	_show_weather(hud, weather.name(), weather.wetness())
 	if Options.weather_dynamic:
 		var timer := Timer.new()
 		timer.wait_time = 45.0
 		timer.autostart = true
-		timer.timeout.connect(func(): weather.cycle())
+		# Direct method reference: the connection is dropped automatically when
+		# the weather node is freed, so no callback outlives it.
+		timer.timeout.connect(weather.cycle)
 		mode.add_child(timer)
 	return weather
+
+
+## Signal handler for `Weather.changed`; `hud` and `weather` are bound at
+## connect time, so the lambda-capture lifetime issue cannot happen here.
+static func _on_weather_changed(_preset_name: String, hud: Hud, weather: Weather) -> void:
+	if not is_instance_valid(weather) or not is_instance_valid(hud):
+		return
+	_show_weather(hud, weather.name(), weather.wetness())
 
 
 static func _show_weather(hud: Hud, label: String, wet: float) -> void:

@@ -67,9 +67,10 @@ cible est alignée et affiche un **marqueur de touche** (quatre traits) sur un
 impact réussi. L'aide à la visée (Options → accessibilité) élargit la tolérance
 autour du viseur. Chaque tir dessine aussi une **balistique lumineuse** du
 canon jusqu'au point d'impact, avec une **étincelle** brève là où le coup tombe
-(`scripts/env/vfx.gd`, `Vfx.tracer()` / `Vfx.spark()`, effets sans ombre qui se
-libèrent seuls). En Acte 3 (conduite) le viseur reste masqué, et il disparaît
-pendant le ralenti (replay).
+et une **marque d'impact** douce posée sur la surface
+(`scripts/env/vfx.gd`, `Vfx.tracer()` / `Vfx.spark()` / `Vfx.impact_mark()`,
+effets sans ombre qui se libèrent seuls). En Acte 3 (conduite) le viseur reste
+masqué, et il disparaît pendant le ralenti (replay).
 
 ## Son
 

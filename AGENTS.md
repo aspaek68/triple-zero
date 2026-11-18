@@ -36,6 +36,11 @@ Viser **0 ERROR / 0 WARNING** dans les logs pour chaque mode.
 - **`class_name`** : les identifiants (EnvBuilder, Character, Weapon, Hud…) ne se
   résolvent qu'après un `--import` (ils sont dans
   `.godot/global_script_class_cache.cfg`). Toujours importer avant de lancer.
+- **Lambdas et durée de vie** : une lambda GDScript capture ses variables ; si
+  l'objet capturé est libéré avant l'appel (minuterie de 8 s, acteur mort),
+  Godot logue `Lambda capture at index 0 was freed`. Préférer une **méthode
+  liée** (`callable.bind(...)`, la connexion tombe avec l'objet), un tween créé
+  par le nœud (`node.create_tween()`) ou `timer.timeout.connect(obj.method)`.
 - **Renderer** : le projet est en `gl_compatibility` (pas de SSAO/SSR/SSIL ni
   brouillard volumétrique). `EnvBuilder._apply_advanced_lighting()` teste
   `RenderingServer.get_current_rendering_method()` (et non le réglage projet,
@@ -126,7 +131,11 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   étincelle avant `Score.register_shot(shot["hit"])`. Les deux effets sont
   *unshaded*, sans ombre, se fondent et `queue_free` en ~0,15 s (tweens liés au
   nœud, donc pas de fuite). Un tir dans le vide garde le tracer vers un point
-  lointain, sans étincelle.
+  lointain, sans étincelle. La **marque d'impact** (et le sang au sol) est un
+  `QuadMesh` à dégradé radial dont le `+Z` suit la normale de la surface, avec
+  un tween **lié au nœud** qui l'efface en 8 s : ce n'est **pas** un `Decal`
+  (le décalque se projetait en carré noir à cause de son axe local `-Y`, et il
+  n'existe pas en `gl_compatibility`).
   `Director.start_replay()` masque le viseur pendant le ralenti et le restaure
   à la fin (utile aussi en Acte 3, où il n'était jamais affiché).
 - `scenes/` — `main.tscn` (menu), `_verify.tscn` (contrôle fonctionnel).

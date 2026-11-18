@@ -126,18 +126,23 @@ static func smoke(parent: Node3D, point: Vector3,
 		tree.create_timer(2.0).timeout.connect(particles.queue_free)
 
 
-## A blood splat decal at a death/impact point (red, fades over time).
+## A blood splat on the ground at a death point (red, fades over time).
 static func blood_splat(parent: Node3D, point: Vector3) -> void:
-	impact_mark(parent, point + Vector3(0, 0.02, 0), Vector3.UP, Color(0.55, 0.06, 0.06))
-## that projects onto the geometry (no manual orientation / z-fighting).
+	impact_mark(parent, point + Vector3(0, 0.02, 0), Vector3.UP, Color(0.55, 0.06, 0.06), 0.6)
+
+
+## A soft dark spot laid flat on the surface. It is a quad with a radial alpha
+## gradient, not a `Decal`: a decal projects along its local -Y (while
+## `look_at()` aligns -Z), which turned every shot into a black square slicing
+## through the geometry, and decals are also unsupported on the compatibility
+## renderer. The quad's +Z is aligned with the surface normal instead.
 static func impact_mark(parent: Node3D, point: Vector3, normal: Vector3,
-		color := Color(0.08, 0.07, 0.06)) -> void:
+		color := Color(0.08, 0.07, 0.06), size := 0.35) -> void:
 	if parent == null or not parent.is_inside_tree():
 		return
 	var n := normal.normalized() if normal.length_squared() > 0.0001 else Vector3.UP
-	var decal := Decal.new()
-	decal.size = Vector3(0.35, 0.35, 0.35)
-	# Radial dark spot texture.
+	# Radial dark spot: opaque at the centre, fully transparent at the edge, so
+	# the quad's corners never show.
 	var grad := Gradient.new()
 	grad.colors = [Color(color.r, color.g, color.b, 0.85), Color(color.r, color.g, color.b, 0.0)]
 	grad.offsets = [0.0, 1.0]
@@ -146,21 +151,31 @@ static func impact_mark(parent: Node3D, point: Vector3, normal: Vector3,
 	gtex.fill = GradientTexture2D.FILL_RADIAL
 	gtex.fill_from = Vector2(0.5, 0.5)
 	gtex.fill_to = Vector2(0.5, 0.0)
-	decal.texture_albedo = gtex
-	decal.modulate = Color(1, 1, 1, 0.9)
-	decal.upper_fade = 0.05
-	decal.lower_fade = 0.05
-	decal.cull_mask = 1
-	parent.add_child(decal)
-	decal.global_position = point + n * 0.05
-	decal.look_at(decal.global_position - n, Vector3.UP if absf(n.dot(Vector3.UP)) < 0.99 else Vector3.RIGHT)
-	var tree := decal.get_tree()
-	if tree:
-		tree.create_timer(8.0).timeout.connect(func():
-			if is_instance_valid(decal):
-				var t := decal.create_tween()
-				t.tween_property(decal, "modulate:a", 0.0, 1.5)
-				t.tween_callback(decal.queue_free))
+	gtex.width = 64
+	gtex.height = 64
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_texture = gtex
+	mat.albedo_color = Color(1, 1, 1, 0.9)
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(size, size)
+	mesh.material = mat
+	var mark := MeshInstance3D.new()
+	mark.mesh = mesh
+	mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mark)
+	mark.global_position = point + n * 0.02
+	var up := Vector3.UP if absf(n.dot(Vector3.UP)) < 0.99 else Vector3.RIGHT
+	# QuadMesh faces +Z; looking_at aims -Z, so aim it at -n.
+	mark.global_basis = Basis.looking_at(-n, up)
+	# The tween is bound to the mark: if the mark or its parent is freed first
+	# the tween dies with it, so no callback can outlive the node.
+	var tween := mark.create_tween()
+	tween.tween_interval(8.0)
+	tween.tween_property(mat, "albedo_color:a", 0.0, 1.5)
+	tween.tween_callback(mark.queue_free)
 
 
 ## A brief spark burst at the impact point, flying along the surface normal.

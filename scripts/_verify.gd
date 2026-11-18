@@ -16,6 +16,7 @@ func _ready() -> void:
 	_check_destructibles()
 	_check_hud()
 	await _check_vfx()
+	_check_director()
 	_check_score()
 	_check_challenges()
 	_check_equipment()
@@ -186,6 +187,15 @@ func _check_vfx() -> void:
 	Vfx.smoke(root, Vector3(0, 0, -12))
 	Vfx.impact_mark(root, Vector3(0, 0, -12), Vector3.UP)
 	_expect(root.get_child_count() == 5, "Vfx did not spawn all effects")
+	# The impact mark is a quad aligned to the surface normal, never a Decal
+	# (which showed as a black square and is unsupported on compatibility).
+	var mark := root.get_child(4)
+	_expect(mark is MeshInstance3D and mark.mesh is QuadMesh,
+		"impact mark is not a quad mesh")
+	if mark is MeshInstance3D:
+		_expect(mark.global_basis.z.dot(Vector3.UP) > 0.99,
+			"impact mark is not aligned to the surface normal")
+	_expect(not (mark is Decal), "impact mark still uses a Decal")
 	Vfx.tracer(root, Vector3.ZERO, Vector3(0, 0, -0.1))
 	_expect(root.get_child_count() == 5, "Vfx.tracer drew a zero-length shot")
 	# Fast effects (tracer, spark, dust) free themselves within ~0.5 s.
@@ -193,6 +203,27 @@ func _check_vfx() -> void:
 	await get_tree().process_frame
 	_expect(root.get_child_count() <= 2, "fast Vfx nodes did not free themselves")
 	root.queue_free()
+
+
+## Weather wiring uses a static handler with bound arguments (no lambda), so a
+## preset change must still reach the HUD.
+func _check_director() -> void:
+	var stage := Node3D.new()
+	add_child(stage)
+	var hud := Hud.new()
+	add_child(hud)
+	hud.build("VERIFY", "check", "clavier", "manette")
+	var weather := Director.spawn_weather(stage, stage, hud)
+	_expect(weather != null, "Director.spawn_weather returned null")
+	if weather:
+		var before := weather.preset
+		hud.set_extra("")
+		weather.cycle()
+		_expect(weather.preset != before, "Weather.cycle did not change the preset")
+		_expect(hud.extra_text() != "", "weather change did not reach the HUD")
+		weather.queue_free()
+	hud.queue_free()
+	stage.queue_free()
 
 
 func _check_score() -> void:

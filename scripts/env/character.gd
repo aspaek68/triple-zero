@@ -746,10 +746,19 @@ func die() -> void:
 	var push := global_transform.basis.z * 0.8
 	var timer := get_tree().create_timer(0.35) if is_inside_tree() else null
 	if timer:
-		timer.timeout.connect(func() -> void:
-			if is_instance_valid(self) and _dead:
-				Audio.body_fall()
-				_start_ragdoll(push))
+		# Bound method instead of a lambda: the connection is dropped
+		# automatically when the character is freed, so it can never fire on a
+		# dead instance (which logged "Lambda capture ... was freed").
+		timer.timeout.connect(_fall_after_delay.bind(push))
+
+
+## Delayed second half of `die()`: the fall animation has played, hand the body
+## to the ragdoll. Does nothing if the actor was already removed.
+func _fall_after_delay(push: Vector3) -> void:
+	if not _dead:
+		return
+	Audio.body_fall()
+	_start_ragdoll(push)
 
 
 ## Plays a hit stagger once (blends back to locomotion afterwards).

@@ -244,6 +244,11 @@ func set_extra(text: String) -> void:
 		_extra.text = Loc.t(text)
 
 
+## Current secondary line (used by the headless checks).
+func extra_text() -> String:
+	return _extra.text if _extra else ""
+
+
 ## Bottom-right magazine counter, built on first use.
 func set_ammo(current: int, maximum: int) -> void:
 	if _ammo_label == null:
