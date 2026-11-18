@@ -255,6 +255,8 @@ func _check_pause() -> void:
 ## language and expose its status line (and it must not crash headless).
 func _check_editor() -> void:
 	var saved_lang: String = Options.language
+	var saved_path: Array = LevelData.custom_path.duplicate()
+	var saved_props: Array = LevelData.props.duplicate()
 	Loc.set_language("en")
 	var script: GDScript = load("res://scripts/ui/level_editor.gd")
 	_expect(script != null, "level editor script does not load")
@@ -270,7 +272,43 @@ func _check_editor() -> void:
 	_expect(titled, "level editor title missing or untranslated")
 	_expect(editor._status != null and editor._status.text.contains("Tool:"),
 		"level editor status template is not translated")
+	_expect(Loc.t("Niveau enregistré") == "Level saved",
+		"EN label missing: level saved notice")
+	_expect(Loc.t("Aucun niveau enregistré") == "No saved level",
+		"EN label missing: no saved level notice")
+	editor._notice = "Niveau enregistré"
+	editor._refresh()
+	_expect(editor._status.text.begins_with("Level saved"),
+		"level editor save confirmation is not translated")
 	editor.queue_free()
+
+	# `user://level.json` is hand-editable, so a malformed file must be
+	# rejected or skipped entry by entry instead of crashing the editor/act.
+	_expect(not LevelData.apply_data("not a level"),
+		"level loader accepted a non-dictionary file")
+	_expect(not LevelData.apply_data({"path": "nope", "props": []}),
+		"level loader accepted a non-array path")
+	_expect(not LevelData.apply_data({"path": [[0, 0]], "props": []}),
+		"level loader accepted a one-node path")
+	_expect(LevelData.apply_data({
+		"path": [[0, 0], [0, -60], ["x", 3]],
+		"props": [{"kind": "bogus", "x": 0, "z": 0}, {"kind": "barrel", "x": 4, "z": -8}],
+	}), "level loader rejected a level with one bad node")
+	_expect(LevelData.custom_path.size() == 2, "level loader kept a malformed node")
+	_expect(LevelData.props.size() == 1, "level loader kept an unknown prop kind")
+
+	# Props dropped in the editor must actually appear in the drive act.
+	var drive_script: GDScript = load("res://scripts/modes/drive.gd")
+	_expect(drive_script != null, "drive act script does not load")
+	if drive_script != null:
+		var probe := Node3D.new()
+		probe.set_script(drive_script)
+		probe._build_editor_props()
+		_expect(probe.get_child_count() == 1, "drive act does not spawn editor props")
+		probe.free()
+
+	LevelData.custom_path = saved_path
+	LevelData.props = saved_props
 	Loc.set_language(saved_lang)
 
 

@@ -136,6 +136,10 @@ une **vue de dessus** du circuit : on **déplace les nœuds** du tracé, on pose
 **props** (barils, barrières, panneaux…), puis on **enregistre** dans
 `user://level.json`. Le bouton *Tester l'acte 3* lance la conduite sur le tracé
 personnalisé ; sans niveau enregistré, l'acte 3 garde son circuit d'origine.
+Les **props posés apparaissent réellement** dans l'acte (décor, sans collision :
+la ligne de course reste praticable) et le panneau confirme chaque
+enregistrement. Un `level.json` abîmé ou édité à la main est ignoré entrée par
+entrée au lieu de planter l'éditeur ou l'acte.
 
 ## Destructibilité et situations dynamiques
 

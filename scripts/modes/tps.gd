@@ -82,10 +82,11 @@ func _ready() -> void:
 	_build_props()
 	_build_civilians()
 	_build_player(Vector3(0, 1.2, 34))
-	# Equipment: changes how the act is approached, never raw power.
-	if Progress.has_equipment(0, 0):
+	# Equipment: changes how the act is approached, never raw power. The mode
+	# index is `GameState.Mode.TPS`, like the other two acts.
+	if Progress.has_equipment(GameState.Mode.TPS, 0):
 		_player_speed_multiplier = 1.2
-	if Progress.has_equipment(0, 1):
+	if Progress.has_equipment(GameState.Mode.TPS, 1):
 		_enemy_detection_reduction = 0.3
 	_hud = Hud.new()
 	_hud.build("ACTE 1 — TOUR", "Objectif : sécuriser les trois zones",

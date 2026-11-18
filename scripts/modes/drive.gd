@@ -68,6 +68,7 @@ func _ready() -> void:
 	_build_city()
 	_build_traffic()
 	_build_props()
+	_build_editor_props()
 	_build_shortcuts()
 	_build_secondaries()
 	_build_car()
@@ -214,6 +215,22 @@ func _build_props() -> void:
 			var q: Vector2 = a.lerp(b, 0.22) + perp * side * (ROAD_WIDTH / 2.0 - 0.6)
 			EnvBuilder.prop_native_at(self, "barrier", EnvBuilder.cone_fallback(), lamp_mat,
 					Vector3(q.x, 0, q.y), -dir.angle())
+
+
+## Props dropped in the level editor. They are saved in `LevelData.props`, and
+## until now the act ignored them, so editing a level changed nothing visible.
+## Decorative only (no collision): the racing line stays drivable.
+func _build_editor_props() -> void:
+	if LevelData.props.is_empty():
+		return
+	var mat := EnvBuilder.material(Color(0.5, 0.55, 0.65), 0.55)
+	for p in LevelData.props:
+		var kind := String(p.get("kind", "cone"))
+		var pos := Vector3(float(p.get("x", 0.0)), 0.0, float(p.get("z", 0.0)))
+		var fallback: Mesh = EnvBuilder.cone_fallback()
+		if kind == "streetlamp" or kind == "road_sign":
+			fallback = EnvBuilder.lamp_fallback()
+		EnvBuilder.prop_native_at(self, kind, fallback, mat, pos)
 
 
 func _build_gate(pos: Vector3, index: int) -> Dictionary:

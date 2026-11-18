@@ -70,14 +70,47 @@ func save_level() -> bool:
 func load_level() -> bool:
 	if not FileAccess.file_exists(PATH):
 		return false
-	var text := FileAccess.get_file_as_string(PATH)
-	var data: Variant = JSON.parse_string(text)
+	return apply_data(JSON.parse_string(FileAccess.get_file_as_string(PATH)))
+
+
+## Validates a parsed level and installs it. `user://level.json` can be edited
+## by hand or left half-written, so every entry is type-checked instead of
+## trusting the JSON shape (a bad entry used to crash the editor and the act).
+func apply_data(data: Variant) -> bool:
 	if not data is Dictionary:
 		return false
-	custom_path = []
-	for p in data.get("path", []):
-		custom_path.append(Vector2(p[0], p[1]))
-	props = []
-	for p in data.get("props", []):
-		props.append({"kind": p.get("kind", "cone"), "x": p.get("x", 0.0), "z": p.get("z", 0.0)})
-	return custom_path.size() >= 2
+	var dict: Dictionary = data
+	var raw_path: Variant = dict.get("path", [])
+	var raw_props: Variant = dict.get("props", [])
+	if not raw_path is Array or not raw_props is Array:
+		return false
+	var path: Array = []
+	for p in raw_path:
+		if not p is Array or (p as Array).size() < 2:
+			continue
+		var x: Variant = p[0]
+		var z: Variant = p[1]
+		if not _is_number(x) or not _is_number(z):
+			continue
+		path.append(Vector2(float(x), float(z)))
+	if path.size() < 2:
+		return false
+	var loaded_props: Array = []
+	for p in raw_props:
+		if not p is Dictionary:
+			continue
+		var kind: Variant = p.get("kind", "cone")
+		if not kind is String or not PROP_KINDS.has(kind):
+			continue
+		var x: Variant = p.get("x", 0.0)
+		var z: Variant = p.get("z", 0.0)
+		if not _is_number(x) or not _is_number(z):
+			continue
+		loaded_props.append({"kind": kind, "x": float(x), "z": float(z)})
+	custom_path = path
+	props = loaded_props
+	return true
+
+
+func _is_number(v: Variant) -> bool:
+	return v is float or v is int

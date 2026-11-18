@@ -16,6 +16,18 @@ var _drag := -1
 var _status: Label
 var _scale := 0.4
 var _origin := Vector2(80, 80)
+## Short confirmation shown above the status line after a save/load/new.
+var _notice := ""
+var _notice_left := 0.0
+
+
+func _process(delta: float) -> void:
+	if _notice_left <= 0.0:
+		return
+	_notice_left -= delta
+	if _notice_left <= 0.0:
+		_notice = ""
+		_refresh()
 
 
 func _ready() -> void:
@@ -50,9 +62,9 @@ func _build_ui() -> void:
 	_button(col, "Outil : nœuds", func(): _set_tool("node"))
 	_button(col, "Outil : props", func(): _set_tool("prop"))
 	_button(col, "Type de prop →", _cycle_kind)
-	_button(col, "Nouveau", func(): LevelData.new_level(); _refresh())
-	_button(col, "Charger", func(): LevelData.load_level(); _refresh())
-	_button(col, "Enregistrer", func(): LevelData.save_level(); _refresh())
+	_button(col, "Nouveau", _new)
+	_button(col, "Charger", _load)
+	_button(col, "Enregistrer", _save)
 	_button(col, "Ajouter un nœud", _append_node)
 	_button(col, "Supprimer le dernier", _pop_node)
 	_button(col, "Tester l'acte 3", _test)
@@ -76,6 +88,26 @@ func _set_tool(tool: String) -> void:
 func _cycle_kind() -> void:
 	_kind = (_kind + 1) % LevelData.PROP_KINDS.size()
 	_refresh()
+
+
+## Brief confirmation above the status line; `_process()` clears it.
+func _announce(key: String) -> void:
+	_notice = key
+	_notice_left = 2.5
+	_refresh()
+
+
+func _new() -> void:
+	LevelData.new_level()
+	_announce("Nouveau niveau")
+
+
+func _load() -> void:
+	_announce("Niveau chargé" if LevelData.load_level() else "Aucun niveau enregistré")
+
+
+func _save() -> void:
+	_announce("Niveau enregistré" if LevelData.save_level() else "Échec de l'enregistrement")
 
 
 func _append_node() -> void:
@@ -107,8 +139,11 @@ func _refresh() -> void:
 	var kind: String = LevelData.PROP_KINDS[_kind]
 	var tool := Loc.t("nœuds du circuit") if _tool == "node" else Loc.t("props (%s)") % kind
 	if _status:
-		_status.text = Loc.t("%d nœuds • %d props\nOutil : %s\nClic : ajouter/déplacer • Clic droit : supprimer") % [
+		var text := Loc.t("%d nœuds • %d props\nOutil : %s\nClic : ajouter/déplacer • Clic droit : supprimer") % [
 			LevelData.custom_path.size(), LevelData.props.size(), tool]
+		if _notice != "":
+			text = Loc.t(_notice) + "\n" + text
+		_status.text = text
 	queue_redraw()
 
 

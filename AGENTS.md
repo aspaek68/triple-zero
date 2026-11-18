@@ -262,9 +262,13 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   `user://level.json`). `LevelData._ready()` charge le niveau au démarrage ;
   `active_path(default)` renvoie le tracé perso s'il existe (>= 2 nœuds), sinon
   celui du mode. `drive.gd` lit `_path = LevelData.active_path(PATH)` et pose
-  les props enregistrés. Le bouton du menu charge le script via `load()` et
-  l'ajoute en enfant (pas de `.tscn`). Ses libellés et sa ligne d'état passent
-  par `Loc.t()` ; **Tester l'acte 3** rejoue le chemin de lancement du menu
+  les props enregistrés (`_build_editor_props()`, décoratif et sans collision).
+  `LevelData.apply_data()` valide le JSON entrée par entrée (`level.json` peut
+  être édité à la main) : un nœud ou un prop mal formé est ignoré, jamais un
+  plantage. Le bouton du menu charge le script via `load()` et l'ajoute en
+  enfant (pas de `.tscn`). Ses libellés et sa ligne d'état passent par
+  `Loc.t()` ; les boutons Enregistrer/Charger/Nouveau affichent une
+  confirmation de 2,5 s au-dessus de la ligne d'état (`_notice`). **Tester l'acte 3** rejoue le chemin de lancement du menu
   (`GameState.mode`, `Score.reset()`, `Progress.begin()`, `Audio.stop_music()`)
   avant de charger la scène, sinon l'écran de résultats afficherait la partie
   précédente.
