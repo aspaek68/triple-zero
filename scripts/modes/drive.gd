@@ -170,6 +170,12 @@ func _build_city() -> void:
 func _building(pos: Vector3, size: Vector3, angle: float, color: Color, glow: Material) -> void:
 	var body := _slab(pos + Vector3(0, size.y / 2.0, 0), size, color)
 	body.rotation.y = angle
+	# Distance culling for the city shell (the occlusion box still covers it).
+	var shell := body.get_child(0) as MeshInstance3D
+	if shell:
+		shell.visibility_range_end = 320.0
+		shell.visibility_range_end_margin = 24.0
+		shell.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	# Occlusion culling: each building occludes what is behind it.
 	var occ := OccluderInstance3D.new()
 	var box_occ := BoxOccluder3D.new()
@@ -184,6 +190,9 @@ func _building(pos: Vector3, size: Vector3, angle: float, color: Color, glow: Ma
 		strip.mesh = box
 		strip.position = Vector3(0, size.y / 2.0 - 3.0 - f * 5.0, 0)
 		strip.material_override = glow
+		strip.visibility_range_end = 320.0
+		strip.visibility_range_end_margin = 24.0
+		strip.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		body.add_child(strip)
 
 

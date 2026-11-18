@@ -604,6 +604,10 @@ static func prop_at(parent: Node3D, model: String, fallback: Mesh, material: Mat
 	var mi := prop(model, fallback, material)
 	mi.position = pos
 	mi.rotation.y = rot_y
+	# Small props stop drawing far away (GTX 970: fill-rate + draw-call budget).
+	mi.visibility_range_end = 140.0
+	mi.visibility_range_end_margin = 10.0
+	mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	parent.add_child(mi)
 	_sit_on_floor(mi)
 	return mi
@@ -615,6 +619,9 @@ static func prop_native_at(parent: Node3D, model: String, fallback: Mesh,
 	var mi := prop_native(model, fallback, fallback_material)
 	mi.position = pos
 	mi.rotation.y = rot_y
+	mi.visibility_range_end = 140.0
+	mi.visibility_range_end_margin = 10.0
+	mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	parent.add_child(mi)
 	_sit_on_floor(mi)
 	return mi
