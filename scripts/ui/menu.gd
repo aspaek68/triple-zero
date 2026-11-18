@@ -43,14 +43,14 @@ func _build() -> void:
 	column.add_child(title)
 
 	var subtitle := Label.new()
-	subtitle.text = "Trois actes. Trois façons de jouer. — Hommage au jeu d'action 90s"
+	subtitle.text = Loc.t("Trois actes. Trois façons de jouer. — Hommage au jeu d'action 90s")
 	subtitle.add_theme_font_size_override("font_size", 16)
 	subtitle.add_theme_color_override("font_color", Color(0.7, 0.78, 0.9))
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(subtitle)
 
 	var pad_hint := Label.new()
-	pad_hint.text = "Manette : D-pad/stick naviguer • A valider • B retour" if GameState.has_gamepad() else "Clavier : flèches naviguer • Entrée valider"
+	pad_hint.text = Loc.t("Manette : D-pad/stick naviguer • A valider • B retour") if GameState.has_gamepad() else Loc.t("Clavier : flèches naviguer • Entrée valider")
 	pad_hint.add_theme_font_size_override("font_size", 13)
 	pad_hint.add_theme_color_override("font_color", Color(0.55, 0.62, 0.75))
 	pad_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -65,13 +65,13 @@ func _build() -> void:
 	column.add_child(_modifier_row())
 
 	var editor := Button.new()
-	editor.text = "ÉDITEUR DE NIVEAU (acte 3)"
+	editor.text = Loc.t("ÉDITEUR DE NIVEAU (acte 3)")
 	editor.custom_minimum_size = Vector2(0, 48)
 	editor.pressed.connect(_open_editor)
 	column.add_child(editor)
 
 	var options := Button.new()
-	options.text = "OPTIONS"
+	options.text = Loc.t("OPTIONS")
 	options.custom_minimum_size = Vector2(0, 48)
 	options.pressed.connect(_open_options)
 	column.add_child(options)
@@ -94,13 +94,13 @@ func _modifier_row() -> VBoxContainer:
 	var challenge := Button.new()
 	challenge.name = "ChallengeButton"
 	var c: Dictionary = Progress.challenge()
-	challenge.text = "Défi : %s — %s" % [c["name"], c["desc"]]
+	challenge.text = Loc.t("Défi : %s — %s") % [Loc.t(c["name"]), Loc.t(c["desc"])]
 	challenge.custom_minimum_size = Vector2(0, 40)
 	challenge.pressed.connect(_cycle_challenge)
 	row.add_child(challenge)
 
 	var acts := Label.new()
-	acts.text = "Actes terminés : %d / 3" % Progress.cleared_acts.size()
+	acts.text = Loc.t("Actes terminés : %d / 3") % Progress.cleared_acts.size()
 	acts.add_theme_font_size_override("font_size", 13)
 	acts.add_theme_color_override("font_color", Color(0.55, 0.62, 0.75))
 	acts.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -111,13 +111,13 @@ func _modifier_row() -> VBoxContainer:
 		ng.name = "NgPlusButton"
 		ng.toggle_mode = true
 		ng.button_pressed = GameState.ng_plus
-		ng.text = "NOUVELLE PARTIE+ : %s" % ("activée" if GameState.ng_plus else "désactivée")
+		ng.text = Loc.t("NOUVELLE PARTIE+ : %s") % Loc.t("activée" if GameState.ng_plus else "désactivée")
 		ng.custom_minimum_size = Vector2(0, 40)
 		ng.toggled.connect(_toggle_ng_plus)
 		row.add_child(ng)
 	else:
 		var locked := Label.new()
-		locked.text = "Nouvelle partie+ : terminez les trois actes"
+		locked.text = Loc.t("Nouvelle partie+ : terminez les trois actes")
 		locked.add_theme_font_size_override("font_size", 13)
 		locked.add_theme_color_override("font_color", Color(0.55, 0.62, 0.75))
 		locked.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -126,11 +126,11 @@ func _modifier_row() -> VBoxContainer:
 	## Equipment unlock row: one slot per act, each changes the approach.
 	var equip_row := VBoxContainer.new()
 	equip_row.add_theme_constant_override("separation", 4)
-	var names := ["TPS", "Conduite", "Rail"]
+	var names := ["TPS", Loc.t("Conduite"), "Rail"]
 	for mode in 3:
 		var b := Button.new()
-		var state := "débloqué" if Progress.has_equipment(mode, 0) else "verrouillé"
-		b.text = "Équipement %s : %s — %s" % [names[mode], state, Progress.equipment_description(mode, 0)]
+		var state := Loc.t("débloqué") if Progress.has_equipment(mode, 0) else Loc.t("verrouillé")
+		b.text = Loc.t("Équipement %s : %s — %s") % [names[mode], state, Loc.t(Progress.equipment_description(mode, 0))]
 		b.custom_minimum_size = Vector2(0, 30)
 		b.pressed.connect(_unlock_equipment.bind(mode, 0))
 		equip_row.add_child(b)
@@ -160,7 +160,7 @@ func _toggle_ng_plus(on: bool) -> void:
 
 func _mode_button(name: String, blurb: String, mode: int) -> Button:
 	var b := Button.new()
-	b.text = "%s\n%s" % [name, blurb]
+	b.text = "%s\n%s" % [Loc.t(name), Loc.t(blurb)]
 	b.custom_minimum_size = Vector2(0, 64)
 	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	b.pressed.connect(func(): _launch(mode))
@@ -172,13 +172,13 @@ func _results_panel() -> VBoxContainer:
 	panel.add_theme_constant_override("separation", 6)
 
 	var header := Label.new()
-	header.text = "RÉSULTATS"
+	header.text = Loc.t("RÉSULTATS")
 	header.add_theme_font_size_override("font_size", 22)
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	panel.add_child(header)
 
 	var lines := Label.new()
-	lines.text = "Score total : %d\nPrécision : %d%%\nCivils sauvés : %d   perdus : %d\nMatériel récupéré : %d   comms rétablies : %d\nItinéraires alternatifs : %d\nRang : %s" % [
+	lines.text = Loc.t("Score total : %d\nPrécision : %d%%\nCivils sauvés : %d   perdus : %d\nMatériel récupéré : %d   comms rétablies : %d\nItinéraires alternatifs : %d\nRang : %s") % [
 		Score.total(), int(Score.accuracy_ratio() * 100.0),
 		Score.civilians_saved, Score.civilians_lost,
 		Score.equipment_recovered, Score.comm_restored,
@@ -190,23 +190,23 @@ func _results_panel() -> VBoxContainer:
 	var best := Progress.best_for(GameState.mode)
 	if best["score"] > 0:
 		var best_label := Label.new()
-		best_label.text = "Meilleur : %d (%s)%s" % [best["score"], best["rank"],
-			"  •  NOUVEAU RECORD !" if Progress.last_record else ""]
+		best_label.text = Loc.t("Meilleur : %d (%s)%s") % [best["score"], best["rank"],
+			Loc.t("  •  NOUVEAU RECORD !") if Progress.last_record else ""]
 		best_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		best_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 		panel.add_child(best_label)
 
 	var challenge := Label.new()
-	var verdict := "réussi" if Progress.last_success else "échoué"
-	challenge.text = "Défi « %s » : %s" % [Progress.last_name, verdict]
+	var verdict := Loc.t("réussi") if Progress.last_success else Loc.t("échoué")
+	challenge.text = Loc.t("Défi « %s » : %s") % [Loc.t(Progress.last_name), verdict]
 	challenge.add_theme_font_size_override("font_size", 15)
 	challenge.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
 	challenge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	panel.add_child(challenge)
 
 	var acts := Label.new()
-	var suffix := "  •  Nouvelle partie+ débloquée" if Progress.ng_plus_unlocked else ""
-	acts.text = "Actes terminés : %d / 3%s\nChoisissez un acte pour rejouer" % [
+	var suffix := Loc.t("  •  Nouvelle partie+ débloquée") if Progress.ng_plus_unlocked else ""
+	acts.text = Loc.t("Actes terminés : %d / 3%s\nChoisissez un acte pour rejouer") % [
 		Progress.cleared_acts.size(), suffix
 	]
 	acts.add_theme_font_size_override("font_size", 13)

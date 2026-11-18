@@ -94,9 +94,9 @@ func build(title: String, objective: String, keyboard_hint: String, gamepad_hint
 	column.add_child(_objective)
 
 	_controls = _label(14, Color(0.85, 0.9, 1.0))
-	_controls.text = keyboard_hint
-	_controls.set_meta("keyboard", keyboard_hint)
-	_controls.set_meta("gamepad", gamepad_hint if not gamepad_hint.is_empty() else keyboard_hint)
+	_controls.text = Loc.t(keyboard_hint)
+	_controls.set_meta("keyboard", Loc.t(keyboard_hint))
+	_controls.set_meta("gamepad", Loc.t(gamepad_hint if not gamepad_hint.is_empty() else keyboard_hint))
 	column.add_child(_controls)
 
 	var spacer := Control.new()
@@ -116,8 +116,8 @@ func build(title: String, objective: String, keyboard_hint: String, gamepad_hint
 	_score = _label(15, Color(0.7, 1.0, 0.75))
 	column.add_child(_score)
 
-	_title.text = title
-	_objective.text = objective
+	_title.text = Loc.t(title)
+	_objective.text = Loc.t(objective)
 	_build_reticle()
 	_build_post_fx()
 	_build_motion_blur()
@@ -225,23 +225,23 @@ func set_reticle_hot(on: bool) -> void:
 
 func set_title(text: String) -> void:
 	if _title:
-		_title.text = text
+		_title.text = Loc.t(text)
 
 
 func set_objective(text: String) -> void:
 	if _objective:
-		_objective.text = text
+		_objective.text = Loc.t(text)
 
 
 func set_status(text: String) -> void:
 	if _status:
-		_status.text = text
+		_status.text = Loc.t(text)
 
 
 ## A secondary line (weather, replay status) shown under the main status.
 func set_extra(text: String) -> void:
 	if _extra:
-		_extra.text = text
+		_extra.text = Loc.t(text)
 
 
 ## Bottom-right magazine counter, built on first use.
@@ -255,7 +255,7 @@ func set_ammo(current: int, maximum: int) -> void:
 		_ammo_label.offset_bottom = -20.0
 		_ammo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		add_child(_ammo_label)
-	_ammo_label.text = "MUNITIONS %d / %d" % [current, maximum]
+	_ammo_label.text = Loc.t("MUNITIONS %d / %d") % [current, maximum]
 	_ammo_label.add_theme_color_override("font_color",
 		Color(0.95, 0.42, 0.36) if current == 0 else Color(0.95, 0.95, 0.9))
 
@@ -265,12 +265,12 @@ func set_secondary_objectives(civilians: int, equipment: int, comms: int) -> voi
 		return
 	var parts: Array = []
 	if civilians > 0:
-		parts.append("%d civil(s) retrouvé(s)" % civilians)
+		parts.append(Loc.t("%d civil(s) retrouvé(s)") % civilians)
 	if equipment > 0:
-		parts.append("%d équipement(s) récupéré(s)" % equipment)
+		parts.append(Loc.t("%d équipement(s) récupéré(s)") % equipment)
 	if comms > 0:
-		parts.append("%d comm(s) rétabli(s)" % comms)
-	var text := "" if parts.is_empty() else "Secondaires : %s" % " • ".join(parts)
+		parts.append(Loc.t("%d comm(s) rétabli(s)") % comms)
+	var text := "" if parts.is_empty() else Loc.t("Secondaires : %s") % " • ".join(parts)
 	if _secondary.text != text:
 		_secondary.text = text
 
@@ -285,7 +285,7 @@ func set_boss_health(title: String, frac: float) -> void:
 		return
 	_boss_root.visible = true
 	if _boss_label:
-		_boss_label.text = title
+		_boss_label.text = Loc.t(title)
 	if _boss_bar:
 		_boss_bar.value = clampf(frac, 0.0, 1.0)
 
@@ -362,10 +362,10 @@ func _refresh(_device: String = "") -> void:
 			extra += " • NG+"
 		if Progress.is_active():
 			var ch: Dictionary = Progress.challenge()
-			extra += " • Défi : %s" % ch["name"]
+			extra += Loc.t(" • Défi : %s") % Loc.t(ch["name"])
 			if ch["id"] == "time":
-				extra += " (%d s)" % int(maxf(Progress.time_left(), 0.0))
-		_score.text = "Score %d • Précision %d%% • Rang %s%s" % [
+				extra += Loc.t(" (%d s)") % int(maxf(Progress.time_left(), 0.0))
+		_score.text = Loc.t("Score %d • Précision %d%% • Rang %s%s") % [
 			Score.total(), int(Score.accuracy_ratio() * 100.0), Score.rank(), extra
 		]
 

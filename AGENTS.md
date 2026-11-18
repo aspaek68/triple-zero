@@ -84,7 +84,8 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
 ## Structure
 
 - `scripts/core/` — autoloads : `game_state.gd`, `options.gd`, `score.gd`,
-  `progress.gd` (NG+ + défis), `audio.gd` (bus + réverb + ducking).
+  `progress.gd` (NG+ + défis), `audio.gd` (bus + réverb + ducking), `loc.gd`
+  (FR/EN : `Loc.t("texte français")`).
 - `tools/` — `gen_assets.py` (textures PNG + WAV), `gen_meshes.py` (props glTF),
   `fetch_cc0_textures.ps1` (pack CC0 ambientCG), `fetch_cc0_hdri.ps1` +
   `hdri_sun.py` (ciel CC0 + position du soleil), `fetch_cc0_models.ps1` (props
@@ -219,3 +220,23 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   `game_state.gd` (`_ensure_input_actions`). Options `weather`,
   `weather_dynamic`, `replay_enabled` dans `options.gd`, exposées dans
   `options_menu.gd` (section « MISE EN SCÈNE »).
+
+## Localisation (FR/EN)
+
+- `Loc` (`scripts/core/loc.gd`) est un autoload placé **après** `Options` ; la
+  langue vit dans `Options.language` (`"fr"` / `"en"`), donc elle est sauvée
+  avec `user://options.cfg`. `Loc.set_language()` / `Loc.cycle()` persistent et
+  émettent `changed`.
+- Le **français sert de clé** : `Loc.t("OPTIONS")` renvoie la traduction EN ou,
+  si l'entrée manque, le texte d'origine. Jamais d'identifiant brut à l'écran.
+- Deux tables : `EN` pour les chaînes fixes, `EN_TEMPLATES` pour les chaînes
+  dynamiques (`%d`, `%s`, `%3d`, `%4.1f`, `%%`). `t()` accepte donc les deux
+  usages : `Loc.t("MUNITIONS %d / %d") % [a, b]` (gabarit) et
+  `Loc.t("Zone 2 - 5 hostiles")` (texte déjà formaté, reconnu par motif).
+- `Hud.set_title/set_objective/set_status/set_extra/set_boss_health` passent
+  déjà par `Loc.t()` : les modes continuent d'écrire leurs chaînes françaises.
+  Les valeurs imbriquées dans un `%s` (nom de défi, météo, `PRÊT`) sont
+  traduites **à la source** (`Loc.t(label)`) avant le formatage.
+- Le menu et l'écran d'options traduisent au moment de construire leurs
+  libellés ; l'option « Langue » reconstruit tout le panneau (`_build()`), et
+  le menu est reconstruit à la fermeture (`closed` → `_build`).

@@ -8,6 +8,7 @@ var _failures: Array = []
 
 func _ready() -> void:
 	_check_autoloads()
+	_check_localisation()
 	_check_actors()
 	_check_materials()
 	_check_world()
@@ -41,6 +42,25 @@ func _check_autoloads() -> void:
 	_expect(Audio != null, "Audio autoload missing")
 	_expect(Options != null, "Options autoload missing")
 	_expect(LevelData != null, "LevelData autoload missing")
+	_expect(Loc != null, "Loc autoload missing")
+
+
+## FR keeps the source text; EN translates both fixed labels and the dynamic
+## templates the modes format themselves.
+func _check_localisation() -> void:
+	var saved: String = Options.language
+	Loc.set_language("fr")
+	_expect(Loc.t("OPTIONS") == "OPTIONS", "FR should keep the source text")
+	Loc.set_language("en")
+	_expect(Loc.t("OPTIONS") == "OPTIONS", "EN label missing: OPTIONS")
+	_expect(Loc.t("Partie libre") == "Free run", "EN label missing: challenge name")
+	_expect(Loc.t("MUNITIONS %d / %d") % [12, 30] == "AMMO 12 / 30",
+		"EN ammo template not translated")
+	_expect(Loc.t("Zone 2 - 5 hostiles") == "Zone 2 - 5 hostiles",
+		"EN dynamic template not matched")
+	_expect(Loc.t("INTÉGRITÉ 75%") == "INTEGRITY 75%",
+		"EN percent template not matched")
+	Loc.set_language(saved)
 
 
 func _check_actors() -> void:

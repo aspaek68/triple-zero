@@ -27,8 +27,8 @@ static func spawn_weather(mode: Node3D, focus: Node3D, hud: Hud) -> Weather:
 static func _show_weather(hud: Hud, label: String, wet: float) -> void:
 	if hud == null:
 		return
-	var grip := " (adhérence réduite)" if wet >= 0.5 else ""
-	hud.set_extra("Météo : %s%s" % [label, grip])
+	var grip := Loc.t(" (adhérence réduite)") if wet >= 0.5 else ""
+	hud.set_extra(Loc.t("Météo : %s%s") % [Loc.t(label), grip])
 
 
 ## Adds a Replay recorder under `mode` and returns it. The mode registers

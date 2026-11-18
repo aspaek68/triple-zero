@@ -24,6 +24,8 @@ var replay_enabled := true
 var master_volume := 0.9
 var music_volume := 0.7
 var sfx_volume := 0.9
+## Interface language ("fr" or "en"), read by the Loc autoload.
+var language := "fr"
 
 ## Per-action keyboard overrides (action name -> keycode int). Empty means
 ## "use the default binding declared by GameState".
@@ -49,10 +51,10 @@ func load_from_disk() -> void:
 	master_volume = cfg.get_value("audio", "master", master_volume)
 	music_volume = cfg.get_value("audio", "music", music_volume)
 	sfx_volume = cfg.get_value("audio", "sfx", sfx_volume)
+	language = cfg.get_value("ui", "language", language)
 	keybinds = cfg.get_value("controls", "keybinds", keybinds)
 	_apply_deadzones()
 	_apply_buses()
-	apply_keybinds()
 	apply_keybinds()
 
 
@@ -73,6 +75,7 @@ func save_to_disk() -> void:
 	cfg.set_value("audio", "master", master_volume)
 	cfg.set_value("audio", "music", music_volume)
 	cfg.set_value("audio", "sfx", sfx_volume)
+	cfg.set_value("ui", "language", language)
 	cfg.set_value("controls", "keybinds", keybinds)
 	cfg.save(PATH)
 	_apply_deadzones()

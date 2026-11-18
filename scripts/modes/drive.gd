@@ -760,7 +760,7 @@ func _update_chase(delta: float) -> void:
 
 func _update_hud() -> void:
 	if _hud:
-		var boost := "PRÊT" if _boost_cd <= 0.0 else "%.1fs" % maxf(_boost_cd, 0.0)
+		var boost := Loc.t("PRÊT") if _boost_cd <= 0.0 else "%.1fs" % maxf(_boost_cd, 0.0)
 		_hud.set_status("Vitesse %3d km/h • Porte %d/%d • Temps %4.1fs • Boost %s • Poursuivants %d" % [
 			int(_speed * 3.6), _checkpoint, _checkpoints.size(), maxf(_time, 0.0), boost, _alive_chasers()
 		])

@@ -52,13 +52,13 @@ func _build(title: String, subtitle: String) -> void:
 	add_child(_bottom)
 	
 	_caption = _label(34, Color(1, 0.95, 0.8))
-	_caption.text = title
+	_caption.text = Loc.t(title)
 	_caption.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_caption.position = Vector2(0, 30)
 	add_child(_caption)
 	
 	_subtitle = _label(18, Color(0.85, 0.9, 1.0))
-	_subtitle.text = subtitle
+	_subtitle.text = Loc.t(subtitle)
 	_subtitle.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_subtitle.position = Vector2(0, -60)
 	add_child(_subtitle)

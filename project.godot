@@ -20,6 +20,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 Audio="*res://scripts/core/audio.gd"
 GameState="*res://scripts/core/game_state.gd"
 Options="*res://scripts/core/options.gd"
+Loc="*res://scripts/core/loc.gd"
 Score="*res://scripts/core/score.gd"
 Progress="*res://scripts/core/progress.gd"
 LevelData="*res://scripts/core/level_data.gd"

@@ -11,6 +11,17 @@ var _key_buttons: Dictionary = {}
 
 
 func _ready() -> void:
+	_build()
+
+
+## Rebuilds the whole panel so a language change applies to every label.
+func _build() -> void:
+	for c in get_children():
+		remove_child(c)
+		c.queue_free()
+	_key_buttons.clear()
+	_capturing_action = ""
+	_capture_button = null
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(0.1, 0.12, 0.17, 0.97)
@@ -26,7 +37,7 @@ func _ready() -> void:
 	center.add_child(column)
 
 	var title := Label.new()
-	title.text = "OPTIONS"
+	title.text = Loc.t("OPTIONS")
 	title.add_theme_font_size_override("font_size", 34)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(title)
@@ -34,6 +45,12 @@ func _ready() -> void:
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 8)
 	column.add_child(_rows)
+
+	var language := Button.new()
+	language.text = Loc.t("Langue : %s") % Loc.t(Loc.language_name())
+	language.custom_minimum_size = Vector2(0, 36)
+	language.pressed.connect(_cycle_language)
+	_rows.add_child(language)
 
 	_section("JEU")
 	_slider("Difficulté (0 facile → 2 difficile)", 0, 2, 1, Options.difficulty,
@@ -49,7 +66,7 @@ func _ready() -> void:
 	_slider("Vibration", 0.0, 1.0, 0.05, Options.gamepad_vibration,
 		func(v): Options.gamepad_vibration = v)
 	var pad_status := Label.new()
-	pad_status.text = "Manette détectée : %s" % ("oui" if GameState.has_gamepad() else "non")
+	pad_status.text = Loc.t("Manette détectée : %s") % Loc.t("oui" if GameState.has_gamepad() else "non")
 	pad_status.add_theme_color_override("font_color", Color(0.7, 0.78, 0.9))
 	_rows.add_child(pad_status)
 
@@ -91,7 +108,7 @@ func _ready() -> void:
 		var action: String = entry["action"]
 		var row := HBoxContainer.new()
 		var lbl := Label.new()
-		lbl.text = entry["label"]
+		lbl.text = Loc.t(entry["label"])
 		lbl.custom_minimum_size = Vector2(320, 0)
 		row.add_child(lbl)
 		var btn := Button.new()
@@ -102,7 +119,7 @@ func _ready() -> void:
 		_key_buttons[action] = btn
 		_rows.add_child(row)
 	var reset := Button.new()
-	reset.text = "Réinitialiser les touches"
+	reset.text = Loc.t("Réinitialiser les touches")
 	reset.custom_minimum_size = Vector2(0, 36)
 	reset.pressed.connect(_reset_keys)
 	_rows.add_child(reset)
@@ -116,7 +133,7 @@ func _ready() -> void:
 		func(v): Options.sfx_volume = v)
 
 	var close := Button.new()
-	close.text = "RETOUR"
+	close.text = Loc.t("RETOUR")
 	close.custom_minimum_size = Vector2(0, 44)
 	close.pressed.connect(_close)
 	column.add_child(close)
@@ -127,7 +144,7 @@ func _section(text: String) -> void:
 	var sep := HSeparator.new()
 	_rows.add_child(sep)
 	var label := Label.new()
-	label.text = text
+	label.text = Loc.t(text)
 	label.add_theme_font_size_override("font_size", 18)
 	label.add_theme_color_override("font_color", Color(1, 0.92, 0.6))
 	_rows.add_child(label)
@@ -136,7 +153,7 @@ func _section(text: String) -> void:
 func _slider(label_text: String, lo: float, hi: float, step: float, value: float, setter: Callable) -> void:
 	var row := HBoxContainer.new()
 	var label := Label.new()
-	label.text = label_text
+	label.text = Loc.t(label_text)
 	label.custom_minimum_size = Vector2(320, 0)
 	row.add_child(label)
 	var slider := HSlider.new()
@@ -159,7 +176,7 @@ func _slider(label_text: String, lo: float, hi: float, step: float, value: float
 
 func _check(label_text: String, value: bool, setter: Callable) -> void:
 	var check := CheckButton.new()
-	check.text = label_text
+	check.text = Loc.t(label_text)
 	check.button_pressed = value
 	check.toggled.connect(func(v):
 		setter.call(v)
@@ -190,7 +207,7 @@ func _key_name(action: String) -> String:
 func _start_capture(action: String, button: Button) -> void:
 	_capturing_action = action
 	_capture_button = button
-	button.text = "Appuyez sur une touche..."
+	button.text = Loc.t("Appuyez sur une touche...")
 
 
 func _reset_keys() -> void:
@@ -211,6 +228,11 @@ func _input(event: InputEvent) -> void:
 		_capturing_action = ""
 		_capture_button = null
 		get_viewport().set_input_as_handled()
+
+
+func _cycle_language() -> void:
+	Loc.cycle()
+	_build()
 
 
 func _close() -> void:
