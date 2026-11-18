@@ -23,6 +23,7 @@ func _ready() -> void:
 	await _check_vfx()
 	_check_director()
 	await _check_replay()
+	await _check_drive_crash()
 	_check_score()
 	_check_challenges()
 	_check_death_is_failure()
@@ -865,6 +866,14 @@ func _check_drive_chasers() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/modes/drive.gd")
 	_expect(source.count("_update_chasers(") >= 2,
 		"drive physics loop never updates the rival cars")
+	# A VehicleBody3D is a RigidBody3D: `get_slide_collision_*` only exists on
+	# CharacterBody3D and threw a script error on the first frame the car went
+	# faster than 6 m/s. Crash detection now reads the contact list, which only
+	# fills when the monitor is on.
+	_expect(not source.contains(".get_slide_collision"),
+		"drive crash detection uses a CharacterBody3D-only API")
+	_expect(source.contains("get_colliding_bodies()"),
+		"drive crash detection no longer reads the contact list")
 	# Physics bodies need a world: a plain host node in the tree gives the
 	# probe valid global transforms without running the drive act's `_ready`.
 	var host := Node3D.new()
@@ -927,6 +936,83 @@ func _check_drive_chasers() -> void:
 	_expect(bool(gate_probe._checkpoints[0]["passed"]), "the first gate is not marked passed")
 	gate_probe.free()
 	gate_host.free()
+
+	# The crash cooldown must decay while the car is fast and not touching
+	# anything: it used to tick only inside the collision loop, so a single
+	# crash silenced every later impact for the rest of the run.
+	var crash_host := Node3D.new()
+	add_child(crash_host)
+	var crash_car := VehicleBody3D.new()
+	crash_host.add_child(crash_car)
+	crash_car.linear_velocity = Vector3(0, 0, -20)
+	var crash_probe := Node3D.new()
+	crash_probe.set_script(script)
+	crash_probe._car = crash_car
+	crash_probe._crash_cooldown = 0.5
+	crash_probe._check_collisions(0.2)
+	_expect(is_equal_approx(crash_probe._crash_cooldown, 0.3),
+		"the crash cooldown does not decay while driving fast")
+	crash_probe.free()
+	crash_host.free()
+
+	# The contact list only fills when the monitor is on: without it the whole
+	# crash path (sound, shake, speed scrub, tanker detonation) is dead code.
+	var build_probe := Node3D.new()
+	build_probe.set_script(script)
+	add_child(build_probe)
+	build_probe._build_car()
+	_expect(build_probe._car != null, "the drive act built no car")
+	if build_probe._car:
+		_expect(build_probe._car.contact_monitor, "the player car reports no contacts")
+		_expect(build_probe._car.max_contacts_reported > 0,
+			"the player car has no contact slots")
+	build_probe.free()
+
+
+## Real physics contact: a car at 20 m/s driving into a wall must register a
+## crash (sound, shake, speed scrub). This is the path that threw the
+## `get_slide_collision_count` script error the first time a real player
+## exceeded 6 m/s — headless mode runs never moved the car, so it hid there.
+func _check_drive_crash() -> void:
+	var script: GDScript = load("res://scripts/modes/drive.gd")
+	var host := Node3D.new()
+	add_child(host)
+	var car := VehicleBody3D.new()
+	car.contact_monitor = true
+	car.max_contacts_reported = 4
+	car.mass = 900.0
+	car.position = Vector3(0, 1.0, 0)
+	car.linear_velocity = Vector3(0, 0, -20)
+	host.add_child(car)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(2.0, 0.9, 4.2)
+	shape.shape = box
+	car.add_child(shape)
+	var wall := StaticBody3D.new()
+	wall.position = Vector3(0, 1.0, -6)
+	var wshape := CollisionShape3D.new()
+	var wbox := BoxShape3D.new()
+	wbox.size = Vector3(6, 4, 1)
+	wshape.shape = wbox
+	wall.add_child(wshape)
+	host.add_child(wall)
+	# Detached on purpose: adding it to the tree would start the whole act.
+	var probe := Node3D.new()
+	probe.set_script(script)
+	probe._car = car
+	var crashed := false
+	for i in 40:
+		await get_tree().physics_frame
+		probe._check_collisions(1.0 / 60.0)
+		if probe._crash_cooldown > 0.0:
+			crashed = true
+			break
+	_expect(crashed, "a fast car driving into a wall registers no crash")
+	_expect(car.linear_velocity.length() < 12.0,
+		"a hard crash does not scrub off speed")
+	probe.free()
+	host.free()
 
 
 func _check_equipment() -> void:

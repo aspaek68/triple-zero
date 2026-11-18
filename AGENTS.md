@@ -186,6 +186,19 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   `Score.register_damage(1)`) et exploser au boost. La fonction avait perdu son
   appel : les rivaux restaient immobiles. `_verify._check_drive_chasers()`
   vérifie le site d'appel et le couple volant/accélération.
+- **Collisions (Acte 3)** : `VehicleBody3D` est un `RigidBody3D`, il n'a **pas**
+  `get_slide_collision_count()` (API de `CharacterBody3D`). `_check_collisions()`
+  lisait cette fonction : la première image où la voiture dépassait 6 m/s
+  loguait `SCRIPT ERROR: Nonexistent function 'get_slide_collision_count'`.
+  Le test headless ne le voyait pas, la voiture ne bouge jamais sans input ;
+  `_verify._check_drive_crash()` fait maintenant rouler une voiture à 20 m/s
+  dans un mur et exige un impact. Deux détails vont avec : `_build_car()` active
+  `contact_monitor` et `max_contacts_reported` (sans quoi la liste de contacts
+  reste vide et l'appel logue une erreur), et le seuil de vitesse lit
+  `_prev_speed` — la résolution physique a déjà tué la vitesse quand
+  `_physics_process` tourne, donc un choc frontal à pleine vitesse passait pour
+  un arrêt et ne déclenchait ni son, ni secousse, ni perte de vitesse. Le
+  refroidissement (`_crash_cooldown`) décroît à chaque image, hors de la boucle.
 - **Portes (Acte 3)** : `_checkpoint` est le numéro **1-based** de la prochaine
   porte ; `_check_checkpoints()` lit `_checkpoints[_checkpoint - 1]` et termine
   quand `_checkpoint > _checkpoints.size()`. L'indexer directement sautait la

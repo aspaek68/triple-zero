@@ -44,6 +44,10 @@ var _boost_left := 0.0
 var _boost_cd := 0.0
 var _engine_beat := 0.0
 var _crash_cooldown := 0.0
+## Speed sampled on the previous physics frame. The physics step resolves an
+## impact before `_physics_process` runs, so a head-on hit at full speed
+## already reads as "stopped" here — the crash test needs the pre-impact speed.
+var _prev_speed := 0.0
 var _checkpoint := 1
 var _checkpoints: Array = []
 var _traffic: Array = []
@@ -323,6 +327,11 @@ func _build_car() -> void:
 	_car = VehicleBody3D.new()
 	_car.position = Vector3(0, 1.0, 12)
 	_car.mass = 900.0
+	# A VehicleBody3D is a RigidBody3D: it has no `get_slide_collision_*` (that
+	# API belongs to CharacterBody3D). Crash detection reads the contact list,
+	# which stays empty unless the contact monitor is on.
+	_car.contact_monitor = true
+	_car.max_contacts_reported = 4
 	add_child(_car)
 
 	var paint := EnvBuilder.material(EnvBuilder.MAT_ACCENT, 0.3, 0.4)
@@ -493,13 +502,24 @@ func _physics_process(delta: float) -> void:
 
 ## Crashing into scenery bleeds speed; hitting a fuel tanker detonates it.
 func _check_collisions(delta: float) -> void:
+	# The cooldown decays with time, not with contact: it used to be decremented
+	# only inside the collision loop, so after one crash at speed it never came
+	# back down and every later impact was silent (no shake, no sound).
+	_crash_cooldown = maxf(_crash_cooldown - delta, 0.0)
 	var speed := _car.linear_velocity.length()
-	if speed < 6.0:
-		_crash_cooldown = maxf(_crash_cooldown - delta, 0.0)
+	# The physics step already resolved the impact by the time this runs: a
+	# car that hit a wall at 80 km/h reads as almost stopped here. Testing the
+	# current speed alone meant a crash never registered (no sound, no shake,
+	# no speed scrub), so compare against the speed of the previous frame.
+	var impact := maxf(speed, _prev_speed)
+	_prev_speed = speed
+	if impact < 6.0:
 		return
-	for i in _car.get_slide_collision_count():
-		var collision: KinematicCollision3D = _car.get_slide_collision(i)
-		var collider: Object = collision.get_collider()
+	# Reading the contact list without the monitor logs an engine error, so
+	# bail out before the query rather than per body.
+	if not _car.contact_monitor:
+		return
+	for collider in _car.get_colliding_bodies():
 		if collider is StaticBody3D and collider.is_in_group("fuel"):
 			_detonate_tanker(collider)
 			continue
@@ -510,7 +530,6 @@ func _check_collisions(delta: float) -> void:
 			_add_shake(0.6)
 			# A hard impact scrubs off a chunk of speed.
 			_car.linear_velocity *= 0.55
-		_crash_cooldown = maxf(_crash_cooldown - delta, 0.0)
 
 
 func _detonate_tanker(body: Node3D) -> void:
