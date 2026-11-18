@@ -227,6 +227,13 @@ remplacer les fichiers **en place**, sans toucher au code.
 **protection des civils** ; multiplicateur ×1.5 si aucun dégât subi. À la fin
 d'un acte, un rang **S/A/B/C** s'affiche sur l'écran de résultats.
 
+Les **défis rejouables** (partie libre, sans dégâts, contre-la-montre, tireur
+d'élite, explorateur) se choisissent dans le menu ; les **équipements**
+débloqués par acte changent l'approche sans augmenter la puissance brute.
+Terminer les trois actes débloque la **Nouvelle Partie+** (ennemis plus
+coriaces, ressources plus rares) ; le choix est **mémorisé** d'une session à
+l'autre.
+
 ## Menu pause et résultats
 
 **Échap** (ou **Start**) ouvre un vrai **menu pause** dans les trois actes :

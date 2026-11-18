@@ -73,6 +73,16 @@ var _boss_root: Control
 var _boss_label: Label
 var _boss_bar: ProgressBar
 var _refresh_accum := 0.0
+## Raw (French-key) inputs of the last calls, so a language change can rebuild
+## every static line without restarting the act.
+var _title_fr := ""
+var _objective_fr := ""
+var _status_fr := ""
+var _extra_fr := ""
+var _ammo_raw: Array = [0, 0]
+var _secondary_raw: Array = [0, 0, 0]
+var _boss_fr := ""
+var _boss_frac := 0.0
 
 
 func build(title: String, objective: String, keyboard_hint: String, gamepad_hint := "") -> void:
@@ -118,11 +128,15 @@ func build(title: String, objective: String, keyboard_hint: String, gamepad_hint
 
 	_title.text = Loc.t(title)
 	_objective.text = Loc.t(objective)
+	_title_fr = title
+	_objective_fr = objective
 	_build_reticle()
 	_build_post_fx()
 	_build_motion_blur()
 	Score.changed.connect(_refresh)
 	GameState.device_changed.connect(_refresh)
+	if not Loc.changed.is_connected(retranslate):
+		Loc.changed.connect(retranslate)
 	_refresh()
 
 
@@ -224,22 +238,26 @@ func set_reticle_hot(on: bool) -> void:
 
 
 func set_title(text: String) -> void:
+	_title_fr = text
 	if _title:
 		_title.text = Loc.t(text)
 
 
 func set_objective(text: String) -> void:
+	_objective_fr = text
 	if _objective:
 		_objective.text = Loc.t(text)
 
 
 func set_status(text: String) -> void:
+	_status_fr = text
 	if _status:
 		_status.text = Loc.t(text)
 
 
 ## A secondary line (weather, replay status) shown under the main status.
 func set_extra(text: String) -> void:
+	_extra_fr = text
 	if _extra:
 		_extra.text = Loc.t(text)
 
@@ -251,6 +269,7 @@ func extra_text() -> String:
 
 ## Bottom-right magazine counter, built on first use.
 func set_ammo(current: int, maximum: int) -> void:
+	_ammo_raw = [current, maximum]
 	if _ammo_label == null:
 		_ammo_label = _label(20, Color(0.95, 0.95, 0.9))
 		_ammo_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -266,6 +285,7 @@ func set_ammo(current: int, maximum: int) -> void:
 
 
 func set_secondary_objectives(civilians: int, equipment: int, comms: int) -> void:
+	_secondary_raw = [civilians, equipment, comms]
 	if not _secondary:
 		return
 	var parts: Array = []
@@ -284,6 +304,8 @@ func set_secondary_objectives(civilians: int, equipment: int, comms: int) -> voi
 
 ## Top-centre boss bar, built on first use. `frac` is 0..1.
 func set_boss_health(title: String, frac: float) -> void:
+	_boss_fr = title
+	_boss_frac = frac
 	if _boss_root == null:
 		_build_boss_bar()
 	if _boss_root == null:
@@ -373,6 +395,24 @@ func _refresh(_device: String = "") -> void:
 		_score.text = Loc.t("Score %d • Précision %d%% • Rang %s%s") % [
 			Score.total(), int(Score.accuracy_ratio() * 100.0), Score.rank(), extra
 		]
+
+
+## Re-applies every static HUD line after a language change (pause → options →
+## langue). Modes refresh status/score themselves, but title, objective, ammo,
+## secondary objectives and the boss bar would otherwise stay in the old one.
+func retranslate() -> void:
+	set_title(_title_fr)
+	set_objective(_objective_fr)
+	set_status(_status_fr)
+	set_extra(_extra_fr)
+	if _ammo_label:
+		set_ammo(int(_ammo_raw[0]), int(_ammo_raw[1]))
+	if _secondary:
+		set_secondary_objectives(int(_secondary_raw[0]), int(_secondary_raw[1]),
+			int(_secondary_raw[2]))
+	if _boss_root and _boss_root.visible:
+		set_boss_health(_boss_fr, _boss_frac)
+	_refresh()
 
 
 func _label(size: int, color: Color) -> Label:

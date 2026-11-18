@@ -58,7 +58,9 @@ func _build() -> void:
 		remove_child(c)
 		c.queue_free()
 	_options = null
-	_options_closing = false
+	# `_options_closing` is deliberately not touched here: `_on_options_closed`
+	# sets it *before* rebuilding the panel, and clearing it in `_build()` would
+	# let the same Escape press close the pause menu too.
 
 	_root = Control.new()
 	_root.name = "PauseRoot"
@@ -144,7 +146,10 @@ func _open_options() -> void:
 func _on_options_closed() -> void:
 	_options = null
 	_options_closing = true
+	# Rebuild so a language change made in the options applies to this panel.
+	_build()
 	_box.visible = true
+	visible = _open
 	_focus_first()
 	# Clear the guard once the current input event has finished propagating, so
 	# the same Escape press does not also close the pause menu.

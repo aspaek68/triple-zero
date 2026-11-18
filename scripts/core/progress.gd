@@ -21,6 +21,8 @@ const TIME_LIMIT := 240.0
 const EQUIP_SLOTS := 2
 
 var ng_plus_unlocked := false
+## Whether the player left New Game+ switched on; remembered across launches.
+var ng_plus_enabled := false
 var selected_challenge := "none"
 ## Acts (mode indices) already completed; clearing all three unlocks NG+.
 var cleared_acts: Array = []
@@ -42,6 +44,9 @@ var last_reason := ""
 
 func _ready() -> void:
 	load_from_disk()
+	if not ng_plus_unlocked:
+		ng_plus_enabled = false
+	GameState.ng_plus = ng_plus_enabled
 
 
 func load_from_disk() -> void:
@@ -49,6 +54,7 @@ func load_from_disk() -> void:
 	if cfg.load(PATH) != OK:
 		return
 	ng_plus_unlocked = cfg.get_value("progress", "ng_plus_unlocked", ng_plus_unlocked)
+	ng_plus_enabled = cfg.get_value("progress", "ng_plus_enabled", ng_plus_enabled)
 	selected_challenge = cfg.get_value("progress", "selected_challenge", selected_challenge)
 	cleared_acts = cfg.get_value("progress", "cleared_acts", cleared_acts)
 	equipment_unlocked = cfg.get_value("progress", "equipment_unlocked", equipment_unlocked)
@@ -59,6 +65,7 @@ func load_from_disk() -> void:
 func save_to_disk() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("progress", "ng_plus_unlocked", ng_plus_unlocked)
+	cfg.set_value("progress", "ng_plus_enabled", ng_plus_enabled)
 	cfg.set_value("progress", "selected_challenge", selected_challenge)
 	cfg.set_value("progress", "cleared_acts", cleared_acts)
 	cfg.set_value("progress", "equipment_unlocked", equipment_unlocked)
@@ -98,6 +105,14 @@ func unlock_ng_plus() -> void:
 	if ng_plus_unlocked:
 		return
 	ng_plus_unlocked = true
+	save_to_disk()
+	changed.emit()
+
+
+## Switches New Game+ on or off and remembers the choice for the next launch.
+func set_ng_plus(on: bool) -> void:
+	ng_plus_enabled = on and ng_plus_unlocked
+	GameState.ng_plus = ng_plus_enabled
 	save_to_disk()
 	changed.emit()
 

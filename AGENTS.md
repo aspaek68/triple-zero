@@ -130,6 +130,10 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   **REJOUER L'ACTE** (`GameState.mode`) ou **FERMER LES RÉSULTATS**. Menu et
   options défilent (`ScrollContainer` + `follow_focus`) pour rester utilisables
   sur une fenêtre de 900 px.
+- **NG+** : `Progress.ng_plus_enabled` est persisté dans `user://progress.cfg`
+  et recopié dans `GameState.ng_plus` par `Progress._ready()` (autoload chargé
+  après `GameState`). Le bouton du menu passe par `Progress.set_ng_plus()`, qui
+  refuse l'activation tant que les trois actes ne sont pas terminés.
 - **Viseur** : `Hud` possède un `Reticle` interne (Control dessiné, en espace
   écran) partagé par les deux modes de tir. `set_reticle_visible()` l'affiche à
   la fin de l'intro ; par défaut il **suit le centre du viewport** (Acte 1), et
@@ -261,7 +265,12 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
 - `Hud.set_title/set_objective/set_status/set_extra/set_boss_health` passent
   déjà par `Loc.t()` : les modes continuent d'écrire leurs chaînes françaises.
   Les valeurs imbriquées dans un `%s` (nom de défi, météo, `PRÊT`) sont
-  traduites **à la source** (`Loc.t(label)`) avant le formatage.
+  traduites **à la source** (`Loc.t(label)`) avant le formatage. Le HUD garde
+  les entrées brutes et se reconnecte à `Loc.changed` : `retranslate()`
+  réapplique titre, objectif, statut, munitions, secondaires et barre de boss
+  quand on change de langue en pleine partie (pause → options → langue).
 - Le menu et l'écran d'options traduisent au moment de construire leurs
-  libellés ; l'option « Langue » reconstruit tout le panneau (`_build()`), et
-  le menu est reconstruit à la fermeture (`closed` → `_build`).
+  libellés ; l'option « Langue » reconstruit tout le panneau (`_build()`), le
+  menu est reconstruit à la fermeture (`closed` → `_build`) et le menu pause
+  aussi (`_on_options_closed` → `_build()`), pour que ses boutons suivent la
+  nouvelle langue.

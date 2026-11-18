@@ -180,6 +180,13 @@ func _check_hud() -> void:
 	# mouse/gamepad switch logs a signal arity error (seen in the player log).
 	GameState._set_device("gamepad")
 	GameState._set_device("keyboard")
+	# A language change while an act is running re-applies the static lines.
+	var saved_lang: String = Options.language
+	hud.set_title("ACTE 1 — TOUR")
+	Loc.set_language("en")
+	_expect(hud._title.text == "ACT 1 — TOWER",
+		"HUD did not retranslate on language change")
+	Loc.set_language(saved_lang)
 	hud.queue_free()
 
 
@@ -200,6 +207,9 @@ func _check_pause() -> void:
 	if pause._options != null:
 		pause._options._close()
 	_expect(pause._options == null, "pause options did not close")
+	# One Escape press must not close both screens: the guard has to survive
+	# the panel rebuild.
+	_expect(pause._options_closing, "pause options guard was cleared by the rebuild")
 	pause.close()
 	_expect(not pause.is_open(), "pause menu did not close")
 	_expect(not get_tree().paused, "pause menu did not release the tree")

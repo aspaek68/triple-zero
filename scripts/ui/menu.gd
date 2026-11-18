@@ -175,7 +175,7 @@ func _cycle_challenge() -> void:
 
 
 func _toggle_ng_plus(on: bool) -> void:
-	GameState.ng_plus = on
+	Progress.set_ng_plus(on)
 	_build()
 
 
