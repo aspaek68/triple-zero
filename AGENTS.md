@@ -254,6 +254,25 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   ni validé ni enregistré et le défi est marqué échoué. `_on_replay_done()`
   teste `is_inside_tree()` pour que `_verify` puisse appeler `_finish(false)`
   sur un nœud détaché sans changer de scène.
+- **Géométrie de l'Acte 1 (zone 1 → toit)** : `_perimeter(center, size, door)`
+  perce un **passage central** dans le mur sud ; `_build_zone_one()` l'appelle
+  avec `door = 44`. Sans lui les quatre murs fermaient la place : le joueur
+  nettoyait la première vague puis butait sur un cul-de-sac, zones 2 et 3
+  inaccessibles (le test headless ne presse aucune touche, donc ne le voyait
+  pas). L'ouverture est centrée, large de 44 m, et couvre les deux passerelles
+  (`x = ±18`) ainsi que le couloir de la zone 2. `_ramp()` incline de
+  `Vector3(18, 0, 0)` : le **-Z** monte, le bas de rampe est côté place
+  (`z ≈ 13`) et le haut rejoint la passerelle (`z ≈ -1`, `y ≈ 4,5`). Un angle
+  négatif posait le haut côté place et transformait la rampe en mur de 3 m.
+  Passerelles : dalles à `y = 4,25` (dessus 4,5, affleurant le toit de la zone
+  3 dont le dessus est aussi à 4,5), de `z = -47` à `z = -1`, donc elles
+  chevauchent le toit (`z = -80..-44`) et traversent la porte. Elles se
+  rejoignent à `x = ±18` ; il faut rester dessus jusqu'à `z < -44` avant de
+  couper vers le centre, sinon on tombe sur le sol de la zone 2.
+  `_verify._check_tps_route()` rejoue le trajet avec `Input.action_press()`
+  (rampe, passerelle, porte, toit) et exige `y > 4` puis `z < -50` ; il coupe
+  ennemis et caisses destructibles avant, et s'arrête avant l'extraction pour
+  ne pas enregistrer de partie.
 - **Viseur** : `Hud` possède un `Reticle` interne (Control dessiné, en espace
   écran) partagé par les deux modes de tir. `set_reticle_visible()` l'affiche à
   la fin de l'intro ; par défaut il **suit le centre du viewport** (Acte 1), et

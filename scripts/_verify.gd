@@ -25,6 +25,7 @@ func _ready() -> void:
 	await _check_replay()
 	await _check_drive_crash()
 	await _check_drive_motion()
+	await _check_tps_route()
 	_check_score()
 	_check_challenges()
 	_check_death_is_failure()
@@ -1076,6 +1077,94 @@ func _check_drive_motion() -> void:
 	_expect(speed > 5.0,
 		"the drive car does not move under full throttle (speed %.1f m/s)" % speed)
 	_expect(z < 10.0, "the drive car drives the wrong way down the track (z %.1f)" % z)
+	# Skip `_finish()`: this probe must not record a run or post a result.
+	act._ended = true
+	act.queue_free()
+	await get_tree().physics_frame
+
+
+## The act must be walkable end to end. Zone 1 used to be sealed by a solid
+## four-wall perimeter, so clearing the first wave left the player in a dead
+## end with zones 2 and 3 unreachable; the ramps were also pitched the wrong
+## way, making the catwalk route a 3 m wall. Headless runs never press a key,
+## so both shipped broken. This walks the real route with synthetic input:
+## up the right-hand ramp, across the catwalk through the doorway, onto the
+## rooftop. It stops before the extraction so no run is recorded.
+func _check_tps_route() -> void:
+	var scene: PackedScene = load("res://scenes/modes/tps.tscn")
+	_expect(scene != null, "tps act scene does not load")
+	if scene == null:
+		return
+	var act = scene.instantiate()
+	add_child(act)
+	# `_ready()` has already spawned the first wave; clear it before the intro
+	# ends so a stray shot cannot fail a challenge during the probe.
+	for e in act._enemies.duplicate():
+		if is_instance_valid(e):
+			e.queue_free()
+	act._enemies.clear()
+	for child in act.get_children():
+		if child is Destructible:
+			child.queue_free()
+	var waypoints := [
+		Vector3(18, 0.0, 16),     # foot of the right-hand ramp
+		Vector3(18, 4.5, -1),     # top of the ramp
+		Vector3(18, 4.5, -45),    # catwalk, through the zone-1 doorway
+		Vector3(0, 4.5, -60),     # onto the rooftop
+	]
+	var index := 0
+	var last := Vector3.ZERO
+	var stuck := 0
+	var jump_held := false
+	var climbed := false
+	var through_door := false
+	Input.action_press("move_forward")
+	for i in 1600:
+		await get_tree().physics_frame
+		if i % 30 == 0:
+			act._health = 100
+			for e in act._enemies.duplicate():
+				if is_instance_valid(e):
+					e.queue_free()
+			act._enemies.clear()
+		var p: Vector3 = act._player.global_position
+		if p.y > 4.0:
+			climbed = true
+			if p.z < -10.0:
+				through_door = true
+		if p.z < -50.0 and p.y > 4.0:
+			break
+		var target: Vector3 = waypoints[index]
+		var dx := target.x - p.x
+		var dz := target.z - p.z
+		if Vector2(dx, dz).length() < 2.0 and index < waypoints.size() - 1:
+			index += 1
+			last = p
+			stuck = 0
+			continue
+		# `move_forward` drives the basis's -Z axis, so the yaw that faces the
+		# waypoint is atan2(-dx, -dz).
+		act._yaw = atan2(-dx, -dz)
+		if p.distance_to(last) < 0.05:
+			stuck += 1
+		else:
+			stuck = 0
+			last = p
+		if stuck > 20 and not jump_held:
+			Input.action_press("jump")
+			jump_held = true
+		elif stuck <= 20 and jump_held:
+			Input.action_release("jump")
+			jump_held = false
+	Input.action_release("move_forward")
+	Input.action_release("jump")
+	var end_pos: Vector3 = act._player.global_position
+	_expect(climbed,
+		"the tps ramps cannot be climbed (the alternate route is a wall)")
+	_expect(through_door,
+		"the tps zone 1 perimeter seals the exit to zone 2")
+	_expect(end_pos.z < -50.0 and end_pos.y > 4.0,
+		"the tps catwalk does not reach the rooftop (ended at %s)" % str(end_pos))
 	# Skip `_finish()`: this probe must not record a run or post a result.
 	act._ended = true
 	act.queue_free()

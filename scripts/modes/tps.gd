@@ -136,7 +136,7 @@ func _exit_tree() -> void:
 func _build_zone_one() -> void:
 	# Entrance plaza: wide cover field, first contact.
 	_floor(Vector3(0, -0.5, 24), Vector3(80, 1, 60))
-	_perimeter(Vector2(0, 24), Vector2(80, 60))
+	_perimeter(Vector2(0, 24), Vector2(80, 60), 44.0)
 	for c in [Vector3(-12, 0, 18), Vector3(12, 0, 18), Vector3(-4, 0, 8), Vector3(16, 0, 4), Vector3(-18, 0, 6)]:
 		_crate(c, Vector3(4, 1.4, 2.2))
 	_slab(Vector3(0, 5, 12), Vector3(6, 0.4, 12), EnvBuilder.MAT_WALL_C)  # arch over the road
@@ -160,11 +160,13 @@ func _build_zone_two() -> void:
 		_crate(Vector3(-10, 0, z), Vector3(5, 1.6, 2.4))
 		_crate(Vector3(10, 0, z), Vector3(5, 1.6, 2.4))
 	# Raised catwalk along the left wall: alternate route, reachable by a ramp.
-	_slab(Vector3(-18, 4.0, -24), Vector3(6, 0.5, 46), EnvBuilder.MAT_WALL_C)
-	_ramp(Vector3(-18, 1.6, 4), Vector3(6, 0.4, 10))
+	# Its top must be flush with the roof (4.5) or the player is stopped by a
+	# 25 cm lip at the junction.
+	_slab(Vector3(-18, 4.25, -24), Vector3(6, 0.5, 46), EnvBuilder.MAT_WALL_C)
+	_ramp(Vector3(-18, 1.99, 6.19), Vector3(6, 0.4, 15))
 	# Second route: service catwalk along the right wall, its own ramp.
-	_slab(Vector3(18, 4.0, -24), Vector3(6, 0.5, 46), EnvBuilder.MAT_METAL)
-	_ramp(Vector3(18, 1.6, 4), Vector3(6, 0.4, 10))
+	_slab(Vector3(18, 4.25, -24), Vector3(6, 0.5, 46), EnvBuilder.MAT_METAL)
+	_ramp(Vector3(18, 1.99, 6.19), Vector3(6, 0.4, 15))
 	# Barrels tucked beside the cover: shooting them clears a whole cluster.
 	for b in [Vector3(-13, 0, -12), Vector3(-13.8, 0, -13), Vector3(13, 0, -24), Vector3(12, 0, -36)]:
 		add_child(Destructible.make(Destructible.Kind.BARREL, b))
@@ -216,8 +218,20 @@ func _floor(center: Vector3, size: Vector3) -> void:
 	_slab(center, size, EnvBuilder.MAT_ROAD)
 
 
-func _perimeter(center: Vector2, size: Vector2) -> void:
-	_slab(Vector3(center.x, 6, center.y - size.y / 2.0), Vector3(size.x, 12, 2), EnvBuilder.MAT_WALL_A)
+## Four walls around a plaza. `door` leaves a centred opening in the south
+## wall: zone 1 used to be sealed on all four sides, so the player cleared the
+## first wave and then walked into an invisible dead end — zones 2 and 3 were
+## unreachable. The opening is wide enough for the two catwalks (x = ±18) and
+## lines up with the zone 2 corridor.
+func _perimeter(center: Vector2, size: Vector2, door := 0.0) -> void:
+	var south := center.y - size.y / 2.0
+	if door > 0.0:
+		var wing := maxf((size.x - door) / 2.0, 0.5)
+		for side in [-1.0, 1.0]:
+			var cx: float = center.x + side * (door / 2.0 + wing / 2.0)
+			_slab(Vector3(cx, 6, south), Vector3(wing, 12, 2), EnvBuilder.MAT_WALL_A)
+	else:
+		_slab(Vector3(center.x, 6, south), Vector3(size.x, 12, 2), EnvBuilder.MAT_WALL_A)
 	_slab(Vector3(center.x, 6, center.y + size.y / 2.0), Vector3(size.x, 12, 2), EnvBuilder.MAT_WALL_A)
 	_slab(Vector3(center.x - size.x / 2.0, 6, center.y), Vector3(2, 12, size.y), EnvBuilder.MAT_WALL_A)
 	_slab(Vector3(center.x + size.x / 2.0, 6, center.y), Vector3(2, 12, size.y), EnvBuilder.MAT_WALL_A)
@@ -230,7 +244,10 @@ func _crate(center: Vector3, size: Vector3) -> void:
 func _ramp(center: Vector3, size: Vector3) -> void:
 	var body := StaticBody3D.new()
 	body.position = center
-	body.rotation_degrees = Vector3(-18, 0, 0)
+	# Positive pitch raises the -Z end: the ramps start in the plaza and climb
+	# toward the catwalks to the south. Negative pitch put the high end on the
+	# plaza side, so the ramp was a 3 m wall the player could not climb.
+	body.rotation_degrees = Vector3(18, 0, 0)
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = size
