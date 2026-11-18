@@ -777,6 +777,8 @@ func _start_reload() -> void:
 		return
 	_reload_timer = RELOAD_TIME
 	_reload_pending = true
+	if _character:
+		_character.play_reload()
 	Audio.reload_start()
 	if _hud:
 		_hud.set_status("RECHARGEMENT...")

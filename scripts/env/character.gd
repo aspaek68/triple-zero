@@ -52,6 +52,9 @@ var _aiming := false
 var _dead := false
 var _part_count := 0
 var _variant := VARIANT_RIFLEMAN
+## Set while a one-shot clip (hit reaction, reload) owns the skeleton, so the
+## locomotion chooser does not immediately override it.
+var _one_shot := false
 
 
 ## `clothes` colours the body, `accent` the gear, `heavy` builds a bulkier
@@ -524,7 +527,13 @@ func _build_animations() -> void:
 	lib.add_animation("aim_run", _loco_anim(0.66, 1.7, true))
 	lib.add_animation("death", _death_anim())
 	lib.add_animation("hit", _hit_anim())
+	lib.add_animation("reload", _reload_anim())
 	_anim.add_animation_library("", lib)
+	_anim.animation_finished.connect(_on_anim_finished)
+
+
+func _on_anim_finished(_clip: StringName) -> void:
+	_one_shot = false
 
 
 # ------------------------------------------------------------------- ragdoll
@@ -599,27 +608,36 @@ func is_ragdoll_active() -> bool:
 
 
 ## Locomotion cycle: legs and arms swing with `amount`; `aiming` raises the arms.
+## Key times are scaled to the clip length so run (0.66 s) and idle (2 s) both
+## complete a full cycle instead of holding or truncating.
 func _loco_anim(length: float, amount: float, aiming: bool) -> Animation:
 	var anim := Animation.new()
 	anim.length = length
 	anim.loop_mode = Animation.LOOP_LINEAR
+	var q := length
 	var swing := 0.5 * amount
 	var arm := 0.45 * amount
-	_rot(anim, "leg_l", [[0.0, swing], [0.25, 0.0], [0.5, -swing], [0.75, 0.0], [1.0, swing]])
-	_rot(anim, "leg_r", [[0.0, -swing], [0.25, 0.0], [0.5, swing], [0.75, 0.0], [1.0, -swing]])
-	_rot(anim, "shin_l", [[0.0, -0.12], [0.25, -0.65 * amount], [0.5, -0.05], [0.75, -0.4 * amount], [1.0, -0.12]])
-	_rot(anim, "shin_r", [[0.0, -0.05], [0.25, -0.4 * amount], [0.5, -0.12], [0.75, -0.65 * amount], [1.0, -0.05]])
-	_rot(anim, "spine", [[0.0, 0.05 * amount], [0.5, 0.12 * amount], [1.0, 0.05 * amount]])
+	_rot(anim, "leg_l", [[0.0, swing], [0.25 * q, 0.0], [0.5 * q, -swing], [0.75 * q, 0.0], [q, swing]])
+	_rot(anim, "leg_r", [[0.0, -swing], [0.25 * q, 0.0], [0.5 * q, swing], [0.75 * q, 0.0], [q, -swing]])
+	_rot(anim, "shin_l", [[0.0, -0.12], [0.25 * q, -0.65 * amount], [0.5 * q, -0.05], [0.75 * q, -0.4 * amount], [q, -0.12]])
+	_rot(anim, "shin_r", [[0.0, -0.05], [0.25 * q, -0.4 * amount], [0.5 * q, -0.12], [0.75 * q, -0.65 * amount], [q, -0.05]])
+	_rot(anim, "spine", [[0.0, 0.05 * amount], [0.5 * q, 0.12 * amount], [q, 0.05 * amount]])
+	# Breathing: the chest lifts slightly every cycle, even standing still.
+	_rot(anim, "chest", [[0.0, 0.0], [0.5 * q, 0.035 + 0.05 * amount], [q, 0.0]])
+	# Two footfalls per cycle, so the pelvis bobs twice.
+	if amount > 0.05:
+		var bob := 0.035 * amount
+		_pos(anim, "hips", [[0.0, 0.0], [0.25 * q, bob], [0.5 * q, 0.0], [0.75 * q, bob], [q, 0.0]])
 	if aiming:
-		_rot(anim, "arm_l", [[0.0, -1.25], [1.0, -1.25]])
-		_rot(anim, "arm_r", [[0.0, -1.45], [1.0, -1.45]])
-		_rot(anim, "forearm_l", [[0.0, -0.55], [1.0, -0.55]])
-		_rot(anim, "forearm_r", [[0.0, -0.65], [1.0, -0.65]])
+		_rot(anim, "arm_l", [[0.0, -1.25], [q, -1.25]])
+		_rot(anim, "arm_r", [[0.0, -1.45], [q, -1.45]])
+		_rot(anim, "forearm_l", [[0.0, -0.55], [q, -0.55]])
+		_rot(anim, "forearm_r", [[0.0, -0.65], [q, -0.65]])
 	else:
-		_rot(anim, "arm_l", [[0.0, -arm], [0.25, 0.0], [0.5, arm], [0.75, 0.0], [1.0, -arm]])
-		_rot(anim, "arm_r", [[0.0, arm], [0.25, 0.0], [0.5, -arm], [0.75, 0.0], [1.0, arm]])
-		_rot(anim, "forearm_l", [[0.0, -0.2], [1.0, -0.2]])
-		_rot(anim, "forearm_r", [[0.0, -0.2], [1.0, -0.2]])
+		_rot(anim, "arm_l", [[0.0, -arm], [0.25 * q, 0.0], [0.5 * q, arm], [0.75 * q, 0.0], [q, -arm]])
+		_rot(anim, "arm_r", [[0.0, arm], [0.25 * q, 0.0], [0.5 * q, -arm], [0.75 * q, 0.0], [q, arm]])
+		_rot(anim, "forearm_l", [[0.0, -0.2], [q, -0.2]])
+		_rot(anim, "forearm_r", [[0.0, -0.2], [q, -0.2]])
 	return anim
 
 
@@ -643,11 +661,24 @@ func _rot(anim: Animation, bone: String, keys: Array) -> void:
 		anim.rotation_track_insert_key(t, k[0], Quaternion(Vector3.RIGHT, k[1]))
 
 
+## Vertical offset track, expressed relative to the bone's rest position.
+func _pos(anim: Animation, bone: String, keys: Array) -> void:
+	if not _bones.has(bone):
+		return
+	var t := anim.add_track(Animation.TYPE_POSITION_3D)
+	anim.track_set_path(t, NodePath(":" + bone))
+	var rest := _skeleton.get_bone_rest(_bones[bone]).origin
+	for k in keys:
+		anim.position_track_insert_key(t, k[0], rest + Vector3(0, k[1], 0))
+
+
 # ------------------------------------------------------------------- interface
 
 ## Chooses the right clip for the current speed and aiming state and blends in.
 func animate_walk(delta: float, speed01: float) -> void:
 	if _dead or _anim == null:
+		return
+	if _one_shot:
 		return
 	var aiming := _aiming
 	_aiming = false
@@ -672,6 +703,19 @@ func aim(_pitch: float) -> void:
 	_aiming = true
 
 
+## Reload: right hand drops to the magazine and comes back; head glances down.
+func _reload_anim() -> Animation:
+	var anim := Animation.new()
+	anim.length = 1.5
+	anim.loop_mode = Animation.LOOP_NONE
+	_rot(anim, "arm_r", [[0.0, 0.0], [0.2, -0.35], [0.6, -0.55], [1.0, -0.35], [1.5, 0.0]])
+	_rot(anim, "forearm_r", [[0.0, -0.2], [0.2, -0.75], [0.6, -1.15], [1.0, -0.75], [1.5, -0.2]])
+	_rot(anim, "arm_l", [[0.0, 0.0], [0.2, -0.25], [1.0, -0.25], [1.5, 0.0]])
+	_rot(anim, "chest", [[0.0, 0.0], [0.3, 0.12], [1.2, 0.12], [1.5, 0.0]])
+	_rot(anim, "head", [[0.0, 0.0], [0.2, 0.35], [1.1, 0.35], [1.5, 0.0]])
+	return anim
+
+
 func _hit_anim() -> Animation:
 	var anim := Animation.new()
 	anim.length = 0.45
@@ -685,7 +729,6 @@ func _hit_anim() -> Animation:
 	return anim
 
 
-## Plays a hit stagger once.
 ## Plays the death fall once; the actor keeps the final pose.
 func die() -> void:
 	if _dead:
@@ -710,10 +753,21 @@ func die() -> void:
 
 
 ## Plays a hit stagger once (blends back to locomotion afterwards).
+## Plays the reload gesture once (the magazine timer is owned by the mode).
+func play_reload() -> void:
+	if _dead or _anim == null:
+		return
+	if _anim.has_animation("reload"):
+		_one_shot = true
+		_anim.play("reload", 0.08)
+
+
+## Plays a hit stagger once.
 func hit_react() -> void:
 	if _dead or _anim == null:
 		return
 	if _anim.has_animation("hit"):
+		_one_shot = true
 		_anim.play("hit", 0.05)
 
 
