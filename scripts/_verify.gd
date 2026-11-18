@@ -857,6 +857,29 @@ func _check_drive_chasers() -> void:
 	drive_probe.free()
 	hud.queue_free()
 
+	# The first gate must count: `_checkpoint` is the 1-based number of the next
+	# gate, and indexing the array with it directly skipped the gate at node 1.
+	var gate_host := Node3D.new()
+	add_child(gate_host)
+	var gate_car := VehicleBody3D.new()
+	gate_car.mass = 900.0
+	gate_host.add_child(gate_car)
+	var gate_probe := Node3D.new()
+	gate_probe.set_script(script)
+	gate_probe._car = gate_car
+	gate_probe._checkpoints = [
+		{"node": null, "pos": Vector3.ZERO, "passed": false},
+		{"node": null, "pos": Vector3(0, 0, -100), "passed": false},
+	]
+	gate_probe._checkpoint = 1
+	gate_probe._time = 10.0
+	gate_probe._check_checkpoints()
+	_expect(gate_probe._checkpoint == 2, "the first checkpoint gate is skipped")
+	_expect(gate_probe._time > 10.0, "passing a checkpoint gives no time")
+	_expect(bool(gate_probe._checkpoints[0]["passed"]), "the first gate is not marked passed")
+	gate_probe.free()
+	gate_host.free()
+
 
 func _check_equipment() -> void:
 	var saved_equip: int = Progress.equipment_unlocked

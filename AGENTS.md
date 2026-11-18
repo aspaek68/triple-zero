@@ -186,6 +186,15 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   `Score.register_damage(1)`) et exploser au boost. La fonction avait perdu son
   appel : les rivaux restaient immobiles. `_verify._check_drive_chasers()`
   vérifie le site d'appel et le couple volant/accélération.
+- **Portes (Acte 3)** : `_checkpoint` est le numéro **1-based** de la prochaine
+  porte ; `_check_checkpoints()` lit `_checkpoints[_checkpoint - 1]` et termine
+  quand `_checkpoint > _checkpoints.size()`. L'indexer directement sautait la
+  porte du nœud 1 (aucun temps gagné) et le HUD affichait une porte de retard.
+  `_verify._check_drive_chasers()` pose la voiture sur la première porte et
+  vérifie le passage + le bonus de temps.
+- **Secousse d'écran** : elle passe partout par `_add_shake()` (Acte 1, Acte 3),
+  qui applique `Options.screen_shake` (0 = coupé). La télégraphie de charge du
+  boss écrivait `_shake` directement et ignorait donc l'option.
 - **Mort = échec (Acte 1)** : `tps._finish(success)` distingue l'extraction
   réussie de l'intégrité à zéro. Mourir appelle `_finish(false)` : l'acte n'est
   ni validé ni enregistré et le défi est marqué échoué. `_on_replay_done()`

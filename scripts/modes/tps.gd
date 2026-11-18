@@ -477,7 +477,9 @@ func _physics_process(delta: float) -> void:
 		if _boss_charge_cd <= 0.0:
 			_boss_charge = 0.9
 			_boss_charge_cd = 6.5
-			_shake = 0.25
+			# Through `_add_shake()` so the "screen shake" option (0 = off) applies
+			# here too: this used to set `_shake` directly.
+			_add_shake(0.25)
 			if _hud:
 				_hud.set_status("SENTINELLE : CHARGE")
 		_boss_charge = maxf(_boss_charge - delta, 0.0)

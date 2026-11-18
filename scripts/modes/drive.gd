@@ -547,16 +547,18 @@ func _spawn_flash(pos: Vector3) -> void:
 
 
 func _check_checkpoints() -> void:
-	if _checkpoint >= _checkpoints.size():
+	# `_checkpoint` is the 1-based number of the next gate, so the gate at path
+	# node 1 counts too (indexing it directly skipped the first gate entirely).
+	if _checkpoint > _checkpoints.size():
 		return
-	var gate: Dictionary = _checkpoints[_checkpoint]
+	var gate: Dictionary = _checkpoints[_checkpoint - 1]
 	if _car.global_position.distance_to(gate.pos) < CHECKPOINT_RADIUS:
 		gate.passed = true
 		_time += TIME_PER_CHECKPOINT
 		Audio.hit_confirm()
 		Options.rumble(0.2, 0.1, 0.15)
 		_checkpoint += 1
-		if _checkpoint >= _checkpoints.size():
+		if _checkpoint > _checkpoints.size():
 			_finish(true)
 
 
@@ -799,7 +801,8 @@ func _update_hud() -> void:
 	if _hud:
 		var boost := Loc.t("PRÊT") if _boost_cd <= 0.0 else "%.1fs" % maxf(_boost_cd, 0.0)
 		_hud.set_status("Vitesse %3d km/h • Porte %d/%d • Temps %4.1fs • Boost %s • Poursuivants %d" % [
-			int(_speed * 3.6), _checkpoint, _checkpoints.size(), maxf(_time, 0.0), boost, _alive_chasers()
+			int(_speed * 3.6), mini(_checkpoint, _checkpoints.size()), _checkpoints.size(),
+			maxf(_time, 0.0), boost, _alive_chasers()
 		])
 
 
