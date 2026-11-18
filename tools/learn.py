@@ -34,12 +34,28 @@ def fetch_url(url: str) -> tuple[str, str]:
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
     title = (soup.title.string.strip() if soup.title and soup.title.string else urlparse(url).netloc)
-    # Drop nav/script/style noise.
     for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
         tag.decompose()
     text = soup.get_text("\n", strip=True)
-    # Collapse blank lines.
     text = re.sub(r"\n{3,}", "\n\n", text)
+    # If the page is JS-rendered and came back nearly empty, render it.
+    if len(text) < 500:
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.goto(url, wait_until="networkidle", timeout=30000)
+                html = page.content()
+                browser.close()
+            soup = BeautifulSoup(html, "html.parser")
+            if soup.title and soup.title.string:
+                title = soup.title.string.strip()
+            for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
+                tag.decompose()
+            text = re.sub(r"\n{3,}", "\n\n", soup.get_text("\n", strip=True))
+        except Exception as e:
+            print("Playwright fallback failed: %s" % e, file=sys.stderr)
     return title, text
 
 
