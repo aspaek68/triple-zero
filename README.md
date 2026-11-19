@@ -118,7 +118,7 @@ l'Acte 3.
 
 ## Météo, replay et éditeur de niveau
 
-La **météo dynamique** (`scripts/env/weather.gd`) est commune aux trois actes :
+La **météo dynamique** (`scripts/core/weather.gd`) est commune aux trois actes :
 quatre presets (clair, pluie, orage, brouillard) changent le ciel, le brouillard,
 le soleil et la pluie, avec une transition douce. **C** (ou **Y**) fait défiler
 les presets ; en orage, des **éclairs** illuminent la scène et le **tonnerre**
@@ -310,13 +310,13 @@ scripts/
     level_data.gd          # autoload : niveau personnalisé de l'éditeur (user://level.json)
     replay.gd              # tampon de ralenti : filme les acteurs, rejoue en fantômes
     director.gd            # câblage commun météo + replay pour les trois actes
+    weather.gd             # météo dynamique : ciel, brouillard, soleil, pluie, éclairs
   env/
     env_builder.gd         # ciel, soleil, brouillard, tonemapping, matériaux PBR + chargement glTF
     character.gd           # humanoïde skinné (squelette + animations idle/walk/run/aim/mort)
     weapon.gd              # fusil en primitives (canon, chargeur, optique, recul)
     destructible.gd        # barils explosifs / caisses cassables
     enemy.gd               # hostile à points de vie, touchable par les explosions
-    weather.gd             # météo dynamique : ciel, brouillard, soleil, pluie, éclairs
   modes/{tps,rail,drive}.gd
   ui/{menu,options_menu,pause_menu,hud}.gd
   ui/level_editor.gd       # éditeur de niveau de l'acte 3 (vue de dessus)

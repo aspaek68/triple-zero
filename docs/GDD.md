@@ -302,7 +302,7 @@ assets/
 
 ### 8.5 Mise en scène dynamique (P16)
 
-- **Météo** (`scripts/env/weather.gd`) : quatre presets (clair, pluie, orage,
+- **Météo** (`scripts/core/weather.gd`) : quatre presets (clair, pluie, orage,
   brouillard) pilotent ciel, brouillard, soleil et pluie, avec transition
   douce ; éclairs + tonnerre en orage ; l'Acte 3 réduit l'adhérence sous la
   pluie. Touche **C** / **Y** pour changer, option « météo dynamique » pour
