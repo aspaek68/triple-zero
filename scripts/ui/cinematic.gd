@@ -57,11 +57,15 @@ func _build(title: String, subtitle: String) -> void:
 	_caption.position = Vector2(0, 30)
 	add_child(_caption)
 	
-	_subtitle = _label(18, Color(0.85, 0.9, 1.0))
-	_subtitle.text = Loc.t(subtitle)
-	_subtitle.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_subtitle.position = Vector2(0, -60)
-	add_child(_subtitle)
+	# The objective line is a subtitle: the options screen offers "Sous-titres"
+	# and the replay caption already honours it, but the intro kept showing its
+	# line even with subtitles switched off.
+	if Options.subtitles:
+		_subtitle = _label(18, Color(0.85, 0.9, 1.0))
+		_subtitle.text = Loc.t(subtitle)
+		_subtitle.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+		_subtitle.position = Vector2(0, -60)
+		add_child(_subtitle)
 	
 	_camera = Camera3D.new()
 	_camera.fov = 62.0
@@ -107,7 +111,8 @@ func _finish() -> void:
 	_top.queue_free()
 	_bottom.queue_free()
 	_caption.queue_free()
-	_subtitle.queue_free()
+	if _subtitle:
+		_subtitle.queue_free()
 	_camera.queue_free()
 	finished.emit()
 

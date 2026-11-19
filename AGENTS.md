@@ -115,6 +115,10 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   acte appelle `Cinematic.play()` puis lance la musique sur le signal
   `finished` ; `is_done()` sert à verrouiller l'entrée pendant la lecture. En
   headless (pas de fenêtre, pas d'input) elle s'auto-termine en 0,2 s.
+  La ligne d'objectif est un **sous-titre** : `_build()` ne la crée que si
+  `Options.subtitles` est vrai (le HUD affiche déjà l'objectif). L'option
+  n'agissait avant que sur la légende du ralenti ; `_verify._check_cinematic()`
+  couvre les deux états.
 - **Pause et résultats** : `PauseMenu` (`scripts/ui/pause_menu.gd`,
   `class_name`, `extends CanvasLayer`) est créé par chaque acte après le HUD et
   ouvert par l'action `pause`. Il passe en `PROCESS_MODE_ALWAYS`, met
@@ -544,3 +548,8 @@ chargeurs valident donc **chaque** valeur avant de l'affecter :
   côtés (invite + liaison) ; `_verify._check_gamepad_bindings()` vérifie que
   `shoot` et `boost` écoutent bien la gâchette droite. Un run headless ne
   presse jamais une gâchette, donc ce genre d'écart ne se voit qu'en jouant.
+- **Espace = tirer, pas sauter** : `jump` était aussi sur `KEY_SPACE`, et
+  l'Acte 1 lit `jump` juste avant `shoot` : chaque tir au clavier faisait
+  sauter le joueur. `jump` est passé sur `KEY_V` (la manette garde A, où
+  « interact » n'est pas utilisé en Acte 1) ; `_verify._check_keybinds()`
+  interdit que `jump` reprenne Espace.

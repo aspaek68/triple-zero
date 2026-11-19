@@ -121,7 +121,7 @@ func _ensure_input_actions() -> void:
 	_add_buttons("shoot", [JOY_BUTTON_X])
 	_axis_action("shoot", JOY_AXIS_TRIGGER_RIGHT, 1.0)
 
-	_add_keys("jump", [KEY_SPACE])
+	_add_keys("jump", [KEY_V])
 	_add_buttons("jump", [JOY_BUTTON_A])
 	_add_keys("interact", [KEY_E])
 	_add_buttons("interact", [JOY_BUTTON_A])

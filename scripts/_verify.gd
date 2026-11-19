@@ -17,6 +17,7 @@ func _ready() -> void:
 	_check_models()
 	_check_destructibles()
 	_check_hud()
+	_check_cinematic()
 	_check_pause()
 	_check_editor()
 	_check_results_screen()
@@ -436,6 +437,30 @@ func _check_hud() -> void:
 	Score.reset()
 	hud._refresh()
 	hud.queue_free()
+
+
+## The options screen offers "Sous-titres" and the replay caption honours it,
+## but the intro cinematic always drew its objective line. With subtitles off
+## the line must be absent (the HUD still shows the objective); with them on it
+## must be there.
+func _check_cinematic() -> void:
+	var saved: bool = Options.subtitles
+	Options.subtitles = false
+	var off := Cinematic.new()
+	add_child(off)
+	off.play("ACTE 1 - TOUR", "Objectif : test", Vector3(0, 10, 10),
+		Vector3(0, 4, 0), Vector3(0, 0, -10))
+	_expect(off._caption != null, "cinematic lost its title")
+	_expect(off._subtitle == null, "cinematic shows subtitles while they are off")
+	off.free()
+	Options.subtitles = true
+	var on := Cinematic.new()
+	add_child(on)
+	on.play("ACTE 1 - TOUR", "Objectif : test", Vector3(0, 10, 10),
+		Vector3(0, 4, 0), Vector3(0, 0, -10))
+	_expect(on._subtitle != null, "cinematic hides subtitles while they are on")
+	on.free()
+	Options.subtitles = saved
 
 
 ## The in-act pause overlay freezes the tree while open and releases it on
@@ -1551,6 +1576,10 @@ func _check_keybinds() -> void:
 		"reset did not restore the default shoot binding")
 	_expect(_first_key("reload") == KEY_F,
 		"reset did not restore the default reload binding")
+	# Space fires. It must not also jump: the TPS act reads "jump" on the same
+	# press, so every keyboard shot launched the player into the air.
+	_expect(_first_key("jump") != KEY_SPACE,
+		"jump shares Space with shoot (firing makes the player hop)")
 	if menu:
 		# A stock binding must render its key, not the "-" placeholder.
 		_expect(menu._key_name("reload") == OS.get_keycode_string(KEY_F),
