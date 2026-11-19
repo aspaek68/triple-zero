@@ -41,10 +41,13 @@ Viser **0 ERROR / 0 WARNING** dans les logs pour chaque mode.
   Godot logue `Lambda capture at index 0 was freed`. Préférer une **méthode
   liée** (`callable.bind(...)`, la connexion tombe avec l'objet), un tween créé
   par le nœud (`node.create_tween()`) ou `timer.timeout.connect(obj.method)`.
-- **Renderer** : le projet est en `gl_compatibility` (pas de SSAO/SSR/SSIL ni
-  brouillard volumétrique). `EnvBuilder._apply_advanced_lighting()` teste
-  `RenderingServer.get_current_rendering_method()` (et non le réglage projet,
-  car `LANCER_QUALITE_HAUTE.bat` force `forward_plus` en ligne de commande).
+- **Renderer** : le réglage du projet est `forward_plus` (aperçu dans
+  l'éditeur), mais les lanceurs `.bat` forcent le renderer en ligne de commande
+  : `LANCER_LE_JEU.bat`, `LANCER_MISSION_2.bat` et `LANCER_MISSION_3.bat` →
+  `gl_compatibility`, `LANCER_QUALITE_HAUTE.bat` → `forward_plus`. En GL, pas de
+  SSAO/SSR/SSIL ni de brouillard volumétrique. `EnvBuilder._apply_advanced_lighting()`
+  teste `RenderingServer.get_current_rendering_method()` (et non le réglage
+  projet), donc les deux chemins restent corrects.
 - **Indentation** : tous les `.gd` utilisent des tabulations. Les patchs Python
   par chaîne exacte sont plus sûrs que des éditeurs qui convertissent en
   espaces : Godot refuse un fichier qui mélange espaces et tabulations. Après

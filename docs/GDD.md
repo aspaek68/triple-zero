@@ -216,8 +216,8 @@ s'adaptent automatiquement au périphérique utilisé (manette ou clavier/souris
 
 ## 8. Mise en œuvre technique (Godot 4.7)
 
-**Moteur** : Godot 4.7. Le jeu tourne par défaut en *GL Compatibility*
-(compatibilité large). Sur une machine compatible Vulkan, le lanceur
+**Moteur** : Godot 4.7. Lancé par son fichier `.bat` standard, le jeu tourne en
+*GL Compatibility* (compatibilité large). Sur une machine compatible Vulkan, le lanceur
 `LANCER_QUALITE_HAUTE.bat` démarre le même projet en **Forward+** pour
 débloquer éclairage global, ombres avancées et effets modernes. Le choix du
 renderer se fait au lancement (Godot ne le change pas à chaud) ; le projet
