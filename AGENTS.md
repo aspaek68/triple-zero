@@ -175,6 +175,11 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   `evaluate()` renvoie `{success: true, skipped: true}`. L'écran de résultats
   affiche « Défi « Tireur d'élite » : non applicable (conduite) » au lieu d'un
   échec inévitable.
+  Les dégâts ne doivent faire échouer **que** « Sans dégâts » : les actes
+  appelaient `Progress.fail()` sur chaque touche, ce qui faisait aussi échouer
+  « Tireur d'élite » à 100 % de précision et « Explorateur » sur un trajet
+  alternatif. Ils appellent maintenant `Progress.fail_for("no_damage", …)` ;
+  `fail()` reste réservé à l'échec global de l'acte (mort, temps écoulé).
 - **Score sans tir** : `Score.accuracy_ratio()` vaut 0 quand aucun coup n'est
   parti et `total()` n'ajoute le bonus de précision que si `shots_fired > 0`
   (l'Acte 3 offrait sinon 1000 points gratuits). HUD et écran de résultats

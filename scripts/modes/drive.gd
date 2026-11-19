@@ -758,7 +758,7 @@ func _update_chasers(delta: float) -> void:
 			_car.linear_velocity *= 0.8
 			# Being rammed is the driving act's "took a hit": it breaks the
 			# no-damage challenge and costs the score's no-damage multiplier.
-			Progress.fail("percuté")
+			Progress.fail_for("no_damage", "percuté")
 			Score.register_damage(1)
 			Audio.crash()
 			Options.rumble(0.6, 0.3, 0.3)

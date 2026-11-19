@@ -309,6 +309,17 @@ func fail(reason: String) -> void:
 	challenge_failed.emit(reason)
 
 
+## Fails the armed challenge only when it is `id`. Damage in the acts must not
+## sink an unrelated goal: a rival ram used to fail "Tireur d'élite" even at
+## 100 % accuracy, and a civilian hit failed "Explorateur" on a route run.
+func fail_for(id: String, reason: String) -> void:
+	if _active != id or _failed:
+		return
+	_failed = true
+	_fail_reason = reason
+	challenge_failed.emit(reason)
+
+
 ## Evaluates the armed challenge at the end of a run.
 func evaluate() -> Dictionary:
 	# A skipped challenge has no verdict: report it as such instead of a free

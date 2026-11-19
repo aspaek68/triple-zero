@@ -821,6 +821,29 @@ func _check_challenges() -> void:
 	_expect(rammed["reason"] == "percuté", "no-damage reason was not kept")
 	Score.reset()
 
+	# Damage must only fail the challenge about damage. The acts used to call
+	# `Progress.fail()` on every hit, which sank "Tireur d'élite" and
+	# "Explorateur" too, even when their own condition was met.
+	Progress.selected_challenge = "accuracy"
+	Progress.begin()
+	Score.register_shot(true)
+	Progress.fail_for("no_damage", "percuté")
+	_expect(Progress.evaluate()["success"],
+		"damage failed an accuracy challenge that was on target")
+	Score.reset()
+	Progress.selected_challenge = "explorer"
+	Progress.begin()
+	Score.alternate_paths = 1
+	Progress.fail_for("no_damage", "percuté")
+	_expect(Progress.evaluate()["success"],
+		"damage failed an explorer challenge that took a route")
+	Score.reset()
+	Progress.selected_challenge = "no_damage"
+	Progress.begin()
+	Progress.fail_for("no_damage", "percuté")
+	_expect(not Progress.evaluate()["success"],
+		"fail_for missed the no-damage challenge")
+
 	# "Sharpshooter" needs shots, and the driving act fires none: it must be
 	# skipped there (no verdict), not failed for a reason the player cannot
 	# avoid, and it must not arm the HUD.

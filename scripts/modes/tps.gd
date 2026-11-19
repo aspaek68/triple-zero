@@ -780,7 +780,7 @@ func _take_damage(amount: int) -> void:
 	_invuln = 0.6
 	_health = maxi(_health - amount, 0)
 	Score.register_damage(amount)
-	Progress.fail("touché")
+	Progress.fail_for("no_damage", "touché")
 	Audio.play_noise(0.08, -12.0, 0.6)
 	Options.rumble(0.3, 0.6)
 	_add_shake(1.0)
