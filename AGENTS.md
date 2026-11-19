@@ -298,6 +298,13 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   ni validé ni enregistré et le défi est marqué échoué. `_on_replay_done()`
   teste `is_inside_tree()` pour que `_verify` puisse appeler `_finish(false)`
   sur un nœud détaché sans changer de scène.
+- **Couvert (Acte 1)** : `cover` (Ctrl / B) ne faisait que réduire la vitesse de
+  marche de moitié ; les ennemis infligeaient toujours leurs dégâts pleins,
+  alors que le HUD annonce « Ctrl couvert ». `_take_damage()` divise maintenant
+  les dégâts par deux quand `_in_cover` est vrai (`COVER_DAMAGE_SCALE`), avec un
+  minimum de 1 : le défi « Sans dégâts » reste perdable accroupi.
+  `_verify._check_cover()` couvre les deux cas (plein tarif debout, moitié
+  accroupi, jamais zéro).
 - **Géométrie de l'Acte 1 (zone 1 → toit)** : `_perimeter(center, size, door)`
   perce un **passage central** dans le mur sud ; `_build_zone_one()` l'appelle
   avec `door = 44`. Sans lui les quatre murs fermaient la place : le joueur

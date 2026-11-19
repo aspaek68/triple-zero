@@ -171,7 +171,7 @@ adhérence) au choix.
 - **Mixage dynamique** : priorité aux menaces proches, musique qui monte en
   tension, baisse automatique sur les dialogues.
 
-> **Implémenté (prototype)** : les sons sont *générés par le moteur* (aucun
+> **Implémenté** : les sons sont *générés par le moteur* (aucun
 > fichier fourni) — tir, impact, confirmation, alarme « civil touché », boost,
 > moteur, plus une courte nappe musicale par acte. Trois bus (**Master /
 > Musique / Effets**) réglables dans les options. Ces sons placeholder seront
@@ -188,7 +188,8 @@ s'adaptent automatiquement au périphérique utilisé (manette ou clavier/souris
 **Manette (priorité)**
 - **Le jeu se joue entièrement à la manette**, reconnue à chaud.
 - Mouvement : stick gauche / croix ; visée-caméra : stick droit.
-- Tir : **X** ou gâchette droite ; course/boost : gâchette gauche ou RB ;
+- Tir : **X** ou gâchette droite ; course (Acte 1) : gâchette gauche ou RB ;
+  boost (Acte 3) : gâchette droite ou RB ; recharger : **LB** ;
   saut : **A** ; couvert / frein à main : **B** ; pause : **Start**.
 - Menus entièrement navigables à la manette (croix/stick, **A** valider,
   **B** retour).
@@ -215,7 +216,7 @@ s'adaptent automatiquement au périphérique utilisé (manette ou clavier/souris
 
 ## 8. Mise en œuvre technique (Godot 4.7)
 
-**Moteur** : Godot 4.7. Le prototype tourne par défaut en *GL Compatibility*
+**Moteur** : Godot 4.7. Le jeu tourne par défaut en *GL Compatibility*
 (compatibilité large). Sur une machine compatible Vulkan, le lanceur
 `LANCER_QUALITE_HAUTE.bat` démarre le même projet en **Forward+** pour
 débloquer éclairage global, ombres avancées et effets modernes. Le choix du

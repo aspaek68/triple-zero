@@ -1,6 +1,6 @@
-# TRIPLE ZERO — Prototype
+# TRIPLE ZERO
 
-Prototype jouable en **Godot 4.7**, remake **hommage** à *Die Hard Trilogy* (PS1).
+Jeu jouable en **Godot 4.7**, remake **hommage** à *Die Hard Trilogy* (PS1).
 Trois actes, trois façons de jouer : **action/infiltration à la troisième
 personne**, **rail shooter**, **conduite arcade**.
 
@@ -41,8 +41,10 @@ affiche les invites du périphérique que vous venez d'utiliser.
 | Se déplacer / conduire | **Stick gauche** ou croix | **ZQSD** / **flèches** |
 | Viser / regarder la caméra | **Stick droit** | **Souris** |
 | Tirer | **X** ou **gâchette droite (RT)** | **Clic gauche** / **Espace** |
-| Courir / boost | **Gâchette gauche (LT)** ou **RB** | **Maj** |
-| Sauter (Acte 1) | **A** | **Espace** |
+| Courir (Acte 1) | **Gâchette gauche (LT)** ou **RB** | **Maj** |
+| Boost (Acte 3) | **Gâchette droite (RT)** ou **RB** | **Maj** |
+| Sauter (Acte 1) | **A** | **V** |
+| Recharger (Acte 1) | **LB** | **F** |
 | Se mettre à couvert (Acte 1) | **B** | **Ctrl** |
 | Frein à main / déraper (Acte 3) | **B** | **Espace** |
 | Météo (change le temps) | **Y** | **C** |

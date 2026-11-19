@@ -34,6 +34,7 @@ func _ready() -> void:
 	_check_score()
 	_check_challenges()
 	_check_death_is_failure()
+	_check_cover()
 	_check_drive_chasers()
 	_check_equipment()
 	_check_keybinds()
@@ -936,6 +937,42 @@ func _check_death_is_failure() -> void:
 	GameState.last_act_success = true
 	GameState.last_act_reason = ""
 	GameState.show_results_on_load = saved_results
+
+
+## "Se mettre à couvert" only halved the walk speed: enemies still hit for full
+## damage, so the advertised control did nothing defensive. Cover now halves the
+## hit, but never below 1 (the "Sans dégâts" challenge must stay losable).
+func _check_cover() -> void:
+	var script: GDScript = load("res://scripts/modes/tps.gd")
+	_expect(script != null, "tps act script does not load")
+	if script == null:
+		return
+	var saved_challenge: String = Progress.selected_challenge
+	Progress.selected_challenge = "none"
+	Progress.begin()
+	var probe := Node3D.new()
+	probe.set_script(script)
+	probe._health = 100
+	probe._invuln = 0.0
+	probe._in_cover = false
+	probe._take_damage(20)
+	var open_damage: int = 100 - probe._health
+	probe._health = 100
+	probe._invuln = 0.0
+	probe._in_cover = true
+	probe._take_damage(20)
+	var cover_damage: int = 100 - probe._health
+	_expect(open_damage == 20, "an uncovered hit did not apply its full damage")
+	_expect(cover_damage < open_damage, "cover does not reduce incoming damage")
+	_expect(cover_damage >= 1, "cover negates all damage (the no-damage challenge becomes free)")
+	probe._health = 100
+	probe._invuln = 0.0
+	probe._in_cover = true
+	probe._take_damage(1)
+	_expect(probe._health < 100, "a 1-damage hit in cover was ignored")
+	probe.free()
+	Progress.selected_challenge = saved_challenge
+	Progress.begin()
 
 
 ## The rival cars used to be built but never updated (`_update_chasers` had no

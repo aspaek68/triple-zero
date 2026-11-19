@@ -12,6 +12,9 @@ const PAD_LOOK_SPEED := 2.4
 const FIRE_COOLDOWN := 0.16
 const MAG_SIZE := 30
 const RELOAD_TIME := 1.5
+## Crouching behind cover halves the hit but never negates it, so "Sans
+## dégâts" stays losable while crouched.
+const COVER_DAMAGE_SCALE := 0.5
 
 const _TUTORIAL_HINTS := [
 	"ZQSD / WASD : se deplacer",
@@ -778,6 +781,11 @@ func _take_damage(amount: int) -> void:
 	if _invuln > 0.0:
 		return
 	_invuln = 0.6
+	# Cover used to only halve the walk speed: the HUD advertised "Ctrl couvert"
+	# but enemies still hit for full damage. Crouching now halves the hit, and
+	# never below 1 so the no-damage challenge cannot be cheesed by holding it.
+	if _in_cover and amount > 0:
+		amount = maxi(1, int(ceil(float(amount) * COVER_DAMAGE_SCALE)))
 	_health = maxi(_health - amount, 0)
 	Score.register_damage(amount)
 	Progress.fail_for("no_damage", "touché")
