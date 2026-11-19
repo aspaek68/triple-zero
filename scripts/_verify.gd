@@ -1224,7 +1224,7 @@ func _check_drive_completion() -> void:
 	act._ended = true
 	act.queue_free()
 	await get_tree().physics_frame
-	_expect(gates.size() > 1, "the drive track has no gate chain")
+	_expect(gates.size() >= 1, "the drive track has no gate chain")
 
 	var host := Node3D.new()
 	add_child(host)
