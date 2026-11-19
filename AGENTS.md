@@ -500,6 +500,18 @@ chargeurs valident donc **chaque** valeur avant de l'affecter :
   replis, puis **restaure les octets d'origine** et recharge : les réglages du
   joueur ne bougent pas.
 
+**Renommage du projet** : `project.godot` s'appelait
+`TRIPLE ZERO - Prototype`. Godot dérive `user://` du `config/name`, donc passer
+à `TRIPLE ZERO` change le dossier de sauvegarde et **orphelinerait** les parties
+existantes. `GameState._ready()` appelle `_migrate_legacy_saves()` **avant**
+`Options.load_from_disk()` : il copie `options.cfg`, `progress.cfg` et
+`level.json` de l'ancien dossier vers le nouveau, fichier par fichier, sans
+jamais écraser un fichier déjà présent, et laisse l'ancien dossier intact.
+`_migrate_files(new_dir, old_dir)` prend les chemins en paramètres pour être
+testable ; `_verify._check_save_migration()` vérifie la copie, le non-écrasement
+et l'idempotence sur des dossiers temporaires (`user://_mig_old`,
+`user://_mig_new`) qu'il nettoie ensuite.
+
 ## Localisation (FR/EN)
 
 - `Loc` (`scripts/core/loc.gd`) est un autoload placé **après** `Options` ; la

@@ -35,6 +35,7 @@ func _ready() -> void:
 	_check_challenges()
 	_check_death_is_failure()
 	_check_cover()
+	_check_save_migration()
 	_check_drive_chasers()
 	_check_equipment()
 	_check_keybinds()
@@ -973,6 +974,52 @@ func _check_cover() -> void:
 	probe.free()
 	Progress.selected_challenge = saved_challenge
 	Progress.begin()
+
+
+## The project was renamed from "TRIPLE ZERO - Prototype" to "TRIPLE ZERO":
+## Godot derives `user://` from that name, so the old saves have to be copied
+## into the new folder or the player loses progress on the next launch.
+func _check_save_migration() -> void:
+	var old_dir := ProjectSettings.globalize_path("user://_mig_old")
+	var new_dir := ProjectSettings.globalize_path("user://_mig_new")
+	_wipe_dir(old_dir)
+	_wipe_dir(new_dir)
+	DirAccess.make_dir_recursive_absolute(old_dir)
+	DirAccess.make_dir_recursive_absolute(new_dir)
+	var legacy := FileAccess.open(old_dir.path_join("progress.cfg"), FileAccess.WRITE)
+	_expect(legacy != null, "could not write the legacy save fixture")
+	if legacy:
+		legacy.store_string("[progress]\nng_plus_enabled=true\n")
+		legacy.close()
+	var existing := FileAccess.open(new_dir.path_join("options.cfg"), FileAccess.WRITE)
+	_expect(existing != null, "could not write the new save fixture")
+	if existing:
+		existing.store_string("keep")
+		existing.close()
+	GameState._migrate_files(new_dir, old_dir)
+	_expect(FileAccess.file_exists(new_dir.path_join("progress.cfg")),
+		"a legacy save was not migrated into the new project folder")
+	_expect(FileAccess.get_file_as_string(new_dir.path_join("options.cfg")) == "keep",
+		"save migration overwrote a file the new folder already had")
+	_expect(not FileAccess.file_exists(new_dir.path_join("level.json")),
+		"save migration invented a save that never existed")
+	# Running it twice must be harmless (the new folder already has the file).
+	GameState._migrate_files(new_dir, old_dir)
+	_expect(FileAccess.file_exists(new_dir.path_join("progress.cfg")),
+		"a second migration pass removed the migrated save")
+	_wipe_dir(old_dir)
+	_wipe_dir(new_dir)
+
+
+func _wipe_dir(path: String) -> void:
+	if not DirAccess.dir_exists_absolute(path):
+		return
+	var d := DirAccess.open(path)
+	if d:
+		for name in d.get_files():
+			d.remove(name)
+		d = null
+	DirAccess.remove_absolute(path)
 
 
 ## The rival cars used to be built but never updated (`_update_chasers` had no

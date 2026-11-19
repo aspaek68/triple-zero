@@ -5,6 +5,12 @@ extends Node
 
 enum Mode { TPS, RAIL, DRIVE }
 
+## Godot stores `user://` in a folder named after the project. The project was
+## called "TRIPLE ZERO - Prototype" until release; renaming it would otherwise
+## orphan every existing save, so `_ready()` copies the three save files over.
+const LEGACY_APP_NAME := "TRIPLE ZERO - Prototype"
+const SAVE_FILES: Array = ["options.cfg", "progress.cfg", "level.json"]
+
 ## Emitted when the active input device changes (keyboard <-> gamepad),
 ## so HUDs can swap their button prompts.
 signal device_changed(device: String)
@@ -46,9 +52,30 @@ var last_device := "keyboard"
 
 
 func _ready() -> void:
+	# Before any loader reads `user://`: bring old saves across after the rename.
+	_migrate_legacy_saves()
 	_ensure_input_actions()
 	Options.load_from_disk()
 	Input.joy_connection_changed.connect(_on_joy_changed)
+
+
+func _migrate_legacy_saves() -> void:
+	var new_dir := OS.get_user_data_dir()
+	_migrate_files(new_dir, new_dir.get_base_dir().path_join(LEGACY_APP_NAME))
+
+
+## Copies the save files from `old_dir` to `new_dir` when they are missing
+## there, never overwriting a file the new folder already has. The old folder
+## is left untouched so a downgrade still finds its saves.
+func _migrate_files(new_dir: String, old_dir: String) -> void:
+	if old_dir == new_dir or not DirAccess.dir_exists_absolute(old_dir):
+		return
+	DirAccess.make_dir_recursive_absolute(new_dir)
+	for name in SAVE_FILES:
+		var src := old_dir.path_join(name)
+		var dst := new_dir.path_join(name)
+		if FileAccess.file_exists(src) and not FileAccess.file_exists(dst):
+			DirAccess.copy_absolute(src, dst)
 
 
 func info(m: int) -> Dictionary:
