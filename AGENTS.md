@@ -365,7 +365,7 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
 
 ## Météo, replay, éditeur (P16)
 
-- **Météo** : `class_name Weather extends Node3D` (`scripts/env/weather.gd`). Un
+- **Météo** : `class_name Weather extends Node3D` (`scripts/core/weather.gd`). Un
   mode le crée via `Director.spawn_weather(mode, focus, hud)` ; il cherche le
   `WorldEnvironment` et le `Sun` **chez son parent** (pas sous lui-même), d'où
   le `get_parent()` dans `_find_environment()`/`_find_sun()`. `set_preset(i, t)`
@@ -373,6 +373,13 @@ pondérée à 100 % sur un os (skinning rigide). Points d'API à respecter :
   `_process`) ; `wetness()` (0..1) sert à réduire
   l'adhérence (`drive._apply_grip()` règle `wheel_friction_slip`). Presets :
   0 clair, 1 pluie, 2 orage, 3 brouillard. `changed` met à jour le HUD.
+  Le minuteur météo dynamique (45 s) passe par `Director._auto_weather()` et
+  relit `Options.weather_dynamic` à chaque tick : `Director.cycle_weather()`
+  (touche météo) met l'option à `false`, mais le minuteur continuait d'appeler
+  `weather.cycle()` et changeait le ciel juste après le choix du joueur.
+  Le paramètre de `_auto_weather` reste **non typé** (`weather`) : un `Weather`
+  typé loguerait « Trying to assign invalid previously freed instance » si un
+  tick arrivait après la libération du nœud.
   Le ciel peut être **procédural** ou **HDRI** : `_find_sky_material()` renvoie
   `Material` (Godot 4 n'a **pas** de type `SkyMaterial`), puis `_procedural` /
   `_pano` sont des casts. Sur HDRI la météo ne repeint pas le panorama :

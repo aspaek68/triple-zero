@@ -694,6 +694,21 @@ func _check_director() -> void:
 		weather.set_preset(1, 4.0)
 		weather._process(0.5)
 		_expect(weather._blend < 0.2, "weather ignores the requested transition duration")
+		# The dynamic weather timer used to call `weather.cycle()` directly, so
+		# a manual choice (the weather action turns `weather_dynamic` off) was
+		# overridden on the next tick. The timer now goes through `_auto_weather`.
+		var saved_dynamic: bool = Options.weather_dynamic
+		Options.weather_dynamic = true
+		var dynamic_before: int = weather.preset
+		Director._auto_weather(weather)
+		_expect(weather.preset != dynamic_before,
+			"dynamic weather no longer cycles the sky")
+		Options.weather_dynamic = false
+		var manual: int = weather.preset
+		Director._auto_weather(weather)
+		_expect(weather.preset == manual,
+			"the weather auto-cycler overrides a manual choice")
+		Options.weather_dynamic = saved_dynamic
 		weather.queue_free()
 	hud.queue_free()
 	stage.queue_free()

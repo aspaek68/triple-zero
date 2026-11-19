@@ -19,11 +19,23 @@ static func spawn_weather(mode: Node3D, focus: Node3D, hud: Hud) -> Weather:
 		var timer := Timer.new()
 		timer.wait_time = 45.0
 		timer.autostart = true
-		# Direct method reference: the connection is dropped automatically when
-		# the weather node is freed, so no callback outlives it.
-		timer.timeout.connect(weather.cycle)
+		# A manual cycle (`cycle_weather`, the weather action) sets
+		# `weather_dynamic` off, but this timer kept ticking and changed the sky
+		# anyway. Check the option on every tick. The callable is owned by the
+		# timer, not by the weather node, so guard the bound node too.
+		timer.timeout.connect(_auto_weather.bind(weather))
 		mode.add_child(timer)
 	return weather
+
+
+## One tick of the dynamic weather timer. It stops changing the sky as soon as
+## the player takes manual control (`Options.weather_dynamic` false). The
+## parameter stays untyped: a typed `Weather` would log a freed-instance error
+## if a tick ever arrived after the node was freed.
+static func _auto_weather(weather) -> void:
+	if not Options.weather_dynamic or not is_instance_valid(weather):
+		return
+	weather.cycle()
 
 
 ## Signal handler for `Weather.changed`; `hud` and `weather` are bound at
