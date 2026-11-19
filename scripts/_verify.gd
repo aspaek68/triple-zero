@@ -26,6 +26,7 @@ func _ready() -> void:
 	await _check_drive_crash()
 	await _check_drive_motion()
 	await _check_tps_route()
+	await _check_drive_completion()
 	_check_score()
 	_check_challenges()
 	_check_death_is_failure()
@@ -1170,6 +1171,117 @@ func _check_tps_route() -> void:
 	act._ended = true
 	act.queue_free()
 	await get_tree().physics_frame
+
+
+## The gate chain is the only way an Act 3 run ends. The first gate used to be
+## skipped (a 1-based `_checkpoint` indexed a 0-based array) and nothing proved
+## the last gate actually posts a result: headless runs never reach it. This
+## takes the real gate list from the real scene, then drives a detached probe
+## through every gate so `_finish(true)` runs without changing scene.
+## `_finish(true)` records a run and unlocks equipment, so the save bytes and
+## the in-memory state are restored afterwards.
+func _check_drive_completion() -> void:
+	var progress_bytes := PackedByteArray()
+	if FileAccess.file_exists(Progress.PATH):
+		progress_bytes = FileAccess.get_file_as_bytes(Progress.PATH)
+	var saved := {
+		"cleared_acts": Progress.cleared_acts.duplicate(),
+		"equipment_unlocked": Progress.equipment_unlocked,
+		"best_score": Progress.best_score.duplicate(),
+		"best_rank": Progress.best_rank.duplicate(),
+		"ng_plus_unlocked": Progress.ng_plus_unlocked,
+		"ng_plus_enabled": Progress.ng_plus_enabled,
+		"selected_challenge": Progress.selected_challenge,
+		"last_success": Progress.last_success,
+		"last_name": Progress.last_name,
+		"last_record": Progress.last_record,
+		"last_reason": Progress.last_reason,
+		"_active": Progress._active,
+		"_skipped": Progress._skipped,
+		"_elapsed": Progress._elapsed,
+		"_failed": Progress._failed,
+		"_fail_reason": Progress._fail_reason,
+	}
+	var saved_success: bool = GameState.last_act_success
+	var saved_reason: String = GameState.last_act_reason
+	var saved_show: bool = GameState.show_results_on_load
+	var saved_ng: bool = GameState.ng_plus
+	var saved_shots := [Score.shots_fired, Score.shots_hit, Score.headshots,
+		Score.civilians_saved, Score.civilians_lost, Score.alternate_paths,
+		Score.equipment_recovered, Score.comm_restored, Score.takedowns,
+		Score.time_bonus, Score.damage_taken]
+
+	var scene: PackedScene = load("res://scenes/modes/drive.tscn")
+	_expect(scene != null, "drive act scene does not load")
+	if scene == null:
+		return
+	var act = scene.instantiate()
+	add_child(act)
+	var gates: Array = []
+	for gate in act._checkpoints:
+		gates.append({"node": null, "pos": gate.pos, "passed": false})
+	# Do not let the real act finish while it is being torn down.
+	act._ended = true
+	act.queue_free()
+	await get_tree().physics_frame
+	_expect(gates.size() > 1, "the drive track has no gate chain")
+
+	var host := Node3D.new()
+	add_child(host)
+	var car := VehicleBody3D.new()
+	host.add_child(car)
+	var probe := Node3D.new()
+	probe.set_script(load("res://scripts/modes/drive.gd"))
+	probe._car = car
+	probe._checkpoints = gates
+	probe._checkpoint = 1
+	probe._time = 0.0
+	Progress.selected_challenge = "none"
+	Progress.begin()
+	for gate in gates:
+		car.global_position = gate.pos
+		probe._check_checkpoints()
+	_expect(probe._ended, "the last drive gate does not finish the act")
+	_expect(GameState.last_act_success, "finishing the drive act reports a failure")
+	_expect(Progress.cleared_acts.has(GameState.Mode.DRIVE),
+		"finishing the drive act does not clear it")
+	probe.free()
+	host.free()
+
+	# Restore the player's save and live state byte for byte.
+	_restore_save(Progress.PATH, progress_bytes)
+	Progress.load_from_disk()
+	Progress.cleared_acts = saved["cleared_acts"]
+	Progress.equipment_unlocked = int(saved["equipment_unlocked"])
+	Progress.best_score = saved["best_score"]
+	Progress.best_rank = saved["best_rank"]
+	Progress.ng_plus_unlocked = bool(saved["ng_plus_unlocked"])
+	Progress.ng_plus_enabled = bool(saved["ng_plus_enabled"])
+	Progress.selected_challenge = String(saved["selected_challenge"])
+	Progress.last_success = bool(saved["last_success"])
+	Progress.last_name = String(saved["last_name"])
+	Progress.last_record = bool(saved["last_record"])
+	Progress.last_reason = String(saved["last_reason"])
+	Progress._active = String(saved["_active"])
+	Progress._skipped = String(saved["_skipped"])
+	Progress._elapsed = float(saved["_elapsed"])
+	Progress._failed = bool(saved["_failed"])
+	Progress._fail_reason = String(saved["_fail_reason"])
+	GameState.last_act_success = saved_success
+	GameState.last_act_reason = saved_reason
+	GameState.show_results_on_load = saved_show
+	GameState.ng_plus = saved_ng
+	Score.shots_fired = int(saved_shots[0])
+	Score.shots_hit = int(saved_shots[1])
+	Score.headshots = int(saved_shots[2])
+	Score.civilians_saved = int(saved_shots[3])
+	Score.civilians_lost = int(saved_shots[4])
+	Score.alternate_paths = int(saved_shots[5])
+	Score.equipment_recovered = int(saved_shots[6])
+	Score.comm_restored = int(saved_shots[7])
+	Score.takedowns = int(saved_shots[8])
+	Score.time_bonus = int(saved_shots[9])
+	Score.damage_taken = int(saved_shots[10])
 
 
 func _check_equipment() -> void:

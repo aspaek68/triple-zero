@@ -681,7 +681,9 @@ func _finish() -> void:
 
 func _on_replay_done() -> void:
 	GameState.show_results_on_load = true
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	# The headless checks call `_finish()` on a detached probe node.
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 
 func _slab(center: Vector3, size: Vector3, color: Color) -> void:

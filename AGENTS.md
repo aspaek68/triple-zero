@@ -246,6 +246,16 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   porte du nœud 1 (aucun temps gagné) et le HUD affichait une porte de retard.
   `_verify._check_drive_chasers()` pose la voiture sur la première porte et
   vérifie le passage + le bonus de temps.
+  **Fin d'acte** : les trois `_on_replay_done()` testent `is_inside_tree()`
+  avant `change_scene_to_file()` : `_verify` appelle `_finish()` sur un nœud
+  détaché et ne doit pas quitter la scène de vérification. Le trajet complet
+  des portes est couvert par `_verify._check_drive_completion()` : il lit la
+  **vraie** liste `_checkpoints` de `drive.tscn`, fait passer une voiture
+  détachée sur chaque porte et exige `_ended`, `GameState.last_act_success` et
+  l'ajout de l'acte à `cleared_acts`. `_finish(true)` appelle
+  `mark_act_cleared()` / `record_run()` (donc `save_to_disk()`) : le test
+  sauvegarde puis restaure les octets de `progress.cfg` et tout l'état en
+  mémoire (score, défi, NG+, équipement).
 - **Secousse d'écran** : elle passe partout par `_add_shake()` (Acte 1, Acte 3),
   qui applique `Options.screen_shake` (0 = coupé). La télégraphie de charge du
   boss écrivait `_shake` directement et ignorait donc l'option.
