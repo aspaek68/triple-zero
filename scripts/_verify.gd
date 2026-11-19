@@ -29,6 +29,7 @@ func _ready() -> void:
 	await _check_tps_route()
 	await _check_drive_completion()
 	_check_rail_completion()
+	_check_tps_completion()
 	_check_score()
 	_check_challenges()
 	_check_death_is_failure()
@@ -1421,6 +1422,37 @@ func _check_rail_completion() -> void:
 	_expect(Progress.cleared_acts.has(GameState.Mode.RAIL),
 		"finishing the rail act does not clear it")
 	probe.free()
+	_restore_run(snapshot)
+
+
+## The Act 1 extraction is the only successful exit: reaching the beacon with
+## the zone open must record the act. A detached probe (no scene change) checks
+## both halves: the closed beacon does nothing, the open one finishes the run.
+func _check_tps_completion() -> void:
+	var snapshot := _snapshot_run()
+	var probe := Node3D.new()
+	probe.set_script(load("res://scripts/modes/tps.gd"))
+	# The probe stays out of the tree (so `_finish()` does not change scene),
+	# but `global_position` needs a real tree: the player lives under the
+	# verify scene and is only referenced by the probe.
+	var player := CharacterBody3D.new()
+	add_child(player)
+	probe._player = player
+	probe._extraction = Vector3(0, 4.5, -78)
+	player.global_position = probe._extraction
+	probe._extraction_open = false
+	probe._update_extraction()
+	_expect(not probe._ended, "the tps extraction finishes the act while closed")
+	probe._extraction_open = true
+	Progress.selected_challenge = "none"
+	Progress.begin()
+	probe._update_extraction()
+	_expect(probe._ended, "reaching the open tps extraction does not finish the act")
+	_expect(GameState.last_act_success, "finishing the tps act reports a failure")
+	_expect(Progress.cleared_acts.has(GameState.Mode.TPS),
+		"finishing the tps act does not clear it")
+	probe.free()
+	player.free()
 	_restore_run(snapshot)
 
 

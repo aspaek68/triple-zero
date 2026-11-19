@@ -278,7 +278,9 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   appelle `_process(1.0)` ; `_finish()` doit marquer `_ended`, la réussite et
   l'acte dans `cleared_acts`. Le nœud reste **hors de l'arbre** pour que
   `is_inside_tree()` empêche `change_scene_to_file()` de quitter la
-  vérification.
+  vérification. `_verify._check_tps_completion()` fait de même pour l'Acte 1 :
+  l'extraction fermée ne doit rien terminer, l'extraction ouverte avec le
+  joueur dessus doit réussir l'acte et le marquer comme terminé.
 - **Secousse d'écran** : elle passe partout par `_add_shake()` (Acte 1, Acte 3),
   qui applique `Options.screen_shake` (0 = coupé). La télégraphie de charge du
   boss écrivait `_shake` directement et ignorait donc l'option.
