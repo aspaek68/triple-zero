@@ -255,7 +255,14 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   l'ajout de l'acte à `cleared_acts`. `_finish(true)` appelle
   `mark_act_cleared()` / `record_run()` (donc `save_to_disk()`) : le test
   sauvegarde puis restaure les octets de `progress.cfg` et tout l'état en
-  mémoire (score, défi, NG+, équipement).
+  mémoire (score, défi, NG+, équipement). Ce test **téléporte** la voiture de
+  porte en porte : il ne peut pas voir un mur en travers de la route ni un
+  minuteur trop court. `_verify._check_drive_route()` conduit donc la **vraie**
+  scène de l'arrivée au dernier portail avec un pilotage synthétique (cible
+  `_path_ahead(pos, 14 + vitesse * 0,45)`, braquage proportionnel, frein à main
+  dans les épingles), trafic et rivaux retirés ; il s'arrête à 18 m du dernier
+  portail pour ne pas déclencher `_finish()`, et coupe si `_time < 2 s` pour
+  qu'un minuteur régressé ne change pas de scène au milieu des contrôles.
 - **Secousse d'écran** : elle passe partout par `_add_shake()` (Acte 1, Acte 3),
   qui applique `Options.screen_shake` (0 = coupé). La télégraphie de charge du
   boss écrivait `_shake` directement et ignorait donc l'option.

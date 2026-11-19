@@ -25,6 +25,7 @@ func _ready() -> void:
 	await _check_replay()
 	await _check_drive_crash()
 	await _check_drive_motion()
+	await _check_drive_route()
 	await _check_tps_route()
 	await _check_drive_completion()
 	_check_score()
@@ -1094,6 +1095,81 @@ func _check_drive_motion() -> void:
 	_expect(speed > 5.0,
 		"the drive car does not move under full throttle (speed %.1f m/s)" % speed)
 	_expect(z < 10.0, "the drive car drives the wrong way down the track (z %.1f)" % z)
+	# Skip `_finish()`: this probe must not record a run or post a result.
+	act._ended = true
+	act.queue_free()
+	await get_tree().physics_frame
+
+
+## Driving the real track end to end proves the bends, the side walls and the
+## gate timer let a car reach every gate. `_check_drive_completion()` teleports
+## a detached car from gate to gate, so it cannot catch a wall across the road
+## or a timer too short for the course. Synthetic steering follows the
+## centreline with a look-ahead point, the same idea as the rivals. The probe
+## stops before the last gate, so `_finish()` never changes scene or records a
+## run.
+func _check_drive_route() -> void:
+	var scene: PackedScene = load("res://scenes/modes/drive.tscn")
+	_expect(scene != null, "drive act scene does not load")
+	if scene == null:
+		return
+	var act = scene.instantiate()
+	add_child(act)
+	# Traffic and rivals would ram a scripted car that cannot react; the route
+	# itself is what this check is about.
+	for t in act._traffic:
+		var tb = t["body"]
+		if is_instance_valid(tb):
+			tb.queue_free()
+	act._traffic.clear()
+	for c in act._chasers:
+		var cb = c["body"]
+		if is_instance_valid(cb):
+			cb.queue_free()
+		c["wrecked"] = true
+	# Let the intro cinematic hand the controls over.
+	for i in 40:
+		await get_tree().physics_frame
+
+	var car = act._car
+	var gates: int = act._checkpoints.size()
+	var reached := false
+	Input.action_press("move_forward")
+	for i in 4000:
+		await get_tree().physics_frame
+		# Bail out before `_finish(false)` fires on the timer: that would post a
+		# failed result and change scene in the middle of the checks.
+		if act._ended or act._time < 2.0:
+			break
+		var pos: Vector3 = car.global_position
+		var speed: float = car.linear_velocity.length()
+		var target: Vector3 = act._path_ahead(pos, 14.0 + speed * 0.45)
+		var diff: float = wrapf(atan2(-(target.x - pos.x), -(target.z - pos.z)) -
+			atan2(car.global_transform.basis.z.x, car.global_transform.basis.z.z),
+			-PI, PI)
+		var steer: float = clampf(absf(diff) * 2.2, 0.15, 1.0)
+		Input.action_release("move_left")
+		Input.action_release("move_right")
+		if diff > 0.0:
+			Input.action_press("move_left", steer)
+		else:
+			Input.action_press("move_right", steer)
+		Input.action_press("move_forward", 1.0 if absf(diff) < 0.5 else 0.2)
+		if absf(diff) > 1.15 and speed > 12.0:
+			Input.action_press("handbrake")
+		else:
+			Input.action_release("handbrake")
+		# `_checkpoint` is 1-based: reaching `gates` means every gate but the
+		# last was crossed. Stop near the last one instead of through it.
+		if act._checkpoint >= gates and gates > 0:
+			var last: Dictionary = act._checkpoints[gates - 1]
+			if Vector2(pos.x - last.pos.x, pos.z - last.pos.z).length() < 18.0:
+				reached = true
+				break
+	for a in ["move_forward", "move_left", "move_right", "handbrake", "boost"]:
+		Input.action_release(a)
+	_expect(reached, "the drive track cannot be driven to its last gate (gate %d/%d)" %
+		[act._checkpoint, gates])
 	# Skip `_finish()`: this probe must not record a run or post a result.
 	act._ended = true
 	act.queue_free()
