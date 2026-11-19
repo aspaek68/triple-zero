@@ -504,8 +504,9 @@ chargeurs valident donc **chaque** valeur avant de l'affecter :
 `TRIPLE ZERO - Prototype`. Godot dérive `user://` du `config/name`, donc passer
 à `TRIPLE ZERO` change le dossier de sauvegarde et **orphelinerait** les parties
 existantes. `GameState._ready()` appelle `_migrate_legacy_saves()` **avant**
-`Options.load_from_disk()` : il copie `options.cfg`, `progress.cfg` et
-`level.json` de l'ancien dossier vers le nouveau, fichier par fichier, sans
+`Options.load_from_disk()` : il copie `options.cfg`, `progress.cfg`,
+`level.json` et `tutorial_done` de l'ancien dossier vers le nouveau, fichier
+par fichier, sans
 jamais écraser un fichier déjà présent, et laisse l'ancien dossier intact.
 `_migrate_files(new_dir, old_dir)` prend les chemins en paramètres pour être
 testable ; `_verify._check_save_migration()` vérifie la copie, le non-écrasement

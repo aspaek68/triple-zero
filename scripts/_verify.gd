@@ -991,6 +991,12 @@ func _check_save_migration() -> void:
 	if legacy:
 		legacy.store_string("[progress]\nng_plus_enabled=true\n")
 		legacy.close()
+	# `tutorial_done` is a zero-byte marker: it must survive the move too, or a
+	# returning player is shown the Act 1 hints again.
+	var tutorial := FileAccess.open(old_dir.path_join("tutorial_done"), FileAccess.WRITE)
+	_expect(tutorial != null, "could not write the legacy tutorial marker")
+	if tutorial:
+		tutorial.close()
 	var existing := FileAccess.open(new_dir.path_join("options.cfg"), FileAccess.WRITE)
 	_expect(existing != null, "could not write the new save fixture")
 	if existing:
@@ -1001,6 +1007,8 @@ func _check_save_migration() -> void:
 		"a legacy save was not migrated into the new project folder")
 	_expect(FileAccess.get_file_as_string(new_dir.path_join("options.cfg")) == "keep",
 		"save migration overwrote a file the new folder already had")
+	_expect(FileAccess.file_exists(new_dir.path_join("tutorial_done")),
+		"the legacy tutorial marker was not migrated")
 	_expect(not FileAccess.file_exists(new_dir.path_join("level.json")),
 		"save migration invented a save that never existed")
 	# Running it twice must be harmless (the new folder already has the file).

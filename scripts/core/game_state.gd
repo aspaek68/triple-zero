@@ -9,7 +9,7 @@ enum Mode { TPS, RAIL, DRIVE }
 ## called "TRIPLE ZERO - Prototype" until release; renaming it would otherwise
 ## orphan every existing save, so `_ready()` copies the three save files over.
 const LEGACY_APP_NAME := "TRIPLE ZERO - Prototype"
-const SAVE_FILES: Array = ["options.cfg", "progress.cfg", "level.json"]
+const SAVE_FILES: Array = ["options.cfg", "progress.cfg", "level.json", "tutorial_done"]
 
 ## Emitted when the active input device changes (keyboard <-> gamepad),
 ## so HUDs can swap their button prompts.
