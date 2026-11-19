@@ -59,6 +59,11 @@ func _ready() -> void:
 	Input.joy_connection_changed.connect(_on_joy_changed)
 
 
+func _exit_tree() -> void:
+	# Release the static caches while the RenderingServer is still alive.
+	EnvBuilder.clear_caches()
+
+
 func _migrate_legacy_saves() -> void:
 	var new_dir := OS.get_user_data_dir()
 	_migrate_files(new_dir, new_dir.get_base_dir().path_join(LEGACY_APP_NAME))
@@ -108,6 +113,15 @@ func parse_cli() -> void:
 			value = arg.get_slice("=", 1)
 		if value.is_valid_int():
 			mode = clampi(int(value) - 1, 0, 2) as Mode
+
+
+## True when the command line actually asked for an act. The menu must not
+## auto-launch on unrelated user arguments such as `--mute` (validation runs).
+func has_cli_mode() -> bool:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--mode=") or arg.begins_with("--mission="):
+			return true
+	return false
 
 
 ## Tracks which device is active by watching incoming events.

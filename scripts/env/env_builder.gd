@@ -44,23 +44,16 @@ const TEXTURE_SCALE := {
 }
 
 
-## Adds sky, sun, environment and a soft fill light under `parent`.
+## Adds sky, sun and environment under `parent`.
+##
+## There is deliberately **no** ReflectionProbe here: in Forward+ (Vulkan) a
+## probe allocates seven internal texture RIDs that Godot 4.7.2 does not free at
+## exit, even when the node is freed before quitting, so every act ended with
+## "7 RIDs of type Texture were leaked". SSR (`_apply_advanced_lighting`) and the
+## sky's radiance still give the wet-asphalt / glass / metal reflections.
 static func setup_world(parent: Node, sun_degrees: float = -48.0) -> void:
 	parent.add_child(_build_environment())
 	parent.add_child(_build_sun(sun_degrees))
-	parent.add_child(_build_reflection_probe())
-
-
-static func _build_reflection_probe() -> ReflectionProbe:
-	var probe := ReflectionProbe.new()
-	probe.name = "ReflectionProbe"
-	probe.size = Vector3(120, 60, 120)
-	probe.position = Vector3(0, 8, -30)
-	probe.update_mode = ReflectionProbe.UPDATE_ONCE
-	probe.intensity = 1.0
-	probe.max_distance = 80.0
-	probe.mesh_lod_threshold = 0.5
-	return probe
 
 
 static func _build_environment() -> WorldEnvironment:
@@ -365,9 +358,17 @@ static func _is_imported(path: String) -> bool:
 		return false
 	while not file.eof_reached():
 		var line := file.get_line()
-		if line.begins_with("path="):
-			var remap := line.substr(5).strip_edges().trim_prefix("\"").trim_suffix("\"")
-			return FileAccess.file_exists(remap)
+		# Godot 4.7 writes one remap per texture format: `path.bptc=...`,
+		# `path.s3tc=...`, `path.etc2=...` (older files use a bare `path=`).
+		# Matching only `path=` made this return false for every asset, so all
+		# textures were decoded at runtime and the glTF models re-imported.
+		if line.begins_with("path=") or line.begins_with("path."):
+			var eq := line.find("=")
+			if eq < 0:
+				continue
+			var remap := line.substr(eq + 1).strip_edges().trim_prefix("\"").trim_suffix("\"")
+			if FileAccess.file_exists(remap):
+				return true
 	return false
 
 
@@ -648,3 +649,15 @@ static var _model_cache: Dictionary = {}
 static var _scene_cache: Dictionary = {}
 static var _texture_cache: Dictionary = {}
 static var _path_cache: Dictionary = {}
+
+
+## The static caches keep meshes, scenes and textures alive for the whole
+## session (that is the point). Releasing them at shutdown keeps the references
+## from outliving the scene tree; this is good hygiene, not a workaround for a
+## leak (the Forward+-only texture leak came from the ReflectionProbe, which is
+## no longer created — see `setup_world`).
+static func clear_caches() -> void:
+	_model_cache.clear()
+	_scene_cache.clear()
+	_texture_cache.clear()
+	_path_cache.clear()

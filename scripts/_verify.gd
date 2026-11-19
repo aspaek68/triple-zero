@@ -36,6 +36,11 @@ func _ready() -> void:
 	_check_death_is_failure()
 	_check_cover()
 	_check_save_migration()
+	_check_forward_only_materials()
+	_check_import_remaps()
+	_check_no_reflection_probe()
+	_check_env_cache_release()
+	_check_mute_validation_arg()
 	_check_drive_chasers()
 	_check_equipment()
 	_check_keybinds()
@@ -974,6 +979,101 @@ func _check_cover() -> void:
 	probe.free()
 	Progress.selected_challenge = saved_challenge
 	Progress.begin()
+
+
+## Godot 4.7 writes texture remaps as `path.bptc=...` (one per format), not a
+## bare `path=...`. Matching only the bare key silently sent every texture and
+## WAV through the runtime decoder and re-imported the glTF models at runtime.
+func _check_import_remaps() -> void:
+	for path in ["res://scripts/env/env_builder.gd", "res://scripts/core/audio.gd"]:
+		var source := FileAccess.get_file_as_string(path)
+		_expect(source.contains('line.begins_with("path.")'),
+			"%s does not recognise path.<format> remaps" % path)
+	var asset := "res://assets/textures_cc0/asphalt.png"
+	if _import_remap_exists(asset):
+		_expect(EnvBuilder._is_imported(asset),
+			"an imported texture is still decoded at runtime")
+
+
+func _import_remap_exists(path: String) -> bool:
+	var file := FileAccess.open(path + ".import", FileAccess.READ)
+	if file == null:
+		return false
+	while not file.eof_reached():
+		var line := file.get_line()
+		if line.begins_with("path=") or line.begins_with("path."):
+			var eq := line.find("=")
+			if eq >= 0:
+				var remap := line.substr(eq + 1).strip_edges().trim_prefix("\"").trim_suffix("\"")
+				if FileAccess.file_exists(remap):
+					return true
+	return false
+
+
+## Forward+ only: a ReflectionProbe leaves 7 texture RIDs allocated at exit in
+## Godot 4.7.2, even when the node is freed before quitting. The world keeps SSR
+## and the sky's radiance instead, so the high-quality launcher exits clean.
+func _check_no_reflection_probe() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/env/env_builder.gd")
+	_expect(not source.contains("ReflectionProbe.new()"),
+		"a ReflectionProbe leaks 7 texture RIDs at exit in Forward+")
+
+
+## Godot 4.7 strips engine arguments from `OS.get_cmdline_args()`, so the timed
+## renderer harness has to ask for silence with an explicit `--mute` user arg.
+## The menu must distinguish that from a real `--mode=` / `--mission=` request,
+## or a muted menu run would auto-launch Act 1.
+func _check_mute_validation_arg() -> void:
+	var audio := FileAccess.get_file_as_string("res://scripts/core/audio.gd")
+	_expect(audio.contains('get_cmdline_user_args().has("--mute")'),
+		"Audio does not honour the --mute validation argument")
+	var menu := FileAccess.get_file_as_string("res://scripts/ui/menu.gd")
+	_expect(not menu.contains("OS.get_cmdline_user_args().size()"),
+		"the menu auto-launches an act on any user argument (including --mute)")
+	var state := FileAccess.get_file_as_string("res://scripts/core/game_state.gd")
+	_expect(state.contains("func has_cli_mode()"),
+		"GameState cannot tell a real --mode= argument from --mute")
+
+
+## EnvBuilder's static caches outlive the scene tree. Releasing them at shutdown
+## keeps meshes/textures from surviving the scene; check the shutdown hook and
+## the clearing itself, then restore the caches so later checks stay warm.
+## (The Forward+ texture leak was a ReflectionProbe issue, covered separately.)
+func _check_env_cache_release() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/core/game_state.gd")
+	_expect(source.contains("EnvBuilder.clear_caches()"),
+		"GameState does not release the EnvBuilder caches at shutdown")
+	var textures: Dictionary = EnvBuilder._texture_cache.duplicate()
+	var paths: Dictionary = EnvBuilder._path_cache.duplicate()
+	var models: Dictionary = EnvBuilder._model_cache.duplicate()
+	var scenes: Dictionary = EnvBuilder._scene_cache.duplicate()
+	EnvBuilder._texture_cache["_verify_probe"] = ImageTexture.new()
+	EnvBuilder._path_cache["_verify_probe"] = "x"
+	EnvBuilder._model_cache["_verify_probe"] = null
+	EnvBuilder._scene_cache["_verify_probe"] = null
+	EnvBuilder.clear_caches()
+	_expect(EnvBuilder._texture_cache.is_empty(), "clear_caches leaves textures cached")
+	_expect(EnvBuilder._path_cache.is_empty(), "clear_caches leaves paths cached")
+	_expect(EnvBuilder._model_cache.is_empty(), "clear_caches leaves meshes cached")
+	_expect(EnvBuilder._scene_cache.is_empty(), "clear_caches leaves scenes cached")
+	EnvBuilder._texture_cache = textures
+	EnvBuilder._path_cache = paths
+	EnvBuilder._model_cache = models
+	EnvBuilder._scene_cache = scenes
+
+
+## GL Compatibility ignores (and warns about) Forward+-only material features.
+## Headless uses the dummy driver, so these warnings never appeared in the
+## normal validation; they only show up in a real windowed run. Keep the source
+## guarded and assert it here so a future edit cannot reintroduce them.
+func _check_forward_only_materials() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/env/character.gd")
+	var guard := source.find('get_current_rendering_method() == "forward_plus"')
+	var subsurf := source.find("subsurf_scatter_enabled")
+	_expect(guard >= 0,
+		"character material does not guard its Forward+-only features")
+	_expect(guard >= 0 and subsurf > guard,
+		"subsurface scattering is enabled outside the Forward+ guard")
 
 
 ## The project was renamed from "TRIPLE ZERO - Prototype" to "TRIPLE ZERO":

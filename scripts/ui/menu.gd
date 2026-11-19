@@ -8,7 +8,7 @@ var _results: VBoxContainer
 
 func _ready() -> void:
 	GameState.parse_cli()
-	if not GameState.cli_consumed and OS.get_cmdline_user_args().size() > 0:
+	if not GameState.cli_consumed and GameState.has_cli_mode():
 		GameState.cli_consumed = true
 		_launch.call_deferred(GameState.mode)
 		return

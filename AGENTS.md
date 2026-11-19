@@ -26,6 +26,24 @@ fonctionne pas, donc la validation se fait en headless.
 
 Viser **0 ERROR / 0 WARNING** dans les logs pour chaque mode.
 
+### Validation en rendu réel (Windows, ce poste)
+
+Le binaire console est
+`C:\Users\guillaume\Desktop\programme\Godot_v4.7.2\Godot_v4.7.2-stable_win64_console.exe`.
+Les runs chronométrés (`--quit-after`) passent `--mute` après `--` : sans lui,
+Godot 4.7.2 peut signaler un playback audio comme fuité au shutdown (course du
+moteur, voir la section Audio). Le menu n'a pas besoin de `--mute`, mais
+l'accepter vérifie qu'il n'auto-lance pas un acte.
+
+```powershell
+$exe = "C:\Users\guillaume\Desktop\programme\Godot_v4.7.2\Godot_v4.7.2-stable_win64_console.exe"
+& $exe --path . --rendering-method gl_compatibility --quit-after 600 -- --mode=1 --mute
+& $exe --path . --rendering-method forward_plus --quit-after 600 -- --mode=1 --mute
+& $exe --path . --rendering-method gl_compatibility --quit-after 300 res://scenes/main.tscn -- --mute
+```
+
+Puis filtrer les logs sur `SCRIPT ERROR|ERROR:|WARNING:|leak|RIDs|ObjectDB`.
+
 ## Pièges connus
 
 - **Cache d'import `.godot/`** : ignoré par Git. Sans lui, `load()` sur un asset
@@ -48,6 +66,12 @@ Viser **0 ERROR / 0 WARNING** dans les logs pour chaque mode.
   SSAO/SSR/SSIL ni de brouillard volumétrique. `EnvBuilder._apply_advanced_lighting()`
   teste `RenderingServer.get_current_rendering_method()` (et non le réglage
   projet), donc les deux chemins restent corrects.
+- **Pas de ReflectionProbe** : `setup_world()` n'en crée volontairement plus.
+  En Forward+ (Vulkan), une sonde alloue sept RID de texture internes que Godot
+  4.7.2 ne libère pas à la fermeture, même si le nœud est libéré avant de
+  quitter : chaque acte finissait sur « 7 RIDs of type Texture were leaked ».
+  Les reflets restent assurés par la SSR (`_apply_advanced_lighting`) et la
+  radiance du ciel. `_verify._check_no_reflection_probe()` verrouille ça.
 - **Indentation** : tous les `.gd` utilisent des tabulations. Les patchs Python
   par chaîne exacte sont plus sûrs que des éditeurs qui convertissent en
   espaces : Godot refuse un fichier qui mélange espaces et tabulations. Après
@@ -376,6 +400,17 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   driver audio est `Dummy` : `Audio` construit les bus mais ne joue rien
   (`_silent`), sinon les playbacks restent référencés par l'`AudioServer` au
   `--quit-after` et Godot logue un faux « ObjectDB instances were leaked ».
+  Pour la même raison, les runs de validation chronométrés passent l'argument
+  utilisateur `--mute` (ex. `-- --mode=2 --mute`) et `_ready()` passe alors en
+  `_silent` : couper le process à une image exacte (`--quit-after`), parfois en
+  pleine mixage, laisse Godot 4.7.2 signaler un playback comme fuité — course au
+  shutdown du moteur, pas une fuite du jeu (la même exécution est propre une
+  image plus tard). Attention : Godot 4.7 **retire** les arguments moteur de
+  `OS.get_cmdline_args()` (il renvoie `[]`), donc on ne peut pas détecter
+  `--quit-after` depuis le jeu ; d'où l'argument explicite. Le jeu normal et la
+  fermeture de fenêtre passent toujours par `_silence()` (arrêt + verrou
+  `AudioServer.lock()`/`unlock()` pour laisser finir le mix courant), et
+  `stop_music()` relâche aussi le stream.
 
 
 ## Personnages (skinning procédural)

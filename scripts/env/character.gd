@@ -105,12 +105,16 @@ func _build(clothes: Color, accent: Color, heavy: bool, variant: String) -> void
 	_material.vertex_color_use_as_albedo = true
 	_material.roughness = 0.72
 	# Subsurface scattering: skin reads as organic rather than plastic (Forward+).
-	_material.subsurf_scatter_enabled = true
-	_material.subsurf_scatter_strength = 0.4
-	_material.subsurf_scatter_skin_mode = true
-	_material.subsurf_scatter_transmittance_enabled = true
-	_material.subsurf_scatter_transmittance_color = Color(0.85, 0.35, 0.25)
-	_material.subsurf_scatter_transmittance_depth = 0.6
+	# GL Compatibility ignores these and logs two warnings per run ("Subsurface
+	# scattering is only available..." + "Transmittance..."). The headless tests
+	# use the dummy driver, so only a real windowed run showed them.
+	if RenderingServer.get_current_rendering_method() == "forward_plus":
+		_material.subsurf_scatter_enabled = true
+		_material.subsurf_scatter_strength = 0.4
+		_material.subsurf_scatter_skin_mode = true
+		_material.subsurf_scatter_transmittance_enabled = true
+		_material.subsurf_scatter_transmittance_color = Color(0.85, 0.35, 0.25)
+		_material.subsurf_scatter_transmittance_depth = 0.6
 	# Woven micro-detail (if the generated texture exists): breaks up the flat
 	# plastic look of the blockout body without recolouring it.
 	var fabric := EnvBuilder.load_texture("res://assets/textures/fabric.png")

@@ -20,12 +20,23 @@ var _duck := 0.0
 ## and leaves playbacks referenced by the AudioServer when the engine tears down
 ## (the `--quit-after` ObjectDB leak warning). Buses are still built so the mix
 ## layout stays valid; only playback is skipped.
+##
+## Timed validation runs pass the user argument `--mute` (`-- --mode=2 --mute`)
+## for the same reason. `--quit-after` cuts the process at an exact frame,
+## possibly while a stream is mixing, and Godot 4.7.2 then reports the playback
+## it still holds as leaked at exit — an engine shutdown race, not a game leak
+## (the same run is clean when it quits a frame later). Godot 4.7 strips engine
+## arguments from `OS.get_cmdline_args()`, so the harness has to ask explicitly.
+## Real play never passes `--mute`, and the window-close path still silences
+## through `_silence()`.
 var _silent := false
 
 
 func _ready() -> void:
 	_ensure_buses()
 	_silent = AudioServer.get_driver_name() == "Dummy"
+	if OS.get_cmdline_user_args().has("--mute"):
+		_silent = true
 	if _silent:
 		return
 	_load_clips()
@@ -52,6 +63,13 @@ func _silence() -> void:
 			v.stop()
 			v.stream = null
 	_voices.clear()
+	# Stopping only clears the player's own reference; the audio thread can still
+	# hold a temporary one while it is mixing, which Godot then reports as a
+	# leaked AudioStreamPlayback at exit. Taking the server lock waits for the
+	# current mix to finish, so those temporary references are gone before the
+	# engine tears down. (Without this, quitting during music leaked 10 objects.)
+	AudioServer.lock()
+	AudioServer.unlock()
 
 
 func _process(delta: float) -> void:
@@ -143,9 +161,15 @@ func _is_imported(path: String) -> bool:
 		return false
 	while not file.eof_reached():
 		var line := file.get_line()
-		if line.begins_with("path="):
-			var remap := line.substr(5).strip_edges().trim_prefix("\"").trim_suffix("\"")
-			return FileAccess.file_exists(remap)
+		# Godot 4.7 writes one remap per format (`path.bptc=...`, `path=...`).
+		# Matching only `path=` forced every WAV through the runtime decoder.
+		if line.begins_with("path=") or line.begins_with("path."):
+			var eq := line.find("=")
+			if eq < 0:
+				continue
+			var remap := line.substr(eq + 1).strip_edges().trim_prefix("\"").trim_suffix("\"")
+			if FileAccess.file_exists(remap):
+				return true
 	return false
 
 
@@ -346,6 +370,10 @@ func start_music(kind: String) -> void:
 func stop_music() -> void:
 	if _music_player:
 		_music_player.stop()
+		# Drop the stream as well: keeping the built AudioStreamSynchronized (and
+		# its four WAV layers) alive for a track that will never resume just makes
+		# shutdown hold more references than it needs to.
+		_music_player.stream = null
 
 
 func _make_tone(freq: float, duration: float, sweep: float) -> AudioStreamWAV:
