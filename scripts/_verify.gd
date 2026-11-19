@@ -28,6 +28,7 @@ func _ready() -> void:
 	await _check_drive_route()
 	await _check_tps_route()
 	await _check_drive_completion()
+	_check_rail_completion()
 	_check_score()
 	_check_challenges()
 	_check_death_is_failure()
@@ -763,6 +764,17 @@ func _check_score() -> void:
 	Score.register_shot(false)
 	var with_shots := Score.total()
 	_expect(with_shots > no_shots, "firing shots should score above the empty run")
+
+	# Headshots are worth more than body hits and must actually be reachable:
+	# the TPS act used to call `register_shot()` without the head flag, so the
+	# 150-point bonus and the headshot counter stayed dead.
+	Score.reset()
+	Score.register_shot(true)
+	var body_only := Score.total()
+	Score.reset()
+	Score.register_shot(true, true)
+	_expect(Score.headshots == 1, "a headshot does not increment the headshot count")
+	_expect(Score.total() > body_only, "a headshot does not score above a body hit")
 	Score.reset()
 
 
@@ -1272,35 +1284,7 @@ func _check_tps_route() -> void:
 ## `_finish(true)` records a run and unlocks equipment, so the save bytes and
 ## the in-memory state are restored afterwards.
 func _check_drive_completion() -> void:
-	var progress_bytes := PackedByteArray()
-	if FileAccess.file_exists(Progress.PATH):
-		progress_bytes = FileAccess.get_file_as_bytes(Progress.PATH)
-	var saved := {
-		"cleared_acts": Progress.cleared_acts.duplicate(),
-		"equipment_unlocked": Progress.equipment_unlocked,
-		"best_score": Progress.best_score.duplicate(),
-		"best_rank": Progress.best_rank.duplicate(),
-		"ng_plus_unlocked": Progress.ng_plus_unlocked,
-		"ng_plus_enabled": Progress.ng_plus_enabled,
-		"selected_challenge": Progress.selected_challenge,
-		"last_success": Progress.last_success,
-		"last_name": Progress.last_name,
-		"last_record": Progress.last_record,
-		"last_reason": Progress.last_reason,
-		"_active": Progress._active,
-		"_skipped": Progress._skipped,
-		"_elapsed": Progress._elapsed,
-		"_failed": Progress._failed,
-		"_fail_reason": Progress._fail_reason,
-	}
-	var saved_success: bool = GameState.last_act_success
-	var saved_reason: String = GameState.last_act_reason
-	var saved_show: bool = GameState.show_results_on_load
-	var saved_ng: bool = GameState.ng_plus
-	var saved_shots := [Score.shots_fired, Score.shots_hit, Score.headshots,
-		Score.civilians_saved, Score.civilians_lost, Score.alternate_paths,
-		Score.equipment_recovered, Score.comm_restored, Score.takedowns,
-		Score.time_bonus, Score.damage_taken]
+	var snapshot := _snapshot_run()
 
 	var scene: PackedScene = load("res://scenes/modes/drive.tscn")
 	_expect(scene != null, "drive act scene does not load")
@@ -1338,41 +1322,106 @@ func _check_drive_completion() -> void:
 		"finishing the drive act does not clear it")
 	probe.free()
 	host.free()
+	_restore_run(snapshot)
 
-	# Restore the player's save and live state byte for byte.
-	_restore_save(Progress.PATH, progress_bytes)
+
+## Everything a finished run can change: the save file bytes plus the live
+## autoload state. Completion tests call the real `_finish()` (that is the
+## point), so they must put the player's progress back exactly as it was.
+func _snapshot_run() -> Dictionary:
+	var bytes := PackedByteArray()
+	if FileAccess.file_exists(Progress.PATH):
+		bytes = FileAccess.get_file_as_bytes(Progress.PATH)
+	return {
+		"bytes": bytes,
+		"cleared_acts": Progress.cleared_acts.duplicate(),
+		"equipment_unlocked": Progress.equipment_unlocked,
+		"best_score": Progress.best_score.duplicate(),
+		"best_rank": Progress.best_rank.duplicate(),
+		"ng_plus_unlocked": Progress.ng_plus_unlocked,
+		"ng_plus_enabled": Progress.ng_plus_enabled,
+		"selected_challenge": Progress.selected_challenge,
+		"last_success": Progress.last_success,
+		"last_name": Progress.last_name,
+		"last_record": Progress.last_record,
+		"last_reason": Progress.last_reason,
+		"_active": Progress._active,
+		"_skipped": Progress._skipped,
+		"_elapsed": Progress._elapsed,
+		"_failed": Progress._failed,
+		"_fail_reason": Progress._fail_reason,
+		"last_act_success": GameState.last_act_success,
+		"last_act_reason": GameState.last_act_reason,
+		"show_results_on_load": GameState.show_results_on_load,
+		"ng_plus": GameState.ng_plus,
+		"score": [Score.shots_fired, Score.shots_hit, Score.headshots,
+			Score.civilians_saved, Score.civilians_lost, Score.alternate_paths,
+			Score.equipment_recovered, Score.comm_restored, Score.takedowns,
+			Score.time_bonus, Score.damage_taken],
+	}
+
+
+func _restore_run(snapshot: Dictionary) -> void:
+	_restore_save(Progress.PATH, snapshot["bytes"])
 	Progress.load_from_disk()
-	Progress.cleared_acts = saved["cleared_acts"]
-	Progress.equipment_unlocked = int(saved["equipment_unlocked"])
-	Progress.best_score = saved["best_score"]
-	Progress.best_rank = saved["best_rank"]
-	Progress.ng_plus_unlocked = bool(saved["ng_plus_unlocked"])
-	Progress.ng_plus_enabled = bool(saved["ng_plus_enabled"])
-	Progress.selected_challenge = String(saved["selected_challenge"])
-	Progress.last_success = bool(saved["last_success"])
-	Progress.last_name = String(saved["last_name"])
-	Progress.last_record = bool(saved["last_record"])
-	Progress.last_reason = String(saved["last_reason"])
-	Progress._active = String(saved["_active"])
-	Progress._skipped = String(saved["_skipped"])
-	Progress._elapsed = float(saved["_elapsed"])
-	Progress._failed = bool(saved["_failed"])
-	Progress._fail_reason = String(saved["_fail_reason"])
-	GameState.last_act_success = saved_success
-	GameState.last_act_reason = saved_reason
-	GameState.show_results_on_load = saved_show
-	GameState.ng_plus = saved_ng
-	Score.shots_fired = int(saved_shots[0])
-	Score.shots_hit = int(saved_shots[1])
-	Score.headshots = int(saved_shots[2])
-	Score.civilians_saved = int(saved_shots[3])
-	Score.civilians_lost = int(saved_shots[4])
-	Score.alternate_paths = int(saved_shots[5])
-	Score.equipment_recovered = int(saved_shots[6])
-	Score.comm_restored = int(saved_shots[7])
-	Score.takedowns = int(saved_shots[8])
-	Score.time_bonus = int(saved_shots[9])
-	Score.damage_taken = int(saved_shots[10])
+	Progress.cleared_acts = snapshot["cleared_acts"]
+	Progress.equipment_unlocked = int(snapshot["equipment_unlocked"])
+	Progress.best_score = snapshot["best_score"]
+	Progress.best_rank = snapshot["best_rank"]
+	Progress.ng_plus_unlocked = bool(snapshot["ng_plus_unlocked"])
+	Progress.ng_plus_enabled = bool(snapshot["ng_plus_enabled"])
+	Progress.selected_challenge = String(snapshot["selected_challenge"])
+	Progress.last_success = bool(snapshot["last_success"])
+	Progress.last_name = String(snapshot["last_name"])
+	Progress.last_record = bool(snapshot["last_record"])
+	Progress.last_reason = String(snapshot["last_reason"])
+	Progress._active = String(snapshot["_active"])
+	Progress._skipped = String(snapshot["_skipped"])
+	Progress._elapsed = float(snapshot["_elapsed"])
+	Progress._failed = bool(snapshot["_failed"])
+	Progress._fail_reason = String(snapshot["_fail_reason"])
+	GameState.last_act_success = bool(snapshot["last_act_success"])
+	GameState.last_act_reason = String(snapshot["last_act_reason"])
+	GameState.show_results_on_load = bool(snapshot["show_results_on_load"])
+	GameState.ng_plus = bool(snapshot["ng_plus"])
+	var s: Array = snapshot["score"]
+	Score.shots_fired = int(s[0])
+	Score.shots_hit = int(s[1])
+	Score.headshots = int(s[2])
+	Score.civilians_saved = int(s[3])
+	Score.civilians_lost = int(s[4])
+	Score.alternate_paths = int(s[5])
+	Score.equipment_recovered = int(s[6])
+	Score.comm_restored = int(s[7])
+	Score.takedowns = int(s[8])
+	Score.time_bonus = int(s[9])
+	Score.damage_taken = int(s[10])
+
+
+## The rail act ends when `_travel` reaches `_rail_len`. Headless runs never get
+## there (the real scene changes to the menu on `_finish()`), so nothing proved
+## the end of the rail actually posts a result. A detached probe with a camera
+## gets `_travel` just under the end and one `_process()` tick must trigger the
+## real `_finish()`. Detached means `is_inside_tree()` is false, so the finish
+## path records the run without changing scene; `_restore_run()` then puts the
+## save and live state back.
+func _check_rail_completion() -> void:
+	var snapshot := _snapshot_run()
+	var probe := Node3D.new()
+	probe.set_script(load("res://scripts/modes/rail.gd"))
+	var camera := Camera3D.new()
+	probe.add_child(camera)
+	probe._camera = camera
+	probe._travel = probe._rail_len - 0.5
+	Progress.selected_challenge = "none"
+	Progress.begin()
+	probe._process(1.0)
+	_expect(probe._ended, "the rail act does not finish at the end of the rail")
+	_expect(GameState.last_act_success, "finishing the rail act reports a failure")
+	_expect(Progress.cleared_acts.has(GameState.Mode.RAIL),
+		"finishing the rail act does not clear it")
+	probe.free()
+	_restore_run(snapshot)
 
 
 func _check_equipment() -> void:
@@ -1526,6 +1575,15 @@ func _check_combat() -> void:
 		tps._fire()
 		_expect(Score.shots_fired == 1, "the TPS trigger fires no shot")
 		_expect(tps._ammo == ammo_before - 1, "firing does not spend ammo")
+		# The headshot band comes from the enemy's own head marker (which also
+		# carries the boss scale), so check both ends of the capsule.
+		var enemy := Enemy.make(Vector3(0, 0, 0), false)
+		tps.add_child(enemy)
+		_expect(tps._is_headshot(enemy, enemy._mesh.global_position),
+			"a hit on the head marker does not count as a headshot")
+		_expect(not tps._is_headshot(enemy, Vector3(0, 0.3, 0)),
+			"a hit in the legs counts as a headshot")
+		enemy.free()
 		tps._ended = true
 		tps.queue_free()
 		await get_tree().process_frame

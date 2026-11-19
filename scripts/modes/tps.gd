@@ -838,7 +838,7 @@ func _fire() -> void:
 		var collider = shot.get("collider", null)
 		if collider != null and not (collider is Enemy):
 			Vfx.impact_mark(self, shot["point"], shot["normal"])
-	Score.register_shot(shot["hit"])
+	Score.register_shot(shot["hit"], bool(shot.get("head", false)))
 
 
 ## Shoots down the centre of the camera, so the shot always lands where the
@@ -859,11 +859,12 @@ func _resolve_shot() -> Dictionary:
 			var enemy := collider as Enemy
 			if enemy._dying:
 				return {"hit": false, "point": point, "normal": normal, "surface": true, "collider": collider}
+			var head := _is_headshot(enemy, point)
 			Audio.hit_confirm()
 			enemy.take_damage(1)
 			if _hud:
 				_hud.reticle_hit()
-			return {"hit": true, "point": point, "normal": normal, "surface": true, "collider": collider}
+			return {"hit": true, "point": point, "normal": normal, "surface": true, "collider": collider, "head": head}
 		if collider is Destructible:
 			var prop := collider as Destructible
 			prop.take_damage(1)
@@ -881,6 +882,17 @@ func _resolve_shot() -> Dictionary:
 		return {"hit": true, "point": chest, "normal": (from - chest).normalized(), "surface": true, "collider": assisted}
 	# Nothing in the way: the tracer still flies off into the distance.
 	return {"hit": false, "point": from + aim_dir * 120.0, "normal": -aim_dir, "surface": false, "collider": null}
+
+
+## The capsule is the hitbox, so a headshot means the impact landed in the top
+## band of it. `Enemy._mesh` is the invisible marker the enemy keeps at head
+## height, and its global position already carries the boss scale. Without this
+## check `Score.headshots` stayed at 0 forever and the 150-point headshot bonus
+## in `Score.total()` was unreachable.
+func _is_headshot(enemy: Enemy, point: Vector3) -> bool:
+	if enemy._mesh == null:
+		return false
+	return point.y >= enemy._mesh.global_position.y - 0.25
 
 
 ## Nearest living enemy inside the aim-assist cone with a clear line of sight.

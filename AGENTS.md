@@ -180,6 +180,15 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   (l'Acte 3 offrait sinon 1000 points gratuits). HUD et écran de résultats
   masquent la ligne « Précision » dans ce cas ; un impact de voiture rivale
   appelle `Score.register_damage(1)` pour couper le multiplicateur ×1.5.
+- **Tirs à la tête** : `Score.register_shot(hit, head)` et le bonus de 150
+  points par tête existaient, mais `tps._fire()` appelait toujours
+  `register_shot(shot["hit"])` : le compteur restait à 0 et le bonus était
+  inatteignable. `_resolve_shot()` renvoie maintenant `head`, calculé par
+  `_is_headshot(enemy, point)` : la capsule est la hitbox, donc un tir est une
+  tête quand il touche la bande supérieure, repérée par le marqueur invisible
+  `Enemy._mesh` (déjà à hauteur de tête et mis à l'échelle du boss). L'aide à
+  la visée renvoie le torse, donc elle ne donne pas de tête gratuite.
+  `_verify` vérifie le marqueur, les jambes, et le score tête > corps.
 - **Voitures rivales** : `_build_chasers()` crée trois `VehicleBody3D`, mais
   c'est `_update_chasers(delta)` — appelé depuis `_physics_process` — qui les
   conduit, les fait percuter (`Progress.fail("percuté")` +
@@ -255,7 +264,8 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   l'ajout de l'acte à `cleared_acts`. `_finish(true)` appelle
   `mark_act_cleared()` / `record_run()` (donc `save_to_disk()`) : le test
   sauvegarde puis restaure les octets de `progress.cfg` et tout l'état en
-  mémoire (score, défi, NG+, équipement). Ce test **téléporte** la voiture de
+  mémoire (score, défi, NG+, équipement) via `_snapshot_run()` /
+  `_restore_run()`. Ce test **téléporte** la voiture de
   porte en porte : il ne peut pas voir un mur en travers de la route ni un
   minuteur trop court. `_verify._check_drive_route()` conduit donc la **vraie**
   scène de l'arrivée au dernier portail avec un pilotage synthétique (cible
@@ -263,6 +273,12 @@ sol des replis centrés via `_sit_on_floor`). Ordre de repli :
   dans les épingles), trafic et rivaux retirés ; il s'arrête à 18 m du dernier
   portail pour ne pas déclencher `_finish()`, et coupe si `_time < 2 s` pour
   qu'un minuteur régressé ne change pas de scène au milieu des contrôles.
+  L'Acte 2 n'avait aucun test de fin : `_verify._check_rail_completion()` pose
+  un nœud détaché avec une caméra, met `_travel` juste avant `_rail_len` et
+  appelle `_process(1.0)` ; `_finish()` doit marquer `_ended`, la réussite et
+  l'acte dans `cleared_acts`. Le nœud reste **hors de l'arbre** pour que
+  `is_inside_tree()` empêche `change_scene_to_file()` de quitter la
+  vérification.
 - **Secousse d'écran** : elle passe partout par `_add_shake()` (Acte 1, Acte 3),
   qui applique `Options.screen_shake` (0 = coupé). La télégraphie de charge du
   boss écrivait `_shake` directement et ignorait donc l'option.
